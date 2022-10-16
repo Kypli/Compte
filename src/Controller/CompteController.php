@@ -57,9 +57,9 @@ class CompteController extends AbstractController
 	{
 		$categories = $compte->getCategories();
 
-		foreach(){
+		// foreach(){
 
-		}
+		// }
 		$operations = $cr->getOperationsByDateAndCompte($compte->getId(), date('Y'));
 		dump($operations);
 		die;

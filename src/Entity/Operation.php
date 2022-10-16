@@ -23,6 +23,11 @@ class Operation
     private $number;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private $anticipe = false;
+
+    /**
      * @ORM\Column(type="datetime")
      */
     private $date;
@@ -31,12 +36,6 @@ class Operation
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="operations")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $category;
 
     /**
      * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
@@ -61,6 +60,18 @@ class Operation
         return $this;
     }
 
+    public function isAnticipe(): ?bool
+    {
+        return $this->anticipe;
+    }
+
+    public function setAnticipe(bool $anticipe): self
+    {
+        $this->anticipe = $anticipe;
+
+        return $this;
+    }
+
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -81,18 +92,6 @@ class Operation
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
-
-        return $this;
-    }
-
-    public function getCategory(): ?Category
-    {
-        return $this->category;
-    }
-
-    public function setCategory(?Category $category): self
-    {
-        $this->category = $category;
 
         return $this;
     }
