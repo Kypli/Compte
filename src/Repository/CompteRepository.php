@@ -38,20 +38,4 @@ class CompteRepository extends ServiceEntityRepository
 			$this->getEntityManager()->flush();
 		}
 	}
-
-   /**
-	 * @return Operation[] Returns an array of Operation objects
-	 */
-   public function getOperationsByDateAndCompte($compte_id, $year): array
-   {
-	   return $this->createQueryBuilder('x')
-	   ->join
-		   ->andWhere('o.exampleField = :val')
-		   ->setParameter('val', $value)
-		   ->orderBy('o.id', 'ASC')
-		   ->setMaxResults(10)
-		   ->getQuery()
-		   ->getResult()
-	   ;
-   }
 }

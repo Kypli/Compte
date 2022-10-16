@@ -16,9 +16,6 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 
 	public function load(ObjectManager $manager)
 	{
-		
-		$date = new \Datetime('now');
-
 		$subcategories = [
 			SubCategoryFixtures::SUBCATEGORY_ADMIN_1,
 			SubCategoryFixtures::SUBCATEGORY_ADMIN_2,
@@ -27,6 +24,16 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 		];
 
 		for($i = 0; $i <= 100; $i++){
+
+
+			$year = date('Y');
+			$month = rand(1, 12);
+			$day = rand(1, 28);
+			$hour = rand(0, 23);
+			$minute = rand(0, 59);
+			$second = rand(0, 59);
+
+			$date = new \Datetime($year.'/'.$month.'/'.$day.' '.$hour.':'.$minute.':'.$second);
 
 			$subcategory = $subcategories[rand(0, 3)];
 

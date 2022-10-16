@@ -53,16 +53,10 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
-	public function show(Compte $compte, CompteRepository $cr): Response
+	public function show(Compte $compte, OperationRepository $or): Response
 	{
-		$categories = $compte->getCategories();
+		$operations = $or->OperationsByDateAndCompte($compte->getId(), date('Y'));
 
-		// foreach(){
-
-		// }
-		$operations = $cr->getOperationsByDateAndCompte($compte->getId(), date('Y'));
-		dump($operations);
-		die;
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
 		]);

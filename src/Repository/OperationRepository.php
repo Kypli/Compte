@@ -38,4 +38,34 @@ class OperationRepository extends ServiceEntityRepository
 			$this->getEntityManager()->flush();
 		}
 	}
+
+
+	/**
+	 * @return Operation[] Returns an array of Operation objects
+	 */
+	public function OperationsByDateAndCompte($compte_id, $year_start): array
+	{
+		$date_start = date($year_start.'/01/01 00:00:00');
+		$date_end = date(($year_start + 1).'/01/01 00:00:00');
+
+		return $this->createQueryBuilder('x')
+			->join('x.subcategory', 'sc')
+			->join('sc.category', 'ca')
+			->join('ca.compte', 'co')
+
+			->where('co.id = :compte_id')
+			->andWhere('x.date >= :date_start AND x.date <= :date_end ')
+
+			->setParameters([
+				'compte_id' => $compte_id,
+				'date_start' => $date_start,
+				'date_end' => $date_end,
+			])
+
+			->orderBy('x.date', 'ASC')
+
+			->getQuery()
+			->getResult()
+		;
+	}
 }
