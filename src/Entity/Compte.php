@@ -20,6 +20,11 @@ class Compte
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=35)
+     */
+    private $libelle;
+
+    /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="comptes")
      */
     private $users;
@@ -38,6 +43,18 @@ class Compte
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getLibelle(): ?string
+    {
+        return $this->libelle;
+    }
+
+    public function setLibelle(string $libelle): self
+    {
+        $this->libelle = $libelle;
+
+        return $this;
     }
 
     /**

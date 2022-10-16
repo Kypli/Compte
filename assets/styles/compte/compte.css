@@ -1,0 +1,14 @@
+
+.mois th {
+	min-width: 90px;
+}
+.etat tr {
+	min-width: 45px;
+}
+.category {
+	min-width: 200px!important;
+}
+.subcategory {
+	min-width: 150px;
+	padding-left: 35px;
+}

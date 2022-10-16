@@ -22,7 +22,7 @@ class SubCategory
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $title;
+    private $libelle;
 
     /**
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="subCategories")
@@ -31,7 +31,7 @@ class SubCategory
     private $category;
 
     /**
-     * @ORM\OneToMany(targetEntity=Operation::class, mappedBy="what", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Operation::class, mappedBy="subcategory", orphanRemoval=true)
      */
     private $operations;
 
@@ -45,14 +45,14 @@ class SubCategory
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getLibelle(): ?string
     {
-        return $this->title;
+        return $this->libelle;
     }
 
-    public function setTitle(string $title): self
+    public function setLibelle(string $libelle): self
     {
-        $this->title = $title;
+        $this->libelle = $libelle;
 
         return $this;
     }
@@ -81,7 +81,7 @@ class SubCategory
     {
         if (!$this->operations->contains($operation)) {
             $this->operations[] = $operation;
-            $operation->setWhat($this);
+            $operation->setSubCategory($this);
         }
 
         return $this;
@@ -91,8 +91,8 @@ class SubCategory
     {
         if ($this->operations->removeElement($operation)) {
             // set the owning side to null (unless already changed)
-            if ($operation->getWhat() === $this) {
-                $operation->setWhat(null);
+            if ($operation->getSubCategory() === $this) {
+                $operation->setSubCategory(null);
             }
         }
 

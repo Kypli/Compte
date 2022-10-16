@@ -33,10 +33,16 @@ class Operation
     private $comment;
 
     /**
+     * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="operations")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $category;
+
+    /**
      * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $what;
+    private $subcategory;
 
     public function getId(): ?int
     {
@@ -79,14 +85,26 @@ class Operation
         return $this;
     }
 
-    public function getWhat(): ?SubCategory
+    public function getCategory(): ?Category
     {
-        return $this->what;
+        return $this->category;
     }
 
-    public function setWhat(?SubCategory $what): self
+    public function setCategory(?Category $category): self
     {
-        $this->what = $what;
+        $this->category = $category;
+
+        return $this;
+    }
+
+    public function getSubcategory(): ?SubCategory
+    {
+        return $this->subcategory;
+    }
+
+    public function setSubcategory(?SubCategory $subcategory): self
+    {
+        $this->subcategory = $subcategory;
 
         return $this;
     }

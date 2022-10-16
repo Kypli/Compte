@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Compte{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('compte') }}
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('compte') }}
+{% endblock %}
+
+{% block body %}
+
+	<div class="container">
+
+		{# TITRE #}
+		<div class='row mt-2 mb-3'>
+			<div class="offset-4 col-4 center">
+				<h1>{{ compte.libelle }}</h1>
+			</div>
+		</div>
+
+		{# TABLE #}
+		<div class='row mt-2 mb-3'>
+			<div class="col-12">
+				<table class="table-bordered">
+
+					<thead>
+						<tr class="mois center">
+							<th colspan='2' id='col_start' class="category"></th>
+							<th colspan='2' id='jan'>Janvier</th>
+							<th colspan='2' id='fev'>Février</th>
+							<th colspan='2' id='mar'>Mars</th>
+							<th colspan='2' id='avr'>Avril</th>
+							<th colspan='2' id='mai'>Mai</th>
+							<th colspan='2' id='juil'>Juin</th>
+							<th colspan='2' id='juin'>Juillet</th>
+							<th colspan='2' id='aou'>Août</th>
+							<th colspan='2' id='sep'>Septembre</th>
+							<th colspan='2' id='oct'>Octobre</th>
+							<th colspan='2' id='nov'>Novembre</th>
+							<th colspan='2' id='dec'>Décembre</th>
+							<th id='total'>Total</th>
+						</tr>
+						<tr class="etat center">
+							<th colspan='2' ></th>
+							{% for i in 1..12 %}
+								<td>Réel</td>
+								<td>A ven</td>
+							{% endfor %}
+							<th></th>
+						</tr>
+					</thead>
+
+					<tbody>
+						{% for category in compte.categories %}
+							<tr>
+								<td colspan='2'>{{ category.libelle|capitalize }}<td/>
+							</tr>
+							{% for subcategory in category.subcategories %}
+								<tr>
+									<td colspan='2' class='subcategory'>{{ subcategory.libelle|capitalize }}</td>
+									{{ include('compte/_operations.html.twig') }}
+								</tr>
+							{% endfor %}
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<a href="{{ path('compte') }}">Retour à la liste</a>
+
+	<a href="{{ path('compte_edit', {'id': compte.id}) }}">Modifier</a>
+
+	{{ include('compte/_delete_form.html.twig') }}
+{% endblock %}

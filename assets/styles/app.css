@@ -1,3 +1,70 @@
-body {
-    background-color: lightgray;
+/* Visuel bootstrap */
+[class*='col'], [class*='col-xs'], [class*='col-sm'], [class*='col-md'], [class*='col-lg'], [class*='col-xl'], [class*='col-xxl'] {
+	border: 1px solid;
+	background-color: lightgreen;
+	display: block;
 }
+
+
+/* COULEURS PRINCIPALES */
+
+
+/* Matrice */
+body {
+	/*background-color: #F5F5DC;*/
+	background-color: lightgray;
+}
+
+
+
+/* Commun */
+.center             {   text-align: center;             }
+.alignBottom        {   text-align: bottom;             }
+.alignRight         {   text-align: right;              }
+.alignLeft          {   text-align: left;               }
+
+.floatbottom        {   float : bottom;                 }
+.floatright         {   float : right;                  }
+.floatleft          {   float : left;                   }
+.floatcenter        {   float : center;                 }
+
+.conteneur          {   display: flex;                  }
+.hidden             {   display: none;                  }
+.hide               {   display: none;                  }
+
+.taille8            {   font-size: 8px;                 }
+.taille9            {   font-size: 9px;                 }
+.taille10           {   font-size: 10px;                }
+.taille11           {   font-size: 11px;                }
+.taille12           {   font-size: 12px;                }
+.taille13           {   font-size: 13px;                }
+.taille14           {   font-size: 14px;                }
+.taille15           {   font-size: 15px;                }
+.taille17           {   font-size: 17px;                }
+.taille18           {   font-size: 18px;                }
+.taille20           {   font-size: 20px;                }
+.taille25           {   font-size: 25px;                }
+
+.barre              {   text-decoration: line-through;  }
+.souligne           {   text-decoration: underline;     }
+.gras               {   font-weight: bold;              }
+.italique           {   font-style : italic;            }
+
+.pointeur           {   cursor: pointer;                }
+.pointeur_base      {   cursor: auto;                   }
+.pointeur_help      {   cursor: help;                   }
+
+.block              {   display: block;                 }
+
+.red                {   color: red;                     }
+.blue               {   color: blue;                    }
+.green              {   color: green;                   }
+.yellow             {   color: yellow;                  }
+.purple             {   color: purple;                  }
+.pink               {   color: pink;                    }
+.maroon             {   color: maroon;                  }
+.white              {   color: white;                   }
+.orange             {   color: orange;                  }
+.grey               {   color: grey;                    }
+
+.bck_gainsboro      {   background-color: #DCDCDC;      }

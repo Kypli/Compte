@@ -22,7 +22,7 @@ class Category
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $title;
+    private $libelle;
 
     /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="categories")
@@ -35,9 +35,15 @@ class Category
      */
     private $subCategories;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Operation::class, mappedBy="category", orphanRemoval=true)
+     */
+    private $operations;
+
     public function __construct()
     {
         $this->subCategories = new ArrayCollection();
+        $this->operations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -45,14 +51,14 @@ class Category
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getLibelle(): ?string
     {
-        return $this->title;
+        return $this->libelle;
     }
 
-    public function setTitle(string $title): self
+    public function setLibelle(string $libelle): self
     {
-        $this->title = $title;
+        $this->libelle = $libelle;
 
         return $this;
     }
@@ -93,6 +99,36 @@ class Category
             // set the owning side to null (unless already changed)
             if ($subCategory->getCategory() === $this) {
                 $subCategory->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Operation>
+     */
+    public function getOperations(): Collection
+    {
+        return $this->operations;
+    }
+
+    public function addOperation(Operation $operation): self
+    {
+        if (!$this->operations->contains($operation)) {
+            $this->operations[] = $operation;
+            $operation->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOperation(Operation $operation): self
+    {
+        if ($this->operations->removeElement($operation)) {
+            // set the owning side to null (unless already changed)
+            if ($operation->getCategory() === $this) {
+                $operation->setCategory(null);
             }
         }
 
