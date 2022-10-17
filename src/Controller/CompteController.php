@@ -57,8 +57,14 @@ class CompteController extends AbstractController
 	{
 		$operations = $or->OperationsByDateAndCompte($compte->getId(), date('Y'));
 
+		$operationsArrayByScAndMonth = [];
+		foreach($operations as $operation){
+			$operationsArrayByScAndMonth[$operation->getSubCategory()->getId()][$operation->getDate()->format('n')][] = $operation;
+		}
+
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
+			'operationsArrayByScAndMonth' => $operationsArrayByScAndMonth,
 		]);
 	}
 

@@ -1,24 +1,34 @@
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
+{% if operationsArrayByScAndMonth[subcategory.id] is not defined %}
+	{{ include('compte/_operation_empty.html.twig') }}
+{% else %}
+	{% set operationsByMonth = operationsArrayByScAndMonth[subcategory.id] %}
+		{# {{ dump(operationsByMonth)}} #}
+	{% set total = 0 %}
+
+	{% for month in 1..12 %}
+
+		{% set reel = 0 %}
+		{% set anticipe = 0 %}
+
+		{% if operationsByMonth[month] is defined %}
+		
+			{% for operation in operationsByMonth[month] %}
+
+				{% set total = total + operation.number %}
+				{% if operation.anticipe %}
+					{% set reel = reel + operation.number %}
+				{% else %}
+					{% set anticipe = anticipe + operation.number %}
+				{% endif %}
+
+			{% endfor %}
+		{% endif %}
+
+		<td>{{ reel }}</td>
+		<td>{{ anticipe }}</td>
+
+	{% endfor %}
+
+	<td>{{ total }}</td>
+
+{% endif %}

@@ -46,8 +46,9 @@
 							<th id='total'>Total</th>
 						</tr>
 						<tr class="etat center">
-							<th colspan='2' ></th>
-							{% for i in 1..12 %}
+
+							<th colspan='2'></th>
+							{% for i in 01..12 %}
 								<td>Réel</td>
 								<td>A ven</td>
 							{% endfor %}
@@ -57,12 +58,15 @@
 
 					<tbody>
 						{% for category in compte.categories %}
-							<tr>
-								<td colspan='2'>{{ category.libelle|capitalize }}<td/>
-							</tr>
+
 							{% for subcategory in category.subcategories %}
-								<tr>
-									<td colspan='2' class='subcategory'>{{ subcategory.libelle|capitalize }}</td>
+								<tr {{ loop.first ? "class='trFirst'" }}>
+									{% if loop.first %}
+										<td rowspan='{{ category.subcategories|length }}'>{{ category.libelle }}<td/>
+									{% endif %}
+
+									<td class='subcategory'>{{ subcategory.libelle|capitalize }}</td>
+
 									{{ include('compte/_operations.html.twig') }}
 								</tr>
 							{% endfor %}
