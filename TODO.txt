@@ -1,1 +1,19 @@
 php bin/console make:reset-password
+
+User
+	Preference
+		Affichage total (total / mois)
+		Affichage % du total
+
+Compte
+	Separation + / - en deux tableau
+	Total par mois (réel + anticipe + les 2)
+	
+	Category
+		Creation
+		Faire un placement numéroté
+
+	SubCategory
+		Creation
+		Faire un placement numéroté
+		Lmité le nombre de character, si dépasse => ... + reste en title

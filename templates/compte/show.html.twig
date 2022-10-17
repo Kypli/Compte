@@ -14,7 +14,7 @@
 
 {% block body %}
 
-	<div class="container">
+	<div class="{# container #}">
 
 		{# TITRE #}
 		<div class='row mt-2 mb-3'>
@@ -44,6 +44,8 @@
 							<th colspan='2' id='nov'>Novembre</th>
 							<th colspan='2' id='dec'>Décembre</th>
 							<th id='total'>Total</th>
+							<th id='totalByMonth'>Total / mois</th>
+							<th id='percent'>%</th>
 						</tr>
 						<tr class="etat center">
 
@@ -52,6 +54,8 @@
 								<td>Réel</td>
 								<td>A ven</td>
 							{% endfor %}
+							<th></th>
+							<th></th>
 							<th></th>
 						</tr>
 					</thead>

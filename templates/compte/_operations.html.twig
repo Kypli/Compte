@@ -1,9 +1,8 @@
 {% if operationsArrayByScAndMonth[subcategory.id] is not defined %}
 	{{ include('compte/_operation_empty.html.twig') }}
 {% else %}
+
 	{% set operationsByMonth = operationsArrayByScAndMonth[subcategory.id] %}
-		{# {{ dump(operationsByMonth)}} #}
-	{% set total = 0 %}
 
 	{% for month in 1..12 %}
 
@@ -14,7 +13,6 @@
 		
 			{% for operation in operationsByMonth[month] %}
 
-				{% set total = total + operation.number %}
 				{% if operation.anticipe %}
 					{% set reel = reel + operation.number %}
 				{% else %}
@@ -29,6 +27,8 @@
 
 	{% endfor %}
 
-	<td>{{ total }}</td>
+	<td>{{ operationsByMonth[13] }}</td>
+	<td>{{ (operationsByMonth[13] / 12)|round(2, 'ceil') }}</td>
+	<td>{{ ((operationsByMonth[13]*100)/operationsArrayByScAndMonth['total'])|round(2, 'ceil') }}</td>
 
 {% endif %}

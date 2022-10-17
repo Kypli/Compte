@@ -43,7 +43,7 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * @return Operation[] Returns an array of Operation objects
 	 */
-	public function OperationsByDateAndCompte($compte_id, $year_start): array
+	public function OperationsByYearAndCompte($compte_id, $year_start): array
 	{
 		$date_start = date($year_start.'/01/01 00:00:00');
 		$date_end = date(($year_start + 1).'/01/01 00:00:00');

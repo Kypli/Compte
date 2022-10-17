@@ -55,12 +55,30 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, OperationRepository $or): Response
 	{
-		$operations = $or->OperationsByDateAndCompte($compte->getId(), date('Y'));
+		$operations = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
 
 		$operationsArrayByScAndMonth = [];
+		$total = 0;
+
 		foreach($operations as $operation){
-			$operationsArrayByScAndMonth[$operation->getSubCategory()->getId()][$operation->getDate()->format('n')][] = $operation;
+			$sc_id = $operation->getSubCategory()->getId();
+			$total += $operation->getNumber();
+
+			// Operation
+			$operationsArrayByScAndMonth[$sc_id][$operation->getDate()->format('n')][] = $operation;
+
+			// Total par Sc
+			isset($operationsArrayByScAndMonth[$sc_id][13])
+				? $operationsArrayByScAndMonth[$sc_id][13] += $operation->getNumber()
+				: $operationsArrayByScAndMonth[$sc_id][13] = $operation->getNumber()
+			;
 		}
+
+		// Total par année
+		$operationsArrayByScAndMonth['total'] = $total;
+
+		// dump($operationsArrayByScAndMonth);
+		// die;
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
