@@ -55,34 +55,65 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, OperationRepository $or): Response
 	{
-		$operations = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
+		$total_final = 0;
+		$operations = [];
+		$operations_ent = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
 
-		$operationsArrayByScAndMonth = [];
-		$total = 0;
-
-		foreach($operations as $operation){
+		foreach($operations_ent as $operation){
+			$total_final += $operation->getNumber();
+			$mois = $operation->getDate()->format('n');
 			$sc_id = $operation->getSubCategory()->getId();
-			$total += $operation->getNumber();
 
-			// Operation
-			$operationsArrayByScAndMonth[$sc_id][$operation->getDate()->format('n')][] = $operation;
+			// Reel
+			if (!$operation->isAnticipe()){
 
-			// Total par Sc
-			isset($operationsArrayByScAndMonth[$sc_id][13])
-				? $operationsArrayByScAndMonth[$sc_id][13] += $operation->getNumber()
-				: $operationsArrayByScAndMonth[$sc_id][13] = $operation->getNumber()
+				// Add number to [sc][month][reel]
+				isset($operations[$sc_id][$mois]['reel'])
+					? $operations[$sc_id][$mois]['reel'] += $operation->getNumber()
+					: $operations[$sc_id][$mois]['reel'] = $operation->getNumber()
+				;
+
+				// Total reel by month
+				isset($operations['totaux_mois'][$mois]['reel'])
+					? $operations['totaux_mois'][$mois]['reel'] += $operation->getNumber()
+					: $operations['totaux_mois'][$mois]['reel'] = $operation->getNumber()
+				;
+
+			// Anticipe
+			} else {
+
+				// Add number to [sc][month][anticipe]
+				isset($operations[$sc_id][$mois]['anticipe'])
+					? $operations[$sc_id][$mois]['anticipe'] += $operation->getNumber()
+					: $operations[$sc_id][$mois]['anticipe'] = $operation->getNumber()
+				;
+
+				// Total anticipe by month
+				isset($operations['totaux_mois'][$mois]['anticipe'])
+					? $operations['totaux_mois'][$mois]['anticipe'] += $operation->getNumber()
+					: $operations['totaux_mois'][$mois]['anticipe'] = $operation->getNumber()
+				;
+			}
+
+			// Total by month
+			isset($operations['totaux_mois'][$mois]['total'])
+				? $operations['totaux_mois'][$mois]['total'] += $operation->getNumber()
+				: $operations['totaux_mois'][$mois]['total'] = $operation->getNumber()
+			;
+
+			// Total by Sc
+			isset($operations[$sc_id]['total'])
+				? $operations[$sc_id]['total'] += $operation->getNumber()
+				: $operations[$sc_id]['total'] = $operation->getNumber()
 			;
 		}
 
 		// Total par année
-		$operationsArrayByScAndMonth['total'] = $total;
-
-		// dump($operationsArrayByScAndMonth);
-		// die;
+		$operations['total_final'] = $total_final;
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
-			'operationsArrayByScAndMonth' => $operationsArrayByScAndMonth,
+			'operations' => $operations,
 		]);
 	}
 

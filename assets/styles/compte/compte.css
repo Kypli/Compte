@@ -16,3 +16,7 @@
 .trFirst td:nth-child(2) {
 	display: none;
 }
+
+.bck_black {
+	background-color: black;
+}

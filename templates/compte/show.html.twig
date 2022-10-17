@@ -24,10 +24,9 @@
 		</div>
 
 		{# TABLE #}
-		<div class='row mt-2 mb-3'>
+		<div class='row m-1 mt-2 mb-3'>
 			<div class="col-12">
 				<table class="table-bordered">
-
 					<thead>
 						<tr class="mois center">
 							<th colspan='2' id='col_start' class="category"></th>
@@ -48,7 +47,6 @@
 							<th id='percent'>%</th>
 						</tr>
 						<tr class="etat center">
-
 							<th colspan='2'></th>
 							{% for i in 01..12 %}
 								<td>Réel</td>
@@ -59,7 +57,6 @@
 							<th></th>
 						</tr>
 					</thead>
-
 					<tbody>
 						{% for category in compte.categories %}
 
@@ -75,15 +72,21 @@
 								</tr>
 							{% endfor %}
 						{% endfor %}
+						{{ include('compte/_totaux_mois.html.twig') }}
 					</tbody>
 				</table>
 			</div>
 		</div>
+
+		{# ACTIONS #}
+		<div class='row mt-2 mb-3'>
+			<div class="offset-1 col-10">
+				<a href="{{ path('compte') }}">Retour à la liste</a>
+
+				<a href="{{ path('compte_edit', {'id': compte.id}) }}">Modifier</a>
+
+				{{ include('compte/_delete_form.html.twig') }}
+			</div>
+		</div>
 	</div>
-
-	<a href="{{ path('compte') }}">Retour à la liste</a>
-
-	<a href="{{ path('compte_edit', {'id': compte.id}) }}">Modifier</a>
-
-	{{ include('compte/_delete_form.html.twig') }}
 {% endblock %}

@@ -1,34 +1,25 @@
-{% if operationsArrayByScAndMonth[subcategory.id] is not defined %}
+{# No operations #}
+{% if operations[subcategory.id] is not defined %}
 	{{ include('compte/_operation_empty.html.twig') }}
+
 {% else %}
 
-	{% set operationsByMonth = operationsArrayByScAndMonth[subcategory.id] %}
+	{% set operationsBySc = operations[subcategory.id] %}
 
 	{% for month in 1..12 %}
 
-		{% set reel = 0 %}
-		{% set anticipe = 0 %}
+		{% if operationsBySc[month] is defined %}
+			<td>{{ operationsBySc[month]['reel'] is defined ? operationsBySc[month]['reel'] : '0' }}</td>
+			<td>{{ operationsBySc[month]['anticipe'] is defined ? operationsBySc[month]['anticipe'] : '0' }}</td>
 
-		{% if operationsByMonth[month] is defined %}
-		
-			{% for operation in operationsByMonth[month] %}
-
-				{% if operation.anticipe %}
-					{% set reel = reel + operation.number %}
-				{% else %}
-					{% set anticipe = anticipe + operation.number %}
-				{% endif %}
-
-			{% endfor %}
+		{% else %}
+			<td>0</td>
+			<td>0</td>
 		{% endif %}
-
-		<td>{{ reel }}</td>
-		<td>{{ anticipe }}</td>
 
 	{% endfor %}
 
-	<td>{{ operationsByMonth[13] }}</td>
-	<td>{{ (operationsByMonth[13] / 12)|round(2, 'ceil') }}</td>
-	<td>{{ ((operationsByMonth[13]*100)/operationsArrayByScAndMonth['total'])|round(2, 'ceil') }}</td>
-
+	<td>{{ operationsBySc['total'] }}</td>
+	<td>{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
+	<td>{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

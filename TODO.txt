@@ -7,7 +7,6 @@ User
 
 Compte
 	Separation + / - en deux tableau
-	Total par mois (réel + anticipe + les 2)
 	
 	Category
 		Creation
@@ -16,4 +15,4 @@ Compte
 	SubCategory
 		Creation
 		Faire un placement numéroté
-		Lmité le nombre de character, si dépasse => ... + reste en title
+		Limiter le nombre de character, si dépasse => ... + reste en title
