@@ -1,0 +1,43 @@
+<table class="compteTable center mt-4">
+
+	{# {{ include('compte/table/empty/_soldes_detail.html.twig') }} #}
+
+	{# SOLDE MENSUEL #}
+	<tr class='tr_head'>
+		<th colspan="2" class="test"></th>
+		<th colspan="2" class="test">Solde mensuel</th>
+
+		{% for month in 1..12 %}
+
+			{# DATAS #}
+			{% if soldes['totaux_solde'][month] is defined %}
+				{% set number = soldes['totaux_solde'][month]['solde']|round(2, 'ceil') %}
+
+				<th colspan='2' class="{{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">{{ number }}</th>
+
+			{% else %}
+				<td class="">0</td>
+			{% endif %}
+		{% endfor %}
+	</tr>
+
+	{# SOLDE CUMULE #}
+	<tr class='tr_head mt-1'>
+		<th colspan="2" class="test"></th>
+		<th colspan="2" class="test">Solde cumulé</th>
+
+		{% for month in 1..12 %}
+
+			{# DATAS #}
+			{% if soldes['totaux_solde'][month] is defined %}
+				{% set number = soldes['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
+
+				<th colspan='2' class="{{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">{{ number }}</th>
+
+			{% else %}
+				<td class="">0</td>
+			{% endif %}
+		{% endfor %}
+	</tr>
+
+</table>

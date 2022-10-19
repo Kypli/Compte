@@ -47,10 +47,10 @@
 
 					<td class='td_subcategory_libelle'>{{ subcategory.libelle|capitalize }}</td>
 
-					{{ include('compte/_operations.html.twig') }}
+					{{ include('compte/table/_sc_operations.html.twig') }}
 				</tr>
 			{% endfor %}
 		{% endfor %}
-		{{ include('compte/_totaux_mois.html.twig') }}
+		{{ include('compte/table/_totaux_mois.html.twig') }}
 	</tbody>
 </table>

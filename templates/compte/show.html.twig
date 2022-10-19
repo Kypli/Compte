@@ -26,15 +26,18 @@
 		{# TABLE #}
 		<div class='row m-1 mt-2 mb-3'>
 			<div class="mb-5 col-12">
-				{% include('compte/_table.html.twig') with {'operations': operations_pos, 'type': 'pos' } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'type': 'pos' } %}
 			</div>
 			<div class="col-12">
-				{% include('compte/_table.html.twig') with {'operations': operations_neg, 'type': 'neg' } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'type': 'neg' } %}
+			</div>
+			<div class="col-12">
+				{{ include('compte/table/_table_soldes.html.twig') }}
 			</div>
 		</div>
 
 		{# ACTIONS #}
-		<div class='row mt-2 mb-3'>
+		<div class='row mt-5 mb-3'>
 			<div class="offset-1 col-10">
 				<a href="{{ path('compte') }}">Retour à la liste</a>
 

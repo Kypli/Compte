@@ -6,9 +6,6 @@
 	font-size: 14px;
 }
 .compteTable th, .compteTable tr, .compteTable td {
-	padding: 3px;
-	border: 1px black solid;
-	font-size: 14px;
 	background-color: #C1C1C1;
 	/*background-color: #E6E6E6;*/
 	/*background-color: #ECECEC;*/
@@ -77,6 +74,12 @@
 .total_month_full_neg {
 	color: darkred;
 	font-weight: bold; 
+}
+.test {
+	border-top: hidden!important;
+	border-left: hidden!important;
+	border-bottom: hidden!important;
+	background-color: lightgray!important;
 }
 
 .bck_pos {

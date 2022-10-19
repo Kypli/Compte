@@ -58,9 +58,13 @@ class CompteController extends AbstractController
 		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
 		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), date('Y'), false);
 
+		// dump($this->soldes(array_merge($operations_pos, $operations_neg)));
+		// die;
+
 		return $this->render('compte/show.html.twig', [
 			'user' => $this->getUser(),
 			'compte' => $compte,
+			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)),
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
 		]);
@@ -124,6 +128,39 @@ class CompteController extends AbstractController
 				? $operations[$sc_id]['total'] += $number
 				: $operations[$sc_id]['total'] = $number
 			;
+		}
+
+		// Total par année
+		$operations['total_final'] = $total_final;
+
+		return $operations;
+	}
+
+	/**
+	 * Renvoie sous formes d'array les informations liés à des opérations
+	 */
+	public function soldes($operations_ent): Array
+	{
+		$cumule = 0;
+		$total_final = 0;
+		$operations = [];
+
+		foreach($operations_ent as $operation){
+
+			$total_final += $operation->getNumber();
+			$mois = $operation->getDate()->format('n');
+
+			// Total by month
+			isset($operations['totaux_solde'][$mois]['solde'])
+				? $operations['totaux_solde'][$mois]['solde'] += $operation->getNumber()
+				: $operations['totaux_solde'][$mois]['solde'] = $operation->getNumber()
+			;
+		}
+
+		foreach($operations['totaux_solde'] as $key => $mois){
+
+			$cumule += $mois['solde'];
+			$operations['totaux_solde'][$key]['cumule'] = $cumule;
 		}
 
 		// Total par année

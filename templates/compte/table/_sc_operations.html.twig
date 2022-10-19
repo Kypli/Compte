@@ -1,13 +1,16 @@
-{# No operations #}
+{# NO OPERATIONS #}
 {% if operations[subcategory.id] is not defined %}
-	{{ include('compte/empty/_sc.html.twig') }}
+	{{ include('compte/table/empty/_sc.html.twig') }}
 
+{# SC OPERATIONS #}
 {% else %}
 
 	{% set operationsBySc = operations[subcategory.id] %}
 
+	{# 12 MOIS #}
 	{% for month in 1..12 %}
 
+		{# DATAS #}
 		{% if operationsBySc[month] is defined %}
 			<td>{{ operationsBySc[month]['reel'] is defined ? operationsBySc[month]['reel'] : '0' }}</td>
 			<td class='anticipe'>
@@ -17,12 +20,14 @@
 				}}
 			</td>
 
+		{# NO DATAS #}
 		{% else %}
 			<td>0</td>
 			<td class='anticipe'></td>
 		{% endif %}
 	{% endfor %}
 
+	{# SC TOTAL #}
 	<td class="td_total">{{ operationsBySc['total'] }}</td>
 	<td>{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
 	<td>{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
