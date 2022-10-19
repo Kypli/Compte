@@ -12,9 +12,19 @@
 	<tr>
 		<td colspan="2" class="col_start_bottom bck_{{ type }}"></td>
 		{% if operations['totaux_mois'] is defined %}
-			{% for totaux in operations['totaux_mois'] %}
-				<td class="total_month_detail_{{ type }}">{{ totaux['reel'] is defined ? totaux['reel'] : '0' }}</td>
-				<td class="total_month_detail_{{ type }}">{{ totaux['anticipe'] is defined ? totaux['anticipe'] : '0' }}</td>
+
+			{% for month in 1..12 %}
+				{% if operations['totaux_mois'][month] is defined %}
+					<td class="total_month_detail_{{ type }}">
+						{{ operations['totaux_mois'][month]['reel'] is defined ? operations['totaux_mois'][month]['reel'] : '0' }}
+					</td>
+					<td class="total_month_detail_{{ type }}">
+						{{ operations['totaux_mois'][month]['anticipe'] is defined ? operations['totaux_mois'][month]['anticipe'] : '0' }}
+					</td>
+				{% else %}
+					<td class="total_month_detail_{{ type }}">0</td>
+					<td class="total_month_detail_{{ type }}">0</td>
+				{% endif %}
 			{% endfor %}
 		{% else %}
 			{{ include('compte/table/empty/_totaux_mois_detail.html.twig') }}
@@ -26,8 +36,13 @@
 	<tr>
 		<td colspan="2" class="col_start_bottom bck_{{ type }}"></td>
 		{% if operations['totaux_mois'] is defined %}
-			{% for totaux in operations['totaux_mois'] %}
-				<td colspan="2" class="total_month_full_{{ type }}">{{ totaux['total'] }}</td>
+
+			{% for month in 1..12 %}
+				{% if operations['totaux_mois'][month] is defined %}
+					<td colspan="2" class="total_month_full_{{ type }}">{{ operations['totaux_mois'][month]['total'] }}</td>
+				{% else %}
+					<td colspan="2" class="total_month_full_{{ type }}">0</td>
+				{% endif %}
 			{% endfor %}
 		{% else %}
 			{{ include('compte/table/empty/_totaux_mois_full.html.twig') }}

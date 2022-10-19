@@ -29,10 +29,10 @@ class HomeController extends AbstractController
 		$user = $this->getUser();
 
 
-		$soldeActuel = $or->soldeActuel($user->getId());
+		// $soldeActuel = $or->soldeActuel($user->getId());
 
-		dump($soldeActuel);
-		die;
+		// dump($soldeActuel);
+		// die;
 
 		return $this->render('home/index.html.twig',[
 
