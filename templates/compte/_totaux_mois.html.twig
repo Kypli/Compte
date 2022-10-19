@@ -4,18 +4,26 @@
 
 <tr>
 	<td colspan="2"></td>
-	{% for totaux in operations['totaux_mois'] %}
-		<td>{{ totaux['reel'] is defined ? totaux['reel'] : '0' }}</td>
-		<td>{{ totaux['anticipe'] is defined ? totaux['anticipe'] : '0' }}</td>
-	{% endfor %}
+	{% if operations['totaux_mois'] is defined %}
+		{% for totaux in operations['totaux_mois'] %}
+			<td>{{ totaux['reel'] is defined ? totaux['reel'] : '0' }}</td>
+			<td>{{ totaux['anticipe'] is defined ? totaux['anticipe'] : '0' }}</td>
+		{% endfor %}
+	{% else %}
+		{{ include('compte/empty/_totaux_mois_detail.html.twig') }}
+	{% endif %}
 	<td colspan="3" class="bck_black"></td>
 </tr>
 
 <tr>
 	<td colspan="2"></td>
-	{% for totaux in operations['totaux_mois'] %}
-		<td colspan="2">{{ totaux['total'] }}</td>
-	{% endfor %}
+	{% if operations['totaux_mois'] is defined %}
+		{% for totaux in operations['totaux_mois'] %}
+			<td colspan="2">{{ totaux['total'] }}</td>
+		{% endfor %}
+	{% else %}
+		{{ include('compte/empty/_totaux_mois_full.html.twig') }}
+	{% endif %}
 	<td>{{ operations['total_final'] }}</td>
 	<td>{{ (operations['total_final'] / 12)|round(2, 'ceil')  }}</td>
 	<td>{{ 100 }}</td>

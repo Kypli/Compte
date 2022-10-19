@@ -1,6 +1,6 @@
 {# No operations #}
 {% if operations[subcategory.id] is not defined %}
-	{{ include('compte/_operation_empty.html.twig') }}
+	{{ include('compte/empty/_sc.html.twig') }}
 
 {% else %}
 
@@ -16,7 +16,6 @@
 			<td>0</td>
 			<td>0</td>
 		{% endif %}
-
 	{% endfor %}
 
 	<td>{{ operationsBySc['total'] }}</td>

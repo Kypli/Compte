@@ -60,6 +60,6 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 
 	public static function getGroups(): array
 	{
-		return ['test'];
+		return ['test', 'operations'];
 	}
 }
