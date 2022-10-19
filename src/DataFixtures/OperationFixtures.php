@@ -23,8 +23,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			SubCategoryFixtures::SUBCATEGORY_USER_2,
 		];
 
-		for($i = 0; $i <= 100; $i++){
-
+		for($i = 0; $i <= 200; $i++){
 
 			$year = date('Y');
 			$month = rand(1, 12);
@@ -39,7 +38,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 
 			$entity = new Entity();
 			$entity
-				->setNumber(rand(100, 10000) / 100)
+				->setNumber(rand(-10000, 10000) / 100)
 				->setAnticipe(rand(0, 1))
 				->setDate($date)
 				->setComment('comment '.$i)

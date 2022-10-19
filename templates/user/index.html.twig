@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin - Liste des utilisateurs{% endblock %}
+
+{% block body %}
+
+	<div class="container">
+		<div class='row mb-3'>
+
+			{# TITRE #}
+			<h2 class="radius-long offset-4 col-4">Liste utilisateurs</h2>
+
+			{# TABLEAU LISTE #}
+			<section class='col-12 mb-3 {# overflow-scroll #}'>
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Actions</th>
+							<th>Id</th>
+							<th>Login</th>
+							<th>Nom</th>
+							<th>Prénom</th>
+							<th>Admin</th>
+							<th>Droit image</th>
+							<th>Newsletter</th>
+							<th>Date fin adhésion</th>
+							<th>Rôle CA</th>
+							<th>Date fin mandat</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for user in users %}
+						<tr>
+							<td style='min-width:100px;'>
+								<div class='row'>
+									<div class='col-4 offset-1'>
+										<a href="{{ path('user_show', {'id': user.id}) }}" class="mr-3"><i class="fas fa-user" title="Fiche utilisateur"></i></a>
+									</div>
+									<div class='col-4'>
+										<a href="{{ path('user_edit', {'id': user.id}) }}"><i class="fas fa-edit" title="Modifier sa fiche"></i></a>
+									</div>
+								</div>
+							</td>
+							<td>{{ user.id }}</td>
+							<td class='{{ user.anonyme ? 'red' }}'>
+								<span title="{{ user.anonyme ? 'Anonyme' }}" class="{{ user.anonyme ? 'pointeur_help' }}">
+									{{ user.userName }}
+								</span>
+							</td>
+							<td>{{ user.profil.nom }}</td>
+							<td>{{ user.profil.prenom }}</td>
+							<td>{{ 'ROLE_ADMIN' in user.roles|json_encode ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}</td>
+							<td>
+								{{ 
+									user.asso.droitImage is null
+										? 'Sans réponse'
+										: user.asso.droitImage
+											? '<i class="fas fa-check green"></i>'
+											: '<i class="fas fa-times red"></i>'
+								}}
+							</td>
+							<td>
+								{{
+									user.newsletter is null
+										? 'Sans réponse'
+										: user.newsletter
+											? '<i class="fas fa-check green"></i>'
+											: '<i class="fas fa-times red"></i>'
+								}}
+							</td>
+							<td>{{ user.asso.dateFinAdhesion is null ? '' : user.asso.dateFinAdhesion|date('d/m/Y') }}</td>
+							<td>{{ user.asso.roleCa is null ? '' : user.asso.roleCa }}</td>
+							<td>{{ user.asso.dateFinMandat is null ? '' : user.asso.dateFinMandat|date('d/m/Y') }}</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="11">Pas d'utilisateurs</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</section>
+		</div>
+	</div>
+{% endblock %}

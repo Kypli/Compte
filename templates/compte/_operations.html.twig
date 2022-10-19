@@ -10,15 +10,20 @@
 
 		{% if operationsBySc[month] is defined %}
 			<td>{{ operationsBySc[month]['reel'] is defined ? operationsBySc[month]['reel'] : '0' }}</td>
-			<td>{{ operationsBySc[month]['anticipe'] is defined ? operationsBySc[month]['anticipe'] : '0' }}</td>
+			<td class='anticipe'>
+				{{ operationsBySc[month]['anticipe'] is defined and operationsBySc[month]['anticipe'] != 0
+					? operationsBySc[month]['anticipe']
+					: ''
+				}}
+			</td>
 
 		{% else %}
 			<td>0</td>
-			<td>0</td>
+			<td class='anticipe'></td>
 		{% endif %}
 	{% endfor %}
 
-	<td>{{ operationsBySc['total'] }}</td>
+	<td class="td_total">{{ operationsBySc['total'] }}</td>
 	<td>{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
 	<td>{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

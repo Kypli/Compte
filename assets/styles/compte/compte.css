@@ -1,22 +1,90 @@
 
-.mois th {
-	min-width: 90px;
+/* TABLE */
+.compteTable, .compteTable th, .compteTable tr, .compteTable td {
+	padding: 3px;
+	border: 1px black solid;
+	font-size: 14px;
 }
-.etat tr {
-	min-width: 45px;
-}
-.category {
-	min-width: 200px!important;
-}
-.subcategory {
-	min-width: 150px;
-	padding-left: 35px;
+.compteTable th, .compteTable tr, .compteTable td {
+	padding: 3px;
+	border: 1px black solid;
+	font-size: 14px;
+	background-color: #C1C1C1;
+	/*background-color: #E6E6E6;*/
+	/*background-color: #ECECEC;*/
 }
 
-.trFirst td:nth-child(2) {
+/* First Col */
+.col_start_top {
+	min-width: 200px!important;
+	border-top: hidden!important;
+	border-left: hidden!important;
+}
+.col_start_middle {
+	border-left: hidden!important;
+	border-right: hidden!important;
+}
+.col_start_bottom {
+	min-width: 200px!important;
+	border-top: hidden!important;
+	border-left: hidden!important;
+	border-bottom: hidden!important;
+}
+
+/* TR */
+.tr_head th {
+	width: 105px!important;
+	min-width: 105px!important;
+	max-width: 105px!important;
+}
+.tr_etat td {
+	min-width: 45px;
+	font-size: 11px!important;
+}
+.tr_operation_first td:nth-child(2) {
 	display: none;
 }
 
+/* TD */
+.td_category_libelle {
+	min-width: 90px;
+	text-align: left;
+}
+.td_subcategory_libelle {
+	min-width: 120px;
+	text-align: left;
+}
+.td_total {
+	border-left: 5px black solid!important;
+}
+
+
+/* PARTICULIER */
+.anticipe {
+	color: purple;
+	border-left: hidden!important;
+}
+.total_month_detail_pos {
+	color: green;
+}
+.total_month_full_pos {
+	color: darkgreen;
+	font-weight: bold; 
+}
+.total_month_detail_neg {
+	color: #FF0000;
+}
+.total_month_full_neg {
+	color: darkred;
+	font-weight: bold; 
+}
+
+.bck_pos {
+	background-color: #D7E2D6!important;
+}
+.bck_neg {
+	background-color: #E2D6D6!important;
+}
 .bck_black {
-	background-color: black;
+	background-color: black!important;
 }

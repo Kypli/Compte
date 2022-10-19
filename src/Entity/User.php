@@ -50,14 +50,19 @@ class User implements UserInterface
     private $active = 1;
 
     /**
+     * @ORM\ManyToMany(targetEntity=Compte::class, mappedBy="users")
+     */
+    private $comptes;
+
+    /**
      * @ORM\OneToOne(targetEntity=UserProfil::class, mappedBy="user", cascade={"persist", "remove"})
      */
     private $profil;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Compte::class, mappedBy="users")
+     * @ORM\OneToOne(targetEntity=UserPreference::class, mappedBy="user", cascade={"persist", "remove"})
      */
-    private $comptes;
+    private $preferences;
 
     public function __construct()
     {
@@ -159,22 +164,6 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getProfil(): ?UserProfil
-    {
-        return $this->profil;
-    }
-
-    public function setProfil(UserProfil $profil): self
-    {
-        if ($profil->getUser() !== $this) {
-            $profil->setUser($this);
-        }
-
-        $this->profil = $profil;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Compte>
      */
@@ -198,6 +187,39 @@ class User implements UserInterface
         if ($this->comptes->removeElement($compte)) {
             $compte->removeUser($this);
         }
+
+        return $this;
+    }
+
+    public function getProfil(): ?UserProfil
+    {
+        return $this->profil;
+    }
+
+    public function setProfil(UserProfil $profil): self
+    {
+        if ($profil->getUser() !== $this) {
+            $profil->setUser($this);
+        }
+
+        $this->profil = $profil;
+
+        return $this;
+    }
+
+    public function getPreferences(): ?UserPreference
+    {
+        return $this->preferences;
+    }
+
+    public function setPreferences(UserPreference $preferences): self
+    {
+        // set the owning side of the relation if necessary
+        if ($preferences->getUser() !== $this) {
+            $preferences->setUser($this);
+        }
+
+        $this->preferences = $preferences;
 
         return $this;
     }

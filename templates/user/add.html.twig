@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+
+	<div class="container">
+		<div class='row mb-3'>
+
+			{# TITRE #}
+			<h2 class="radius-long offset-4 col-4">Inscription</h2>
+
+			{# INSCRIPTION #}
+			<section class='form'>
+				{% set edit = {'edit': false} %}
+				{% include 'user/_form.html.twig' with edit %}
+			</section>
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+<table class="compteTable center">
+	<thead>
+		<tr class="tr_head">
+			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='col_start_top bck_{{ type }}'>
+				<span class="">{{ 'now'|date('Y') }}</span>
+				{{ type == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
+				<span class="">(€)</span>
+			</th>
+			<th colspan='2' id='jan'>Janvier</th>
+			<th colspan='2' id='fev'>Février</th>
+			<th colspan='2' id='mar'>Mars</th>
+			<th colspan='2' id='avr'>Avril</th>
+			<th colspan='2' id='mai'>Mai</th>
+			<th colspan='2' id='juil'>Juin</th>
+			<th colspan='2' id='juin'>Juillet</th>
+			<th colspan='2' id='aou'>Août</th>
+			<th colspan='2' id='sep'>Septembre</th>
+			<th colspan='2' id='oct'>Octobre</th>
+			<th colspan='2' id='nov'>Novembre</th>
+			<th colspan='2' id='dec'>Décembre</th>
+			<th id='total' class="td_total">Total</th>
+			<th id='totalByMonth'>Total / mois</th>
+			<th id='percent'>%</th>
+		</tr>
+		{% if user.preferences.comptegenreshow %}
+			<tr class="tr_etat">
+				{% for i in 01..12 %}
+					<td>Réel</td>
+					<td>A ven</td>
+				{% endfor %}
+				<th class="td_total"></th>
+				<th></th>
+				<th></th>
+			</tr>
+		{% endif %}
+	</thead>
+	<tbody>
+		{% for category in compte.categories %}
+
+			{% for subcategory in category.subcategories %}
+				<tr {{ loop.first ? "class='tr_operation_first'" }}>
+					{% if loop.first %}
+						<td class='td_category_libelle' rowspan='{{ category.subcategories|length }}'>
+							{{ category.libelle|capitalize }}
+						<td/>
+					{% endif %}
+
+					<td class='td_subcategory_libelle'>{{ subcategory.libelle|capitalize }}</td>
+
+					{{ include('compte/_operations.html.twig') }}
+				</tr>
+			{% endfor %}
+		{% endfor %}
+		{{ include('compte/_totaux_mois.html.twig') }}
+	</tbody>
+</table>

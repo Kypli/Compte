@@ -55,12 +55,30 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, OperationRepository $or): Response
 	{
+		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
+		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), date('Y'), false);
+
+		return $this->render('compte/show.html.twig', [
+			'user' => $this->getUser(),
+			'compte' => $compte,
+			'operations_pos' => $this->operations($operations_pos),
+			'operations_neg' => $this->operations($operations_neg, false),
+		]);
+	}
+
+	/**
+	 * Renvoie sous formes d'array les informations liés à des opérations
+	 */
+	public function operations($operations_ent, $pos = true): Array
+	{
 		$total_final = 0;
 		$operations = [];
-		$operations_ent = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
 
 		foreach($operations_ent as $operation){
-			$total_final += $operation->getNumber();
+
+			$number = $pos ? $operation->getNumber() : $operation->getNumber() * -1;
+
+			$total_final += $number;
 			$mois = $operation->getDate()->format('n');
 			$sc_id = $operation->getSubCategory()->getId();
 
@@ -69,14 +87,14 @@ class CompteController extends AbstractController
 
 				// Add number to [sc][month][reel]
 				isset($operations[$sc_id][$mois]['reel'])
-					? $operations[$sc_id][$mois]['reel'] += $operation->getNumber()
-					: $operations[$sc_id][$mois]['reel'] = $operation->getNumber()
+					? $operations[$sc_id][$mois]['reel'] += $number
+					: $operations[$sc_id][$mois]['reel'] = $number
 				;
 
 				// Total reel by month
 				isset($operations['totaux_mois'][$mois]['reel'])
-					? $operations['totaux_mois'][$mois]['reel'] += $operation->getNumber()
-					: $operations['totaux_mois'][$mois]['reel'] = $operation->getNumber()
+					? $operations['totaux_mois'][$mois]['reel'] += $number
+					: $operations['totaux_mois'][$mois]['reel'] = $number
 				;
 
 			// Anticipe
@@ -84,37 +102,34 @@ class CompteController extends AbstractController
 
 				// Add number to [sc][month][anticipe]
 				isset($operations[$sc_id][$mois]['anticipe'])
-					? $operations[$sc_id][$mois]['anticipe'] += $operation->getNumber()
-					: $operations[$sc_id][$mois]['anticipe'] = $operation->getNumber()
+					? $operations[$sc_id][$mois]['anticipe'] += $number
+					: $operations[$sc_id][$mois]['anticipe'] = $number
 				;
 
 				// Total anticipe by month
 				isset($operations['totaux_mois'][$mois]['anticipe'])
-					? $operations['totaux_mois'][$mois]['anticipe'] += $operation->getNumber()
-					: $operations['totaux_mois'][$mois]['anticipe'] = $operation->getNumber()
+					? $operations['totaux_mois'][$mois]['anticipe'] += $number
+					: $operations['totaux_mois'][$mois]['anticipe'] = $number
 				;
 			}
 
 			// Total by month
 			isset($operations['totaux_mois'][$mois]['total'])
-				? $operations['totaux_mois'][$mois]['total'] += $operation->getNumber()
-				: $operations['totaux_mois'][$mois]['total'] = $operation->getNumber()
+				? $operations['totaux_mois'][$mois]['total'] += $number
+				: $operations['totaux_mois'][$mois]['total'] = $number
 			;
 
 			// Total by Sc
 			isset($operations[$sc_id]['total'])
-				? $operations[$sc_id]['total'] += $operation->getNumber()
-				: $operations[$sc_id]['total'] = $operation->getNumber()
+				? $operations[$sc_id]['total'] += $number
+				: $operations[$sc_id]['total'] = $number
 			;
 		}
 
 		// Total par année
 		$operations['total_final'] = $total_final;
 
-		return $this->render('compte/show.html.twig', [
-			'compte' => $compte,
-			'operations' => $operations,
-		]);
+		return $operations;
 	}
 
 	/**

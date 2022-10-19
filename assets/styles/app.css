@@ -18,12 +18,12 @@ body {
 
 
 /* Commun */
-.center             {   text-align: center;             }
-.alignBottom        {   text-align: bottom;             }
-.alignRight         {   text-align: right;              }
-.alignLeft          {   text-align: left;               }
+.center				{   text-align: center;             }
+.alignBottom		{   text-align: bottom;             }
+.alignRight			{   text-align: right;              }
+.alignLeft			{   text-align: left;               }
 
-.floatbottom        {   float : bottom;                 }
+.floatbottom		{   float : bottom;                 }
 .floatright         {   float : right;                  }
 .floatleft          {   float : left;                   }
 .floatcenter        {   float : center;                 }
@@ -66,5 +66,3 @@ body {
 .white              {   color: white;                   }
 .orange             {   color: orange;                  }
 .grey               {   color: grey;                    }
-
-.bck_gainsboro      {   background-color: #DCDCDC;      }

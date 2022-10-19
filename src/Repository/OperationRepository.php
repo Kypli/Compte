@@ -43,8 +43,9 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * @return Operation[] Returns an array of Operation objects
 	 */
-	public function OperationsByYearAndCompte($compte_id, $year_start): array
+	public function OperationsByYearAndCompte($compte_id, $year_start, $pos = true): array
 	{
+		$type = $pos ? '>=' : '<';
 		$date_start = date($year_start.'/01/01 00:00:00');
 		$date_end = date(($year_start + 1).'/01/01 00:00:00');
 
@@ -54,7 +55,8 @@ class OperationRepository extends ServiceEntityRepository
 			->join('ca.compte', 'co')
 
 			->where('co.id = :compte_id')
-			->andWhere('x.date >= :date_start AND x.date <= :date_end ')
+			->andWhere('x.number '.$type.' 0')
+			->andWhere('x.date >= :date_start AND x.date <= :date_end')
 
 			->setParameters([
 				'compte_id' => $compte_id,
