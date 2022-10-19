@@ -157,10 +157,12 @@ class CompteController extends AbstractController
 			;
 		}
 
-		foreach($operations['totaux_solde'] as $key => $mois){
+		if (isset($operations['totaux_solde'])){
+			foreach($operations['totaux_solde'] as $key => $mois){
 
-			$cumule += $mois['solde'];
-			$operations['totaux_solde'][$key]['cumule'] = $cumule;
+				$cumule += $mois['solde'];
+				$operations['totaux_solde'][$key]['cumule'] = $cumule;
+			}
 		}
 
 		// Total par année

@@ -39,9 +39,8 @@ class OperationRepository extends ServiceEntityRepository
 		}
 	}
 
-
 	/**
-	 * @return Operation[] Returns an array of Operation objects
+	 * Renvoie les opérations selon compte, année et number positif/négatif
 	 */
 	public function OperationsByYearAndCompte($compte_id, $year_start, $pos = true): array
 	{
@@ -62,6 +61,38 @@ class OperationRepository extends ServiceEntityRepository
 				'compte_id' => $compte_id,
 				'date_start' => $date_start,
 				'date_end' => $date_end,
+			])
+
+			->orderBy('x.date', 'ASC')
+
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
+	 * Renvoie le solde actuel
+	 */
+	public function soldeActuel($user_id): array
+	{
+		$date = new \Datetime('now');
+
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.subcategory', 'sc')
+			->leftjoin('sc.category', 'ca')
+			->leftjoin('ca.compte', 'co')
+			// ->join('co.users', 'u')
+
+			->select('x')
+
+			// ->where('u.id = :user_id')
+			// ->andWhere('u.id = :user_id')
+			->andWhere('x.anticipe = false')
+			->andWhere('x.date >= :date')
+
+			->setParameters([
+				// 'user_id' => $user_id,
+				'date' => $date,
 			])
 
 			->orderBy('x.date', 'ASC')

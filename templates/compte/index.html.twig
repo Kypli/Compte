@@ -23,11 +23,12 @@
 			</tr>
 		{% else %}
 			<tr>
-				<td colspan="2">no records found</td>
+				<td colspan="2">Aucun compte trouvés</td>
 			</tr>
 		{% endfor %}
 		</tbody>
 	</table>
 
-	<a href="{{ path('compte_new') }}">Create new</a>
+	<a href="{{ path('compte_new') }}">Nouveau</a>
+	<a href="{{ path('home') }}">Retour</a>
 {% endblock %}

@@ -75,11 +75,19 @@
 	color: darkred;
 	font-weight: bold; 
 }
-.test {
+.solde_th_cache {
 	border-top: hidden!important;
 	border-left: hidden!important;
 	border-bottom: hidden!important;
 	background-color: lightgray!important;
+}
+.solde_th_cache_2 {
+	border-top: hidden!important;
+	border-bottom: hidden!important;
+	background-color: lightgray!important;
+}
+.revenuAnnuel {
+	font-size: 19px!important;
 }
 
 .bck_pos {
