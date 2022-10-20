@@ -9,12 +9,15 @@ use App\Form\CompteType;
 use App\Repository\CompteRepository;
 use App\Repository\OperationRepository;
 
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
+ * @IsGranted("ROLE_USER")
  * @Route("/compte", name="compte")
  */
 class CompteController extends AbstractController
@@ -55,18 +58,42 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, OperationRepository $or): Response
 	{
+		// Solde
+		$solde = $or->CompteSoldeActuel($compte->getId());
+
+		// Opérations
 		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
 		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), date('Y'), false);
 
-		// dump($this->soldes(array_merge($operations_pos, $operations_neg)));
-		// die;
+		// Current Month
+		$date_month = new \Datetime('now');
+		$date_month = $date_month->format('n');
+
+		// Month
+		$months = [
+			1 => 'janvier',
+			2 => 'février',
+			3 => 'mars',
+			4 => 'avril',
+			5 => 'mai',
+			6 => 'juin',
+			7 => 'juillet',
+			8 => 'aout',
+			9 => 'septembre',
+			10 => 'octobre',
+			11 => 'novembre',
+			12 => 'décembre',
+		];
 
 		return $this->render('compte/show.html.twig', [
-			'user' => $this->getUser(),
 			'compte' => $compte,
-			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)),
+			'months' => $months,
+			'solde' => $solde,
+			'user' => $this->getUser(),
+			'current_month' => $date_month,
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
+			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)), // Solde by month
 		]);
 	}
 

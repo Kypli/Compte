@@ -9,26 +9,33 @@
 
 	{# 12 MOIS #}
 	{% for month in 1..12 %}
+		{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
 
 		{# DATAS #}
 		{% if operationsBySc[month] is defined %}
-			<td>{{ operationsBySc[month]['reel'] is defined ? operationsBySc[month]['reel'] : '0' }}</td>
-			<td class='anticipe'>
-				{{ operationsBySc[month]['anticipe'] is defined and operationsBySc[month]['anticipe'] != 0
-					? operationsBySc[month]['anticipe']
-					: ''
-				}}
-			</td>
+
+			{% set data = operationsBySc[month] %}
+
+			{% if data['anticipe'] is defined and data['anticipe'] != 0 %}
+				{% set anticipe = data['anticipe'] %}
+				{% set blink = month < current_month ? 'blink_me' : '' %}
+			{% else %}
+				{% set anticipe = '' %}
+				{% set blink = '' %}
+			{% endif %}
+
+			<td class="{{ done }}">{{ data['reel'] is defined ? data['reel'] : '0' }}</td>
+			<td class='anticipe {{ blink }} {{ done }}'>{{ anticipe }}</td>
 
 		{# NO DATAS #}
 		{% else %}
-			<td>0</td>
-			<td class='anticipe'></td>
+			<td class='{{ done }}'>0</td>
+			<td class='{{ done }} anticipe'></td>
 		{% endif %}
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="td_total">{{ operationsBySc['total'] }}</td>
-	<td>{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
-	<td>{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
+	<td class="td_total done">{{ operationsBySc['total'] }}</td>
+	<td class="done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
+	<td class="done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

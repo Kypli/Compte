@@ -6,9 +6,14 @@
 	font-size: 14px;
 }
 .compteTable th, .compteTable tr, .compteTable td {
-	background-color: #C1C1C1;
-	/*background-color: #E6E6E6;*/
+	background-color: #E6E6E6;
 	/*background-color: #ECECEC;*/
+}
+.done {
+	background-color: #C1C1C1!important;
+}
+.current, .current td {
+	background-color: lightgrey!important;
 }
 
 /* First Col */
@@ -46,35 +51,38 @@
 .td_category_libelle {
 	min-width: 90px;
 	text-align: left;
+	background-color: #C1C1C1!important;
 }
 .td_subcategory_libelle {
 	min-width: 120px;
 	text-align: left;
+	background-color: #C1C1C1!important;
 }
 .td_total {
 	border-left: 5px black solid!important;
 }
-
 
 /* PARTICULIER */
 .anticipe {
 	color: purple;
 	border-left: hidden!important;
 }
+
+/* TOTAL MONTH */
 .total_month_detail_pos {
 	color: green;
 }
 .total_month_full_pos {
 	color: darkgreen;
-	font-weight: bold; 
 }
 .total_month_detail_neg {
 	color: #FF0000;
 }
 .total_month_full_neg {
 	color: darkred;
-	font-weight: bold; 
 }
+
+/* SOLDE */
 .solde_th_cache {
 	border-top: hidden!important;
 	border-left: hidden!important;
@@ -90,6 +98,7 @@
 	font-size: 19px!important;
 }
 
+/* BCK COLOR */
 .bck_pos {
 	background-color: #D7E2D6!important;
 }
@@ -98,4 +107,14 @@
 }
 .bck_black {
 	background-color: black!important;
+}
+
+/* BLINK */
+.blink_me {
+	animation: blinker 3s linear infinite;
+}
+@keyframes blinker {
+	70% {
+		opacity: 0;
+	}
 }

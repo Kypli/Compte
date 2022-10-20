@@ -23,7 +23,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			SubCategoryFixtures::SUBCATEGORY_USER_2,
 		];
 
-		for($i = 0; $i <= 200; $i++){
+		for($i = 0; $i <= 250; $i++){
 
 			$year = date('Y');
 			$month = rand(1, 12);
@@ -31,15 +31,32 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			$hour = rand(0, 23);
 			$minute = rand(0, 59);
 			$second = rand(0, 59);
-
 			$date = new \Datetime($year.'/'.$month.'/'.$day.' '.$hour.':'.$minute.':'.$second);
+
+			$date_now = new \Datetime('now');
+			$date_now_month = $date_now->format('m');
+
+
+			if ($month > $date_now->format('n')){
+				$anticipe = 1;
+
+			} elseif($month < $date_now->format('n')){
+				$rand = rand(1, 100);
+				$anticipe = $rand <= 7
+					? 1
+					: 0
+				;
+
+			} else {
+				$anticipe = rand(0, 1);
+			}
 
 			$subcategory = $subcategories[rand(0, 3)];
 
 			$entity = new Entity();
 			$entity
 				->setNumber(rand(-10000, 10000) / 100)
-				->setAnticipe(rand(0, 1))
+				->setAnticipe($anticipe)
 				->setDate($date)
 				->setComment('comment '.$i)
 				->setSubcategory($this->getReference($subcategory))

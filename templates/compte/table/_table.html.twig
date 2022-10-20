@@ -6,31 +6,31 @@
 				{{ type == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
 				<span class="">(€)</span>
 			</th>
-			<th colspan='2' id='jan'>Janvier</th>
-			<th colspan='2' id='fev'>Février</th>
-			<th colspan='2' id='mar'>Mars</th>
-			<th colspan='2' id='avr'>Avril</th>
-			<th colspan='2' id='mai'>Mai</th>
-			<th colspan='2' id='juil'>Juin</th>
-			<th colspan='2' id='juin'>Juillet</th>
-			<th colspan='2' id='aou'>Août</th>
-			<th colspan='2' id='sep'>Septembre</th>
-			<th colspan='2' id='oct'>Octobre</th>
-			<th colspan='2' id='nov'>Novembre</th>
-			<th colspan='2' id='dec'>Décembre</th>
-			<th id='total' class="td_total">Total</th>
-			<th id='totalByMonth'>Total / mois</th>
-			<th id='percent'>%</th>
+
+			{# MONTHS #}
+			{% for key, month in months %}
+				<th 
+					colspan='2'
+					id='month_{{ key }}'
+					class="{{ key < current_month ? 'done' : key == current_month ? 'current normal italique taille18' : 'normal' }}"
+				>{{ month|capitalize }}</th>
+			{% endfor %}
+
+			{# TOTAL #}
+			<th id='total' class="td_total done">Total</th>
+			<th id='totalByMonth' class="done">Total / mois</th>
+			<th id='percent' class="done">%</th>
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
-				{% for i in 01..12 %}
-					<td>Réel</td>
-					<td>A ven</td>
+				{% for month in 01..12 %}
+					{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
+					<td class="{{ done }}">Réel</td>
+					<td class="{{ done }}">A ven</td>
 				{% endfor %}
-				<th class="td_total"></th>
-				<th></th>
-				<th></th>
+				<th class="td_total done"></th>
+				<th class="done"></th>
+				<th class="done"></th>
 			</tr>
 		{% endif %}
 	</thead>

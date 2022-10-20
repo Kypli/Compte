@@ -119,60 +119,7 @@ class UserController extends AbstractController
 	}
 
 	/**
-	 * Ajoute un utilisateur anonyme
-	 */
-	public function addAnonyme($mail, $ip)
-	{
-		$user = new User();
-		$ur = $this->getDoctrine()->getRepository(User::class);
-		$upr = $this->getDoctrine()->getRepository(UserProfil::class);
-		$uar = $this->getDoctrine()->getRepository(UserAsso::class);
-
-		// Nombre anonyme
-		$count = (int) $ur->countAnonymous();
-		$count++;
-
-		// Login + mdp
-		$login = 'Visiteur'.$count;
-		$mdp = $this->randMdp();
-
-		// User datas
-		$user
-			->setUserName($login)
-			->setPassword($this->passwordHasher->hashPassword(
-				$user,
-				$mdp,
-			))
-			->setRoles(["ROLE_USER"])
-			->setAnonyme(true)
-			->setIp($ip)
-			->setPasswordTempo($mdp)
-
-		;
-
-		$userProfil = new UserProfil();
-		$userProfil
-			->setMail($mail)
-			->setUser($user)
-		;
-
-		$userAsso = new UserAsso();
-		$userAsso
-			->setUser($user)
-		;
-
-		$ur->add($user);
-		$upr->add($userProfil);
-		$uar->add($userAsso);
-
-		return [
-			'user' => $user,
-			'login' => $login,
-			'mdp' => $mdp,
-		];
-	}
-
-	/**
+	 * @IsGranted("ROLE_USER")
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
 	public function show(User $user): Response
@@ -188,6 +135,7 @@ class UserController extends AbstractController
 	}
 
 	/**
+	 * @IsGranted("ROLE_USER")
 	 * @Route("/edit/{id}", name="_edit", methods={"GET", "POST"})
 	 */
 	public function edit(Request $request, User $user, UserRepository $userRepository): Response

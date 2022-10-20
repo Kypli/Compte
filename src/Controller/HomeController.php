@@ -2,12 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\UserProfil;
-
-use App\Repository\UserRepository;
-use App\Repository\UserProfilRepository;
-use App\Repository\OperationRepository;
-
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -23,16 +17,7 @@ class HomeController extends AbstractController
 	/**
 	 * @Route("/", name="")
 	 */
-	public function index(Request $request, AuthenticationUtils $authenticationUtils, OperationRepository $or){
-
-		// User
-		$user = $this->getUser();
-
-
-		// $soldeActuel = $or->soldeActuel($user->getId());
-
-		// dump($soldeActuel);
-		// die;
+	public function index(Request $request, AuthenticationUtils $authenticationUtils){
 
 		return $this->render('home/index.html.twig',[
 

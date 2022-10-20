@@ -15,18 +15,16 @@ body {
 	background-color: lightgray;
 }
 
-
-
 /* Commun */
-.center				{   text-align: center;             }
-.alignBottom		{   text-align: bottom;             }
-.alignRight			{   text-align: right;              }
-.alignLeft			{   text-align: left;               }
+.center				{	text-align: center;				}
+.alignBottom		{	text-align: bottom;				}
+.alignRight			{	text-align: right;				}
+.alignLeft			{	text-align: left;				}
 
-.floatbottom		{   float : bottom;                 }
-.floatright         {   float : right;                  }
-.floatleft          {   float : left;                   }
-.floatcenter        {   float : center;                 }
+.floatbottom		{	float : bottom;					}
+.floatright			{	float : right;					}
+.floatleft			{	float : left;					}
+.floatcenter		{	float : center;					}
 
 .conteneur          {   display: flex;                  }
 .hidden             {   display: none;                  }
@@ -41,13 +39,14 @@ body {
 .taille14           {   font-size: 14px;                }
 .taille15           {   font-size: 15px;                }
 .taille17           {   font-size: 17px;                }
-.taille18           {   font-size: 18px;                }
+.taille18           {   font-size: 18px!important;		}
 .taille20           {   font-size: 20px;                }
-.taille25           {   font-size: 25px;                }
+.taille25           {   font-size: 25px;				}
 
 .barre              {   text-decoration: line-through;  }
 .souligne           {   text-decoration: underline;     }
 .gras               {   font-weight: bold;              }
+.normal             {   font-weight: normal;            }
 .italique           {   font-style : italic;            }
 
 .pointeur           {   cursor: pointer;                }

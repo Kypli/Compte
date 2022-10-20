@@ -73,7 +73,7 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie le solde actuel
 	 */
-	public function soldeActuel($user_id): array
+	public function CompteSoldeActuel($compte_id): ?float
 	{
 		$date = new \Datetime('now');
 
@@ -81,24 +81,24 @@ class OperationRepository extends ServiceEntityRepository
 			->leftjoin('x.subcategory', 'sc')
 			->leftjoin('sc.category', 'ca')
 			->leftjoin('ca.compte', 'co')
-			// ->join('co.users', 'u')
 
-			->select('x')
+			// ->select('x')
+			->select('SUM(x.number)')
 
-			// ->where('u.id = :user_id')
-			// ->andWhere('u.id = :user_id')
+			->where('co.id = :compte_id')
 			->andWhere('x.anticipe = false')
-			->andWhere('x.date >= :date')
+			->andWhere('x.date <= :date')
 
 			->setParameters([
-				// 'user_id' => $user_id,
+				'compte_id' => $compte_id,
 				'date' => $date,
 			])
 
 			->orderBy('x.date', 'ASC')
 
 			->getQuery()
-			->getResult()
+			// ->getResult()
+			->getSingleScalarResult()
 		;
 	}
 }

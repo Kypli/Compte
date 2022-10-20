@@ -23,6 +23,16 @@
 			</div>
 		</div>
 
+		{# SOLDE ACTUEL #}
+		<div class='row mt-2 mb-3'>
+			<div class="offset-1 col-4">
+				Solde actuel :
+				<span class="total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
+					{{ solde == null ? 0 : solde }}
+				</span>
+			</div>
+		</div>
+
 		{# TABLE #}
 		<div class='row m-1 mt-2 mb-3'>
 			<div class="mb-5 col-12">
