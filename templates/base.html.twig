@@ -9,6 +9,10 @@
         {% endblock %}
 
         {% block javascripts %}
+
+            {# JQUERY #}
+            <script type="text/javascript" src="{{ asset('/jquery/3.6.1/min.js') }}"></script>
+
             {{ encore_entry_script_tags('app') }}
         {% endblock %}
     </head>
