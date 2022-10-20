@@ -23,13 +23,27 @@
 			</div>
 		</div>
 
-		{# SOLDE ACTUEL #}
 		<div class='row mt-2 mb-3'>
+
+			{# SOLDE #}
 			<div class="offset-1 col-4">
 				Solde actuel :
 				<span class="total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
 					{{ solde == null ? 0 : solde }}
 				</span>
+			</div>
+			
+			{# NAVIGATION YEAR #}
+			<div class="offset-3 col-4">
+				<div class="container navigation">
+					{% if year > min_year %}
+						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year - 1) }) }}"><i class="fa-solid fa-arrow-left pointer black"></i></a>
+					{% endif %}
+					<span class='navigation_elem'>{{ year }}</span>
+					{% if year < max_year %}
+						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year + 1) }) }}"><i class="fa-solid fa-arrow-right pointer black"></i></a>
+					{% endif %}
+				</div>
 			</div>
 		</div>
 

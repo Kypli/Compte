@@ -22,6 +22,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 class CompteController extends AbstractController
 {
+	private $max_year;
+
+	private $min_year;
+
+
+	public function __construct()
+	{
+		$this->max_year = ((int)date('Y') + 40);
+		$this->min_year = ((int)date('Y') - 40);
+	}
+
 	/**
 	 * @Route("/", name="")
 	 */
@@ -56,14 +67,24 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
-	public function show(Compte $compte, OperationRepository $or): Response
+	public function show(Compte $compte, OperationRepository $or, Request $request): Response
 	{
+		// Year
+		$year = (int) $request->query->get('year');
+		$year =
+			0 != $year &&
+			$year >= $this->min_year &&
+			$year <= $this->max_year
+				? $year
+				: date('Y')
+		;
+
 		// Solde
 		$solde = $or->CompteSoldeActuel($compte->getId());
 
 		// Opérations
-		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), date('Y'));
-		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), date('Y'), false);
+		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), $year);
+		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), $year, false);
 
 		// Current Month
 		$date_month = new \Datetime('now');
@@ -87,12 +108,19 @@ class CompteController extends AbstractController
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
+
 			'months' => $months,
-			'solde' => $solde,
+			'year' => $year,
+			'max_year' => $this->max_year,
+			'min_year' => $this->min_year,
+
 			'user' => $this->getUser(),
 			'current_month' => $date_month,
+
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
+
+			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)), // Solde by month
 		]);
 	}

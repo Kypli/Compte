@@ -1,3 +1,4 @@
-{% for i in 1..12 %}
-	<td class="total_month_full_{{ type }}" colspan="2">0</td>
+{% for month in 1..12 %}
+	{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
+	<td class="total_month_full_{{ type }} {{ done }}" colspan="2">0</td>
 {% endfor %}

@@ -1,4 +1,13 @@
 
+/* YEAR */
+.navigation {
+	margin: 15px 0 0 15px;
+}
+.navigation_elem {
+	margin: 0 10px 0 10px;
+	font-size: 18px!important;
+}
+
 /* TABLE */
 .compteTable, .compteTable th, .compteTable tr, .compteTable td {
 	padding: 3px;
