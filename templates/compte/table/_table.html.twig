@@ -2,7 +2,6 @@
 	<thead>
 		<tr class="tr_head">
 			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='col_start_top bck_{{ type }}'>
-				<span class="">{{ 'now'|date('Y') }}</span>
 				{{ type == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
 				<span class="">(€)</span>
 			</th>
@@ -18,7 +17,7 @@
 
 			{# TOTAL #}
 			<th id='total' class="td_total done">Total</th>
-			<th id='totalByMonth' class="done">Total / mois</th>
+			<th id='totalByMonth' class="done">Soit <br/>X€ / mois</th>
 			<th id='percent' class="done">%</th>
 		</tr>
 		{% if user.preferences.comptegenreshow %}

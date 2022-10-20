@@ -1,22 +1,18 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 
-body{
-	font-family: 'Roboto', sans-serif;
-}
-* {
-	margin: 0;
-	padding: 0;
-}
-i {
-	margin-right: 10px;
-}
+
 /*----------bootstrap-navbar-css------------*/
+
+/* MAIN COLOR */
+$main-color: #8FB4A3;
+/*$main-color: #5161ce;*/
+
 .navbar-logo{
 	padding: 15px;
 	color: #fff;
 }
 .navbar-mainbg{
-	background-color: #5161ce;
+	background-color: $main-color;
 	padding: 0px;
 }
 #navbarSupportedContent{
@@ -26,6 +22,7 @@ i {
 #navbarSupportedContent ul{
 	padding: 0px;
 	margin: 0px;
+	margin-left: 10px;
 }
 #navbarSupportedContent ul li a i{
 	margin-right: 10px;
@@ -45,7 +42,7 @@ i {
 	position: relative;
 }
 #navbarSupportedContent>ul>li.active>a{
-	color: #5161ce;
+	color: $main-color;
 	background-color: transparent;
 	transition: all 0.7s;
 }
@@ -99,7 +96,7 @@ i {
 	width: 50px;
 	height: 50px;
 	border-radius: 50%;
-	background-color: #5161ce;
+	background-color: $main-color;
 }
 .hori-selector .right:before{
 	bottom: 0;
@@ -108,6 +105,14 @@ i {
 .hori-selector .left:before{
 	bottom: 0;
 	left: -25px;
+}
+
+.decaleLeftUl {
+	margin-left: 80px!important;
+}
+.decaleLeftLi {
+	padding-left: 20px!important;
+	padding-right: 20px!important;
 }
 
 

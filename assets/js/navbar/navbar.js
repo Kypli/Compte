@@ -1,5 +1,5 @@
 // CSS
-import '../../styles/navbar/navbar.css';
+import '../../styles/navbar/navbar.scss';
 
 
 // ---------Responsive-navbar-active-animation-----------

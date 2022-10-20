@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-custom navbar-mainbg">
-	<a class="navbar-brand navbar-logo" href="#">Navbar</a>
+	{# <a class="navbar-brand navbar-logo" href="{{ path('home') }}">Navbar</a> #}
 	<button
 		class="navbar-toggler"
 		type="button"
@@ -11,25 +11,52 @@
 	</button>
 
 	<div class="collapse navbar-collapse" id="navbarSupportedContent">
-		<ul class="navbar-nav ml-auto">
-			<div class="hori-selector"><div class="left"></div><div class="right"></div></div>
-			<li class="nav-item">
-				<a class="nav-link" href="javascript:void(0);"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+		<ul class="navbar-nav decaleLeftUl">
+			<div class="hori-selector">
+				<div class="left"></div>
+				<div class="right"></div>
+			</div>
+			<li class="nav-item decaleLeftLi {{ 'home' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'home' ? '#' : path('home') }}">
+					<i class="fas fa-tachometer-alt"></i>
+					Tableau de bord
+				</a>
 			</li>
-			<li class="nav-item active">
-				<a class="nav-link" href="javascript:void(0);"><i class="far fa-address-book"></i>Address Book</a>
+			<li class="nav-item decaleLeftLi {{ 'compte' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'compte' ? '#' : path('compte') }}">
+					<i class="fa-solid fa-sack-dollar"></i>
+					Comptes
+				</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="javascript:void(0);"><i class="far fa-clone"></i>Components</a>
+			<li class="nav-item decaleLeftLi {{ 'credit' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'credit' ? '#' : path('credit') }}">
+					<i class="fa-solid fa-comments-dollar"></i>
+					Crédit
+				</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="javascript:void(0);"><i class="far fa-calendar-alt"></i>Calendar</a>
+			<li class="nav-item decaleLeftLi {{ 'immobilier' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'immobilier' ? '#' : path('immobilier') }};">
+					<i class="fa-sharp fa-solid fa-house"></i>
+					Immobilier / Mobilier
+				</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="javascript:void(0);"><i class="far fa-chart-bar"></i>Charts</a>
+			<li class="nav-item decaleLeftLi {{ 'investissement' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'invest' ? '#' : path('invest') }}">
+					<i class="fa-solid fa-money-bill-trend-up"></i>
+					Investissement
+				</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="javascript:void(0);"><i class="far fa-copy"></i>Documents</a>
+			<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('preference') }}">
+					<i class="fa-solid fa-star"></i></i>
+					Préférences
+				</a>
+			</li>
+			<li class="nav-item decaleLeftLi {{ 'profil' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user') }}">
+					<i class="fa-solid fa-user"></i></i>
+					Profil
+				</a>
 			</li>
 		</ul>
 	</div>

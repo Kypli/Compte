@@ -17,11 +17,4 @@ Compte
 		Faire un placement numéroté
 		Limiter le nombre de character, si dépasse => ... + reste en title
 
-
-NavBar
-	Profil
-	Comptes
-	Compte-rendu (Page d'accueil)
-	Crédit
-	Immobilier / Mobilier
-	Investissement
+Compte -> Compte principal
