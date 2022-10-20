@@ -17,8 +17,8 @@
             <tr>
                 <td>{{ immobilier.id }}</td>
                 <td>
-                    <a href="{{ path('app_immobilier_show', {'id': immobilier.id}) }}">show</a>
-                    <a href="{{ path('app_immobilier_edit', {'id': immobilier.id}) }}">edit</a>
+                    <a href="{{ path('immobilier_show', {'id': immobilier.id}) }}">show</a>
+                    <a href="{{ path('immobilier_edit', {'id': immobilier.id}) }}">edit</a>
                 </td>
             </tr>
         {% else %}
@@ -29,5 +29,5 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_immobilier_new') }}">Create new</a>
+    <a href="{{ path('immobilier_new') }}">Create new</a>
 {% endblock %}

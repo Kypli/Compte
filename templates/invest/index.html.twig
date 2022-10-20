@@ -17,8 +17,8 @@
             <tr>
                 <td>{{ invest.id }}</td>
                 <td>
-                    <a href="{{ path('app_invest_show', {'id': invest.id}) }}">show</a>
-                    <a href="{{ path('app_invest_edit', {'id': invest.id}) }}">edit</a>
+                    <a href="{{ path('invest_show', {'id': invest.id}) }}">show</a>
+                    <a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
                 </td>
             </tr>
         {% else %}
@@ -29,5 +29,5 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_invest_new') }}">Create new</a>
+    <a href="{{ path('invest_new') }}">Create new</a>
 {% endblock %}

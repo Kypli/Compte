@@ -14,9 +14,9 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_invest_index') }}">back to list</a>
+    <a href="{{ path('invest_index') }}">back to list</a>
 
-    <a href="{{ path('app_invest_edit', {'id': invest.id}) }}">edit</a>
+    <a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
 
     {{ include('invest/_delete_form.html.twig') }}
 {% endblock %}

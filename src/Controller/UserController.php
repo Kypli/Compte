@@ -270,6 +270,14 @@ class UserController extends AbstractController
 		return $this->redirectToRoute('user', [], Response::HTTP_SEE_OTHER);
 	}
 
+	/**
+	 * @Route("/preference", name="_preference", methods={"POST"})
+	 */
+	public function preference()
+	{
+		return $this->render('user/preference.html.twig');
+	}
+
 	public function accesControl($user_id)
 	{
 		// Si non-admin

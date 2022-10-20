@@ -35,19 +35,19 @@
 				</a>
 			</li>
 			<li class="nav-item decaleLeftLi {{ 'immobilier' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'immobilier' ? '#' : path('immobilier') }};">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'immobilier' ? '#' : path('immobilier') }}">
 					<i class="fa-sharp fa-solid fa-house"></i>
 					Immobilier / Mobilier
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'investissement' in app.request.get('_route') ? 'active' }}">
+			<li class="nav-item decaleLeftLi {{ 'invest' in app.request.get('_route') ? 'active' }}">
 				<a class="nav-link" href="{{ app.request.get('_route') == 'invest' ? '#' : path('invest') }}">
 					<i class="fa-solid fa-money-bill-trend-up"></i>
 					Investissement
 				</a>
 			</li>
 			<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('preference') }}">
+				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference') }}">
 					<i class="fa-solid fa-star"></i></i>
 					Préférences
 				</a>

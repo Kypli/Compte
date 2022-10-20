@@ -26,7 +26,7 @@ class InvestController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="app_invest_new", methods={"GET", "POST"})
+     * @Route("/new", name="_new", methods={"GET", "POST"})
      */
     public function new(Request $request, InvestRepository $investRepository): Response
     {
@@ -47,7 +47,7 @@ class InvestController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="app_invest_show", methods={"GET"})
+     * @Route("/{id}", name="_show", methods={"GET"})
      */
     public function show(Invest $invest): Response
     {
@@ -57,7 +57,7 @@ class InvestController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="app_invest_edit", methods={"GET", "POST"})
+     * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
      */
     public function edit(Request $request, Invest $invest, InvestRepository $investRepository): Response
     {
@@ -77,7 +77,7 @@ class InvestController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="app_invest_delete", methods={"POST"})
+     * @Route("/{id}", name="_delete", methods={"POST"})
      */
     public function delete(Request $request, Invest $invest, InvestRepository $investRepository): Response
     {
