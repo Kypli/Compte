@@ -1,7 +1,6 @@
 // CSS
 import '../../styles/compte/compte.css';
 
-
 $(document).ready(function(){
 
 	////////////
@@ -12,7 +11,6 @@ $(document).ready(function(){
 	////////////
 	// ON EVENTS
 	////////////
-
 
 
 	////////////

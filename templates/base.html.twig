@@ -6,6 +6,7 @@
 
         {% block stylesheets %}
             {{ encore_entry_link_tags('app') }}
+            {{ encore_entry_link_tags('navbar') }}
         {% endblock %}
 
         {% block javascripts %}
@@ -14,12 +15,16 @@
             <script type="text/javascript" src="{{ asset('/jquery/3.6.1/min.js') }}"></script>
 
             {{ encore_entry_script_tags('app') }}
+            {{ encore_entry_script_tags('navbar') }}
         {% endblock %}
     </head>
     <body>
 
         {# HEADER #}
         {% block header %}{% include '_header.html.twig' %}{% endblock %}
+
+        {# NAVBAR #}
+        {% block navbar %}{% include 'navbar/index.html.twig' %}{% endblock %}
 
         {# MESSAGES FLASH SUCCESS #}
         {% for message in app.flashes('success') %}
@@ -35,6 +40,7 @@
             </div>
         {% endfor %}
 
+        {# BODY #}
         {% block body %}{% endblock %}
 
         {# FOOTER #}

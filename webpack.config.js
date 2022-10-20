@@ -22,6 +22,9 @@ Encore
      */
     .addEntry('app', './assets/app.js')
 
+    // NavBar
+    .addEntry('navbar', './assets/js/navbar/navbar.js')
+
     // Compte
     .addEntry('compte', './assets/js/compte/compte.js')
 
