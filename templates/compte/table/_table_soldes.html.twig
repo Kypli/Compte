@@ -8,7 +8,14 @@
 		{% set revenuAnnuel = 0 %}
 
 		{% for month in 1..12 %}
-			{% set done = month < current_month	? 'done' : month == current_month ? 'current normal' : 'normal' %}
+
+			{% set done =
+					current_year > year or (current_year == year and month < current_month)
+						? 'done'
+						: current_year == year and month == current_month
+							? 'current normal'
+							: 'normal'
+			%}
 
 			{# DATAS #}
 			{% if soldes['totaux_solde'][month] is defined %}
@@ -36,7 +43,14 @@
 		<th colspan="2" class="solde_th_cache">Solde cumulé</th>
 
 		{% for month in 1..12 %}
-			{% set done = month < current_month	? 'done' : month == current_month ? 'current normal' : 'normal' %}
+
+			{% set done =
+					current_year > year or (current_year == year and month < current_month)
+						? 'done'
+						: current_year == year and month == current_month
+							? 'current normal'
+							: 'normal'
+			%}
 
 			{# DATAS #}
 			{% if soldes['totaux_solde'][month] is defined %}

@@ -8,11 +8,14 @@
 
 			{# MONTHS #}
 			{% for key, month in months %}
-				<th 
-					colspan='2'
-					id='month_{{ key }}'
-					class="{{ key < current_month ? 'done' : key == current_month ? 'current normal italique taille18' : 'normal' }}"
-				>{{ month|capitalize }}</th>
+				{% set done =
+						current_year > year or (current_year == year and key < current_month)
+							? 'done'
+							: current_year == year and key == current_month
+								? 'current normal italique taille18'
+								: 'normal'
+				%}
+				<th colspan='2' id='month_{{ key }}' class="{{ done }}">{{ month|capitalize }}</th>
 			{% endfor %}
 
 			{# TOTAL #}
@@ -23,7 +26,14 @@
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
 				{% for month in 01..12 %}
-					{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
+
+					{% set done =
+							current_year > year or (current_year == year and month < current_month)
+								? 'done'
+								: current_year == year and month == current_month
+									? 'current'
+									: ''
+					%}
 					<td class="{{ done }}">Réel</td>
 					<td class="{{ done }}">A ven</td>
 				{% endfor %}

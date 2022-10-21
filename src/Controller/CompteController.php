@@ -69,6 +69,11 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, OperationRepository $or, Request $request): Response
 	{
+		// Current Month
+		$date = new \Datetime('now');
+		$current_year = $date->format('Y');
+		$current_month = $date->format('n');
+
 		// Year
 		$year = (int) $request->query->get('year');
 		$year =
@@ -85,10 +90,6 @@ class CompteController extends AbstractController
 		// Opérations
 		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), $year);
 		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), $year, false);
-
-		// Current Month
-		$date_month = new \Datetime('now');
-		$date_month = $date_month->format('n');
 
 		// Month
 		$months = [
@@ -115,13 +116,16 @@ class CompteController extends AbstractController
 			'min_year' => $this->min_year,
 
 			'user' => $this->getUser(),
-			'current_month' => $date_month,
+			'current_year' => $current_year,
+			'current_month' => $current_month,
 
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
 
 			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)), // Solde by month
+
+			'modalGestion' => 'data-target="#modalGestion" data-toggle="modal"',
 		]);
 	}
 

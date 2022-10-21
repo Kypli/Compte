@@ -14,7 +14,14 @@
 
 			{% for month in 1..12 %}
 
-				{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
+				{% set done =
+						current_year > year or (current_year == year and month < current_month)
+							? 'done'
+							: current_year == year and month == current_month
+								? 'current'
+								: ''
+				%}
+
 				{% set ope = operations['totaux_mois'][month] %}
 
 				{% if ope is defined %}
@@ -42,7 +49,13 @@
 
 			{% for month in 1..12 %}
 
-				{% set done = month < current_month	? 'done gras' : month == current_month ? 'current' : '' %}
+				{% set done =
+						current_year > year or (current_year == year and month < current_month)
+							? 'done gras'
+							: current_year == year and month == current_month
+								? 'current'
+								: ''
+				%}
 
 				{% if operations['totaux_mois'][month] is defined %}
 					<td colspan="2" class="{{ done }} total_month_full_{{ type }}">

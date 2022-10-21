@@ -1,4 +1,11 @@
 {% for month in 1..24 %}
-	{% set done = month/2 < (current_month - 0.5) ? 'done' : month/2 == (current_month - 0.5) or month/2 == current_month ? 'current' : '' %}
+
+	{% set done =
+			current_year > year or (current_year == year and month/2 < (current_month - 0.5))
+				? 'done'
+				: current_year == year and (month/2 == (current_month - 0.5) or month/2 == current_month)
+					? 'current'
+					: ''
+	%}
 	<td class="total_month_detail_{{ type }} {{ done }}">0</td>
 {% endfor %}

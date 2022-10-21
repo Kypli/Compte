@@ -32,8 +32,9 @@
 /* TABLE */
 .compteTable, .compteTable th, .compteTable tr, .compteTable td {
 	padding: 3px;
-	border: 1px black solid;
 	font-size: 14px;
+	min-width: 45px;
+	border: 1px black solid;
 }
 .compteTable th, .compteTable tr, .compteTable td {
 	background-color: #E6E6E6;
@@ -63,7 +64,6 @@
 	max-width: 105px!important;
 }
 .tr_etat td {
-	min-width: 45px;
 	font-size: 11px!important;
 }
 .tr_operation_first td:nth-child(2) {

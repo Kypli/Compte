@@ -1,8 +1,14 @@
 {% for month in 1..12 %}
-	{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
-	<td class='{{ done }}' data-target="#modalGestion" data-toggle="modal">0</td>
-	<td class='{{ done }} anticipe' data-target="#modalGestion" data-toggle="modal"></td>
+	{% set done =
+			current_year > year or (current_year == year and month < current_month)
+				? 'done'
+				: current_year == year and month == current_month
+					? 'current'
+					: ''
+	%}
+	<td class='{{ done }}' {{ modalGestion|raw }}>0</td>
+	<td class='{{ done }} anticipe' {{ modalGestion|raw }}></td>
 {% endfor %}
-<td class="td_total done">0</td>
-<td class="done">0</td>
-<td class="done">0</td>
+<td class="done counterEdit td_total">0</td>
+<td class="done counterEdit">0</td>
+<td class="done counterEdit">0</td>

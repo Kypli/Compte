@@ -14,7 +14,13 @@
 		{% set reel = '0' %}
 		{% set blink = '' %}
 		{% set anticipe = '' %}
-		{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
+		{% set done =
+				current_year > year or (current_year == year and month < current_month)
+					? 'done'
+					: current_year == year and month == current_month
+						? 'current'
+						: ''
+		%}
 
 		{% if operationsBySc[month] is defined %}
 
@@ -28,10 +34,10 @@
 		{% endif %}
 
 		{# REEL #}
-		<td class="{{ done }}" data-target="#modalGestion" data-toggle="modal">{{ reel }}</td>
+		<td class="{{ done }}" {{ modalGestion|raw }}>{{ reel }}</td>
 
 		{# ANTICIPE #}
-		<td class='anticipe {{ blink }} {{ done }}' data-target="#modalGestion" data-toggle="modal">{{ anticipe }}</td>
+		<td class='{{ done }} {{ blink }} anticipe' {{ modalGestion|raw }}>{{ anticipe }}</td>
 	{% endfor %}
 
 	{# SC TOTAL #}
