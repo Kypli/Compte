@@ -1,8 +1,8 @@
 {% for month in 1..12 %}
 	{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
-	<td class='{{ done }}'>0</td>
-	<td class='{{ done }} anticipe'></td>
+	<td class='{{ done }}' data-target="#modalGestion" data-toggle="modal">0</td>
+	<td class='{{ done }} anticipe' data-target="#modalGestion" data-toggle="modal"></td>
 {% endfor %}
-<td class="td_total">0</td>
-<td>0</td>
-<td>0</td>
+<td class="td_total done">0</td>
+<td class="done">0</td>
+<td class="done">0</td>

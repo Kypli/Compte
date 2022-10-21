@@ -109,8 +109,8 @@ class CompteController extends AbstractController
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
 
-			'months' => $months,
 			'year' => $year,
+			'months' => $months,
 			'max_year' => $this->max_year,
 			'min_year' => $this->min_year,
 

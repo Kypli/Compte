@@ -9,33 +9,33 @@
 
 	{# 12 MOIS #}
 	{% for month in 1..12 %}
+
+		{# VAR #}
+		{% set reel = '0' %}
+		{% set blink = '' %}
+		{% set anticipe = '' %}
 		{% set done = month < current_month	? 'done' : month == current_month ? 'current' : '' %}
 
-		{# DATAS #}
 		{% if operationsBySc[month] is defined %}
 
 			{% set data = operationsBySc[month] %}
+			{% set reel = data['reel'] is defined ? data['reel'] : '0' %}
 
 			{% if data['anticipe'] is defined and data['anticipe'] != 0 %}
 				{% set anticipe = data['anticipe'] %}
 				{% set blink = month < current_month ? 'blink_me' : '' %}
-			{% else %}
-				{% set anticipe = '' %}
-				{% set blink = '' %}
 			{% endif %}
-
-			<td class="{{ done }}">{{ data['reel'] is defined ? data['reel'] : '0' }}</td>
-			<td class='anticipe {{ blink }} {{ done }}'>{{ anticipe }}</td>
-
-		{# NO DATAS #}
-		{% else %}
-			<td class='{{ done }}'>0</td>
-			<td class='{{ done }} anticipe'></td>
 		{% endif %}
+
+		{# REEL #}
+		<td class="{{ done }}" data-target="#modalGestion" data-toggle="modal">{{ reel }}</td>
+
+		{# ANTICIPE #}
+		<td class='anticipe {{ blink }} {{ done }}' data-target="#modalGestion" data-toggle="modal">{{ anticipe }}</td>
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="td_total done">{{ operationsBySc['total'] }}</td>
-	<td class="done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
-	<td class="done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
+	<td class="counterEdit done td_total">{{ operationsBySc['total'] }}</td>
+	<td class="counterEdit done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
+	<td class="counterEdit done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

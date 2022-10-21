@@ -14,45 +14,54 @@
 
 {% block body %}
 
-	<div class="{# container #}">
+	<div class="container-fluid">
 
 		{# TITRE #}
 		<div class='row mt-2 mb-3'>
 			<div class="offset-4 col-4 center">
 				<h1>{{ compte.libelle }}</h1>
 			</div>
+			<div class="offset-2 col-2 center">
+				<span class="button">Légende</span>
+			</div>
 		</div>
 
+		{# SOLDE + NAVIGATION YEAR #}
 		<div class='row mt-2 mb-3'>
 
 			{# SOLDE #}
 			<div class="offset-1 col-4">
 				Solde actuel :
-				<span class="total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
+				<span class="soldeActuel total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
 					{{ solde == null ? 0 : solde }}
 				</span>
 			</div>
 			
 			{# NAVIGATION YEAR #}
-			<div class="offset-3 col-4">
+			<div class="offset-5 col-2 center">
+				{% if year != 'now'|date('Y') %}
+					<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
+						<span class='button'>Retour {{ 'now'|date('Y') }}</span>
+					</a>
+				{% endif %}
 				<div class="container navigation">
 					{% if year > min_year %}
-						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year - 1) }) }}"><i class="fa-solid fa-arrow-left pointer black"></i></a>
+						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year - 1) }) }}"><i class="fa-solid fa-arrow-left pointer black" title="Limite année min {{ min_year }}"></i></a>
 					{% endif %}
 					<span class='navigation_elem'>{{ year }}</span>
 					{% if year < max_year %}
-						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year + 1) }) }}"><i class="fa-solid fa-arrow-right pointer black"></i></a>
+						<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year + 1) }) }}"><i class="fa-solid fa-arrow-right pointer black" title="Limite année max {{ max_year }}"></i></a>
 					{% endif %}
 				</div>
 			</div>
 		</div>
 
 		{# TABLE #}
-		<div class='row m-1 mt-2 mb-3'>
-			<div class="mb-5 col-12">
+		<div class='row m-1'>
+			<div class="col-12 mb-4">
 				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'type': 'pos' } %}
 			</div>
-			<div class="col-12">
+			<div class="col-12 mb-5">
 				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'type': 'neg' } %}
 			</div>
 			<div class="col-12">
@@ -63,12 +72,16 @@
 		{# ACTIONS #}
 		<div class='row mt-5 mb-3'>
 			<div class="offset-1 col-10">
-				<a href="{{ path('compte') }}">Retour à la liste</a>
+				{# <a href="{{ path('compte') }}">Retour à la liste</a> #}
 
-				<a href="{{ path('compte_edit', {'id': compte.id}) }}">Modifier</a>
+				{# <a href="{{ path('compte_edit', {'id': compte.id}) }}">Modifier</a> #}
 
-				{{ include('compte/_delete_form.html.twig') }}
+				{# {{ include('compte/_delete_form.html.twig') }} #}
 			</div>
 		</div>
+
+		{# MODAL GESTION OPERATIONS #}
+		{{ include('compte/modal/_gestionOperations.html.twig') }}
+
 	</div>
 {% endblock %}

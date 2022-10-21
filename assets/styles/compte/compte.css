@@ -1,4 +1,15 @@
 
+/* MAIN COLORS */
+
+
+/* SOLDE ACTUEL */
+.soldeActuel {
+	border: 1px black solid;
+	padding: 12px;
+	font-weight: bold;
+	background-color: #E6E6E6;
+}
+
 /* YEAR */
 .navigation {
 	margin: 15px 0 0 15px;
@@ -6,6 +17,16 @@
 .navigation_elem {
 	margin: 0 10px 0 10px;
 	font-size: 18px!important;
+}
+.button {
+	color: black;
+	padding: 6px;
+	cursor: pointer;
+	margin-left: 25px;
+	border-radius: 15px;
+	border: 1px black solid;
+	background-color: #E6E6E6;
+	text-decoration: #E6E6E6 underline;
 }
 
 /* TABLE */
@@ -16,16 +37,9 @@
 }
 .compteTable th, .compteTable tr, .compteTable td {
 	background-color: #E6E6E6;
-	/*background-color: #ECECEC;*/
-}
-.done {
-	background-color: #C1C1C1!important;
-}
-.current, .current td {
-	background-color: lightgrey!important;
 }
 
-/* First Col */
+/* FIRST COL */
 .col_start_top {
 	min-width: 200px!important;
 	border-top: hidden!important;
@@ -71,10 +85,43 @@
 	border-left: 5px black solid!important;
 }
 
-/* PARTICULIER */
+/* ETAT */
+.done {
+	background-color: #C1C1C1!important;
+}
+.current, .current td {
+	background-color: lightgrey!important;
+}
+
+/* ANTICIPE */
 .anticipe {
 	color: purple;
 	border-left: hidden!important;
+}
+.blink_me {
+	animation: blinker 3s linear infinite;
+}
+@keyframes blinker {
+	70% {
+		opacity: 0;
+	}
+}
+
+/* ZONE D'EDITION */
+/*#E2E2D6*/
+.compteTable .edit {
+	border-left: 3px #575756 solid!important;
+}
+.compteTable .edit:first-child :not(.counterEdit){
+	border-top: 3px #575756 solid!important;
+}
+.compteTable .collabo td:not(:nth-child(3)){
+	border-top: 3px #575756 solid!important;
+}
+.compteTable .edit td:hover:not(.counterEdit) {
+	cursor: pointer;
+	text-decoration: underline;
+	background-color: #F5F5C5!important;
 }
 
 /* TOTAL MONTH */
@@ -96,12 +143,12 @@
 	border-top: hidden!important;
 	border-left: hidden!important;
 	border-bottom: hidden!important;
-	background-color: lightgray!important;
+	background-color: #D6DBE2!important;
 }
 .solde_th_cache_2 {
 	border-top: hidden!important;
 	border-bottom: hidden!important;
-	background-color: lightgray!important;
+	background-color: #D6DBE2!important;
 }
 .revenuAnnuel {
 	font-size: 19px!important;
@@ -116,14 +163,4 @@
 }
 .bck_black {
 	background-color: black!important;
-}
-
-/* BLINK */
-.blink_me {
-	animation: blinker 3s linear infinite;
-}
-@keyframes blinker {
-	70% {
-		opacity: 0;
-	}
 }

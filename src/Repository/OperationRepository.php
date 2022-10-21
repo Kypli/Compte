@@ -82,7 +82,6 @@ class OperationRepository extends ServiceEntityRepository
 			->leftjoin('sc.category', 'ca')
 			->leftjoin('ca.compte', 'co')
 
-			// ->select('x')
 			->select('SUM(x.number)')
 
 			->where('co.id = :compte_id')
@@ -94,10 +93,7 @@ class OperationRepository extends ServiceEntityRepository
 				'date' => $date,
 			])
 
-			->orderBy('x.date', 'ASC')
-
 			->getQuery()
-			// ->getResult()
 			->getSingleScalarResult()
 		;
 	}

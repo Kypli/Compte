@@ -271,11 +271,15 @@ class UserController extends AbstractController
 	}
 
 	/**
-	 * @Route("/preference", name="_preference", methods={"POST"})
+	 * @IsGranted("ROLE_USER")
+	 * @Route("/preference", name="_preference", methods={"GET"})
 	 */
-	public function preference()
+	public function preference(): Response
 	{
-		return $this->render('user/preference.html.twig');
+		$user = $this->getUser();
+		return $this->render('user/index.html.twig', [
+			'user' => $user,
+		]);
 	}
 
 	public function accesControl($user_id)

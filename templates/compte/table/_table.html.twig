@@ -37,7 +37,7 @@
 		{% for category in compte.categories %}
 
 			{% for subcategory in category.subcategories %}
-				<tr {{ loop.first ? "class='tr_operation_first'" }}>
+				<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
 					{% if loop.first %}
 						<td class='td_category_libelle' rowspan='{{ category.subcategories|length }}'>
 							{{ category.libelle|capitalize }}
