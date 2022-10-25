@@ -34,10 +34,30 @@
 		{% endif %}
 
 		{# REEL #}
-		<td class="{{ done }}" {{ modalGestion|raw }}>{{ reel }}</td>
+		<td
+			class="{{ done }}"
+			data-month="{{ month }}"
+			data-scid="{{ subcategory.id }}"
+			data-type="{{ type }}"
+			data-anticipe="0"
+			data-target="#modalGestion"
+			data-toggle="modal"
+		>
+			{{ reel }}
+		</td>
 
 		{# ANTICIPE #}
-		<td class='{{ done }} {{ blink }} anticipe' {{ modalGestion|raw }}>{{ anticipe }}</td>
+		<td
+			class='{{ done }} {{ blink }} anticipe'
+			data-month="{{ month }}"
+			data-scid="{{ subcategory.id }}"
+			data-type="{{ type }}"
+			data-anticipe="1"
+			data-target="#modalGestion"
+			data-toggle="modal"
+		>
+			{{ anticipe }}
+		</td>
 	{% endfor %}
 
 	{# SC TOTAL #}

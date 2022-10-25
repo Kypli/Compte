@@ -59,9 +59,9 @@
 
 /* TR */
 .tr_head th {
-	width: 105px!important;
-	min-width: 105px!important;
-	max-width: 105px!important;
+	width: 100px!important;
+	min-width: 100px!important;
+	max-width: 100px!important;
 }
 .tr_etat td {
 	font-size: 11px!important;

@@ -10,20 +10,28 @@
 	<div class="modal-dialog modal-dialog-scrollable">
 		<div class="modal-content">
 
-			<!-- Modal Header -->
+			{# HEADER #}
 			<div class="modal-header">
-				<h4 class="modal-title">Gestion des opérations<br /> xx/xx/xxxx</h4>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">
+					<span class="souligne">Gestion des opérations</span>
+					<br />
+					<span id='modal_date_mois'>.........</span> <span id='modal_date_annee'>20..</span>
+					<br />
+					<span id="modal_category">.............</span> -> <span id="modal_subcategory">.............</span>
+					<br />
+					<span id="modal_anticipe"></span>
+					<span id="modal_type"></span>
+				</h4>
 			</div>
 
-			<!-- Modal body -->
+			{# BODY #}
 			<div class="modal-body">
-				De la tunasse
+				{{ include('compte/modal/_onglets.html.twig') }}
 			</div>
 
-			<!-- Modal footer -->
+			{# FOOTER #}
 			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Fermer</button>
 			</div>
 		</div>
 	</div>

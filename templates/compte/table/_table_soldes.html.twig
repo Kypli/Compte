@@ -2,8 +2,7 @@
 
 	{# SOLDE MENSUEL #}
 	<tr class='tr_head'>
-		<th colspan="2" class="solde_th_cache"></th>
-		<th colspan="2" class="solde_th_cache">Solde mensuel</th>
+		<th colspan="4" class="solde_th_cache alignRight">Solde mensuel</th>
 
 		{% set revenuAnnuel = 0 %}
 
@@ -38,9 +37,9 @@
 	</tr>
 
 	{# SOLDE CUMULE #}
-	<tr class='tr_head mt-1'>
-		<th colspan="2" class="solde_th_cache"></th>
-		<th colspan="2" class="solde_th_cache">Solde cumulé</th>
+	<tr class='tr_head'>
+		<th class="solde_th_cache"></th>
+		<th colspan="3" class="solde_th_cache alignRight">Solde cumulé</th>
 
 		{% for month in 1..12 %}
 

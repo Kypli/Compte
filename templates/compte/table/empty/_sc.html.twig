@@ -6,8 +6,31 @@
 					? 'current'
 					: ''
 	%}
-	<td class='{{ done }}' {{ modalGestion|raw }}>0</td>
-	<td class='{{ done }} anticipe' {{ modalGestion|raw }}></td>
+
+
+	{# REEL #}
+	<td
+		class='{{ done }}'
+		data-month="{{ month }}"
+		data-scid="{{ subcategory.id }}"
+		data-type="{{ type }}"
+		data-anticipe="0"
+		data-target="#modalGestion"
+		data-toggle="modal"
+	>
+		0
+	</td>
+
+	{# ANTICIPE #}
+	<td
+		class='{{ done }} anticipe'
+		data-month="{{ month }}"
+		data-scid="{{ subcategory.id }}"
+		data-type="{{ type }}"
+		data-anticipe="1"
+		data-target="#modalGestion"
+		data-toggle="modal"
+	></td>
 {% endfor %}
 <td class="done counterEdit td_total">0</td>
 <td class="done counterEdit">0</td>

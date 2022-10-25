@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Compte;
+use App\Entity\SubCategory;
 
 use App\Form\CompteType;
 
@@ -16,21 +17,23 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
 /**
  * @IsGranted("ROLE_USER")
  * @Route("/compte", name="compte")
  */
 class CompteController extends AbstractController
 {
-	private $max_year;
+	private $navigation_max_year;
 
-	private $min_year;
-
+	private $navigation_min_year;
 
 	public function __construct()
 	{
-		$this->max_year = ((int)date('Y') + 40);
-		$this->min_year = ((int)date('Y') - 40);
+		$this->navigation_max_year = ((int)date('Y') + 40);
+		$this->navigation_min_year = ((int)date('Y') - 40);
 	}
 
 	/**
@@ -78,8 +81,8 @@ class CompteController extends AbstractController
 		$year = (int) $request->query->get('year');
 		$year =
 			0 != $year &&
-			$year >= $this->min_year &&
-			$year <= $this->max_year
+			$year >= $this->navigation_min_year &&
+			$year <= $this->navigation_max_year
 				? $year
 				: date('Y')
 		;
@@ -112,8 +115,9 @@ class CompteController extends AbstractController
 
 			'year' => $year,
 			'months' => $months,
-			'max_year' => $this->max_year,
-			'min_year' => $this->min_year,
+			'months_json' => json_encode($months),
+			'max_year' => $this->navigation_max_year,
+			'min_year' => $this->navigation_min_year,
 
 			'user' => $this->getUser(),
 			'current_year' => $current_year,
@@ -124,8 +128,6 @@ class CompteController extends AbstractController
 
 			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)), // Solde by month
-
-			'modalGestion' => 'data-target="#modalGestion" data-toggle="modal"',
 		]);
 	}
 
@@ -228,6 +230,23 @@ class CompteController extends AbstractController
 		$operations['total_final'] = $total_final;
 
 		return $operations;
+	}
+
+	/**
+	 * @Route("/gestion/{sc}/{year}/{month}/{type}/{anticipe}", name="_gestion")
+	 * Ajax only
+	 */
+	public function gestion(SubCategory $sc, $year, $month, $type, $anticipe, OperationRepository $or): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $anticipe);
+
+		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
+		$datas['subcategory_libelle'] = $sc->getLibelle();
+
+		return new JsonResponse($datas);
 	}
 
 	/**

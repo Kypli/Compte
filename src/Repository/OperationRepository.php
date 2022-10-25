@@ -97,4 +97,48 @@ class OperationRepository extends ServiceEntityRepository
 			->getSingleScalarResult()
 		;
 	}
+
+	/**
+	 * Renvoie les opérations d'une SC pour un mois
+	 */
+	public function gestion($sc, $year, $month, $type, $anticipe): ?array
+	{
+		$type = $type == 'pos'
+			? '>= 0'
+			: '< 0'
+		;
+
+		$d = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+		$date_start = new \Datetime($year.'/'.$month.'/01 00:00:00');
+		$date_end = new \Datetime($year.'/'.$month.'/'.$d.' 23:59:59');
+
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.subcategory', 'sc')
+
+			->select([
+				'x.id',
+				'x.number',
+				'x.date',
+				'x.anticipe',
+				'x.comment',
+			])
+
+			->where('sc.id = :sc')
+			->andWhere('x.date IS NOT NULL')
+			->andWhere('x.date >= :date_start')
+			->andWhere('x.date <= :date_end')
+			->andWhere('x.number '.$type)
+			->andWhere('x.anticipe = :anticipe')
+
+			->setParameters([
+				'sc' => $sc,
+				'anticipe' => $anticipe,
+				'date_end' => $date_end,
+				'date_start' => $date_start,
+			])
+
+			->getQuery()
+			->getArrayResult()
+		;
+	}
 }
