@@ -118,7 +118,9 @@ class OperationRepository extends ServiceEntityRepository
 			->select([
 				'x.id',
 				'x.number',
-				'x.date',
+				'DAY(x.date) as day',
+				'MONTH(x.date) as month',
+				'YEAR(x.date) as year',
 				'x.anticipe',
 				'x.comment',
 			])
@@ -136,6 +138,8 @@ class OperationRepository extends ServiceEntityRepository
 				'date_end' => $date_end,
 				'date_start' => $date_start,
 			])
+
+			->orderBy('x.date', 'DESC')
 
 			->getQuery()
 			->getArrayResult()

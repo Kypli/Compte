@@ -236,7 +236,7 @@ class CompteController extends AbstractController
 	 * @Route("/gestion/{sc}/{year}/{month}/{type}/{anticipe}", name="_gestion")
 	 * Ajax only
 	 */
-	public function gestion(SubCategory $sc, $year, $month, $type, $anticipe, OperationRepository $or): Response
+	public function gestion(SubCategory $sc, $year, $month, $type, $anticipe, Request $request, OperationRepository $or): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }

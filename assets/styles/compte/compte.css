@@ -8,6 +8,7 @@
 	padding: 12px;
 	font-weight: bold;
 	background-color: #E6E6E6;
+	min-width: 350px!important;
 }
 
 /* YEAR */

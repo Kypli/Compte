@@ -1,0 +1,19 @@
+#modalOpeListe {
+
+}
+
+.modal_ope_th {
+	min-width: 120px!important;
+}
+.modal_ope_th_comment {
+	min-width: 200px!important;
+}
+
+#modalOpeSolde {
+	border: 1px black solid;
+	padding: 12px;
+	font-weight: bold;
+	background-color: #E6E6E6;
+	min-width: 80px!important;
+	text-align: center;
+}

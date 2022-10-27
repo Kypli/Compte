@@ -3,6 +3,7 @@ import { ucFirst } from '../service/service.js';
 
 // CSS
 import '../../styles/compte/compte.css';
+import '../../styles/compte/modalOperations.css';
 
 $(document).ready(function(){
 
@@ -20,6 +21,7 @@ $(document).ready(function(){
 	// ON EVENTS
 	////////////
 
+	// Modal Operations
 	$("body").not('.counterEdit').on("click", ".edit td:not(.counterEdit)", function(e){
 
 		modalOpSpinner(true)
@@ -29,7 +31,20 @@ $(document).ready(function(){
 		let month = $(this).data('month')
 		let anticipe = $(this).data('anticipe')
 
-		modalOpMeta1(year, months[month], type, anticipe)
+		modalOpMeta1(year, months[month], type)
+
+		modalGetOperations(sc_id, year, month, type, anticipe)
+	})
+
+	$("body").on("click", "#modalOpeListe", function(e){
+		$('#modalOpeEdit, #modalOpeCancel').prop('disabled', false).show()
+	})
+
+	////////////
+	// FONCTIONS
+	////////////
+
+	function modalGetOperations(sc_id, year, month, type, anticipe){
 
 		$.ajax({
 			type: "POST",
@@ -45,11 +60,7 @@ $(document).ready(function(){
 				modalOpSpinner(false)
 			}
 		})
-	})
-
-	////////////
-	// FONCTIONS
-	////////////
+	}
 
 	function modalOpSpinner(etat){
 		if (etat){
@@ -64,20 +75,19 @@ $(document).ready(function(){
 		}
 	}
 
-	function modalOpMeta1(year, month, type, anticipe){
+	function modalOpMeta1(year, month, type){
 
-		let type_text = type == 'pos' ? '(+)' : '(-)'
-		type = 'total_month_full_' + type
-		anticipe = anticipe ? 'A venir' : 'Réel'
+		let classType = 'total_month_full_' + type
+
+		$('#modalOpeListeTbody').empty()
+		$('#modalOpeEdit, #modalOpeCancel').prop('disabled', true).hide()
 
 		$('#modal_date_annee').text(year)
 		$('#modal_date_mois').text(ucFirst(month))
-		$('#modal_anticipe').text(anticipe)
-		$('#modal_type').text(type_text).removeClass("total_month_full_pos").removeClass("total_month_full_neg").addClass(type)
 
 		$('#modal_category').text('.............')
 		$('#modal_subcategory').text('.............')
-
+		$('#modal_category, #modal_subcategory, #modalOpeSolde').removeClass("total_month_full_pos").removeClass("total_month_full_neg").addClass(classType)
 	}
 
 	function modalOpMeta2(category_libelle, subcategory_libelle, type, anticipe){
@@ -87,7 +97,38 @@ $(document).ready(function(){
 	}
 
 	function modalOpShow(operations){
-		console.log(operations)
 
+		let
+			tr = "",
+			day = '',
+			month = '',
+			montant = 0
+		;
+
+		operations.forEach(function(item, index){
+
+			console.log(item.number)
+
+			day = item.day < 10 ? '0' + item.day : item.day
+			month = item.month < 10 ? '0' + item.month : item.month
+			montant = montant + item.number
+
+			tr = 
+				"<tr>" +
+					"<td class='modal_ope_th'>" + item.number + "</td>" +
+					"<td class='modal_ope_th'>" + day + '/' + month + '/' + item.year + "</td>" +
+					"<td class='modal_ope_th_comment'>" + ucFirst(item.comment) + "</td>" +
+					"<td class='modal_ope_th_actions'>" +
+						"<button class='m-1'>Test</button>" +
+						"<button class='m-1'>Truc</button> " +
+					"</td>" +
+				"</tr>"
+
+			$('#modalOpeListeTbody').append(tr)
+
+			tr = ''
+		})
+
+		$('#modalOpeSolde').text(Math.round(montant*100)/100)
 	}
 })

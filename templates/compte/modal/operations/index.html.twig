@@ -7,7 +7,7 @@
 	aria-labelledby="myModalLabel"
 	aria-hidden="true"
 >
-	<div class="modal-dialog modal-dialog-scrollable">
+	<div class="modal-dialog modal-dialog-scrollable modal-lg">
 		<div class="modal-content">
 
 			{# HEADER #}
@@ -19,19 +19,23 @@
 					<br />
 					<span id="modal_category">.............</span> -> <span id="modal_subcategory">.............</span>
 					<br />
-					<span id="modal_anticipe"></span>
-					<span id="modal_type"></span>
 				</h4>
 			</div>
 
 			{# BODY #}
 			<div class="modal-body">
-				{{ include('compte/modal/_onglets.html.twig') }}
+				{{ include('compte/modal/operations/_body.html.twig') }}
 			</div>
 
 			{# FOOTER #}
 			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" data-dismiss="modal">Fermer</button>
+				<button id="modalOpeCancel" type="button" class="hide btn btn-danger" disabled>Annuler les modifications</button>
+				<div class="col-1"></div>
+				<button id="modalOpeEdit" type="button" class="hide btn btn-success offset-1" disabled>Enregistrer</button>
+				<div class="col-4"></div>
+
+				<button type="button" class="btn btn-dark ml-5" data-dismiss="modal">Fermer</button>
+
 			</div>
 		</div>
 	</div>
