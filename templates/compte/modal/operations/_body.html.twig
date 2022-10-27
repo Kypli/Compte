@@ -9,7 +9,7 @@
 			aria-controls="reel"
 			aria-selected="true"
 		>
-			Réel
+			Fait
 		</a>
 	</li>
 	<li class="nav-item">
@@ -30,7 +30,7 @@
 <div class="tab-content" id="myTabContent">
 	<div class="tab-pane fade show active" id="modal_reel" role="tabpanel" aria-labelledby="modal_tab_reel">
 
-		<div class="spinner spinner-border text-primary" role="status">
+		<div class="spinner spinner-border text-primary mt-4 ml-2" role="status">
 			<span class="sr-only">Chargement...</span>
 		</div>
 		<div id="modal_reel_contenu">
@@ -43,7 +43,7 @@
 			<span class="sr-only">Chargement...</span>
 		</div>
 		<div id="modal_avenir_contenu">
-			{{ include('compte/modal/operations/_liste.html.twig') }}
+			{# {{ include('compte/modal/operations/_liste.html.twig') }} #}
 		</div>
 	</div>
 </div>

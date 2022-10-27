@@ -1,12 +1,11 @@
-#modalOpeListe {
-
-}
-
 .modal_ope_th {
-	min-width: 120px!important;
+	min-width: 140px!important;
 }
 .modal_ope_th_comment {
-	min-width: 200px!important;
+	min-width: 250px!important;
+}
+.modal_ope_th_actions {
+	min-width: 220px!important;
 }
 
 #modalOpeSolde {
@@ -16,4 +15,16 @@
 	background-color: #E6E6E6;
 	min-width: 80px!important;
 	text-align: center;
+}
+
+.modalOpeInputNumber {
+	max-width: 85px!important;
+	margin-left: -5px!important;
+}
+
+.modalOpeInputDay {
+	max-width: 110px!important;
+}
+.modalOpeInputComment {
+	max-width: 215px!important;
 }

@@ -1,17 +1,22 @@
 <table id="modalOpeListe" class="m-1 p-1 mt-2">
 	<thead>
 		<tr>
-			<th>Montant</th>
-			<th>Date</th>
-			<th>Commentaire</th>
-			<th></th>
+			<th class="modal_ope_th">Montant</th>
+			<th class="modal_ope_th">Date</th>
+			<th class="modal_ope_th_comment">Commentaire</th>
+			<th class="modal_ope_th_actions">
+				<button id="modalOpeAdd" class="m-1 p-1" value="0">Ajouter</button>
+				<button id="modalOpeEdit" class="m-1 p-1" value="0">Modifier</button>
+			</th>
 		</tr>
 	</thead>
-	<tbody id="modalOpeListeTbody">
-	</tbody>
+	<tbody
+		id="modalOpeListeTbody"
+		data-year="0"
+		data-month="0"
+		data-daysinmonth="0"
+	></tbody>
 </table>
 
 {# SOLDE #}
-<div id="modalOpeSolde" class="mt-3 col-1">
-	0
-</div>
+<div id="modalOpeSolde" class="mt-3 col-1">0</div>

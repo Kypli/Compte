@@ -241,12 +241,34 @@ class CompteController extends AbstractController
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $anticipe);
+		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
+		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
+		$datas['days_in_month'] = $daysInMonth;
 		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
 		$datas['subcategory_libelle'] = $sc->getLibelle();
 
 		return new JsonResponse($datas);
+	}
+
+	/**
+	 * @Route("/operation/add/{month}/{year}/{daysInMonth}", name="_operation_add")
+	 * Ajax only
+	 */
+	public function operationAdd($month, $year, $daysInMonth, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/operations/_add.html.twig', [
+			'year' => $year,
+			'month' => $month,
+			'daysInMonth' => $daysInMonth,
+		])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
 	}
 
 	/**

@@ -101,16 +101,15 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie les opérations d'une SC pour un mois
 	 */
-	public function gestion($sc, $year, $month, $type, $anticipe): ?array
+	public function gestion($sc, $year, $month, $type, $anticipe, $daysInMonth): ?array
 	{
 		$type = $type == 'pos'
 			? '>= 0'
 			: '< 0'
 		;
 
-		$d = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 		$date_start = new \Datetime($year.'/'.$month.'/01 00:00:00');
-		$date_end = new \Datetime($year.'/'.$month.'/'.$d.' 23:59:59');
+		$date_end = new \Datetime($year.'/'.$month.'/'.$daysInMonth.' 23:59:59');
 
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.subcategory', 'sc')
