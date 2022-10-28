@@ -191,6 +191,16 @@ class User implements UserInterface
         return $this;
     }
 
+    public function hasSubCategory(User $user, SubCategory $sc): Bool
+    {
+        $compte = $sc->getCategory()->getCompte();
+        if ($compte->getUsers()->contains($user)){
+            return true;
+        }
+
+        return false;
+    }
+
     public function getProfil(): ?UserProfil
     {
         return $this->profil;

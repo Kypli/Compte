@@ -107,4 +107,13 @@ class Operation
 
         return $this;
     }
+
+    public function hasSubCategory(Operation $ope, SubCategory $sc): Bool
+    {
+        if ($ope->getSubCategory() == $sc){
+            return true;
+        }
+
+        return false;
+    }
 }

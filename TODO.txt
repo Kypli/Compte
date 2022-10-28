@@ -1,20 +1,32 @@
 php bin/console make:reset-password
 
+
 User
 	Preference
 		Affichage total (total / mois)
 		Affichage % du total
 
+
 Compte
-	Separation + / - en deux tableau
-	
-	Category
-		Creation
-		Faire un placement numéroté
+	Gestion (show)
 
-	SubCategory
-		Creation
-		Faire un placement numéroté
-		Limiter le nombre de character, si dépasse => ... + reste en title
+		Operations
+			Prendre en compte la suppression
+			Mettre à jour le tableau si sauvegarde
+			Colorier les changements de la modal
+			Tab a venir a faire
+			Ajout ope
 
-Compte -> Compte principal
+		Category
+			Creation
+			Faire un placement numéroté
+
+		SubCategory
+			Creation
+			Faire un placement numéroté
+			Limiter le nombre de character, si dépasse => ... + reste en title
+
+
+Tableau de bord
+	- Afficher Compte principal
+

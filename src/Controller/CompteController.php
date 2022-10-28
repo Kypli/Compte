@@ -252,6 +252,45 @@ class CompteController extends AbstractController
 	}
 
 	/**
+	 * @Route("/gestion/save/{sc}/{year}/{month}/{type}/{anticipe}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
+	 * Ajax only
+	 */
+	public function gestion_save(SubCategory $sc, $year, $month, $type, $anticipe, Request $request, OperationRepository $or): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		// Control Sc owner
+		$user = $this->getUser();
+		if (!$user->hasSubCategory($user, $sc)){
+			return new JsonResponse(1);
+		}
+
+		$datas = $request->request->all()['datas'];
+	
+		foreach($datas as $ope){
+			$ope_ent = $or->find($ope['id']);
+
+			if ($ope_ent->hasSubCategory($ope_ent, $sc)){
+				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
+				$ope_ent
+					->setNumber($ope['number'])
+					->setDate($date)
+					->setComment($ope['comment'])
+				;
+
+				$or->add($ope_ent, true);
+			}
+		}
+
+		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
+
+		return new JsonResponse($operations);
+	}
+
+	/**
 	 * @Route("/operation/add/{month}/{year}/{daysInMonth}", name="_operation_add")
 	 * Ajax only
 	 */
