@@ -88,7 +88,7 @@ $(document).ready(function(){
 	// Delete
 	$("body").on("click", ".modalOpeDelete", function(e){
 		let ope_id = $(this).data('opeid')
-		$('#ope_id_' + ope_id).hide()
+		$('#ope_id_' + ope_id).remove()
 		calculSolde()
 	})
 
@@ -389,7 +389,10 @@ $(document).ready(function(){
 
 			},
 			success: function(response){
-				save_operations = response
+				console.log(response)
+				if (response.save == true){
+					save_operations = response
+				}
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)

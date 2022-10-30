@@ -263,13 +263,20 @@ class CompteController extends AbstractController
 		// Control Sc owner
 		$user = $this->getUser();
 		if (!$user->hasSubCategory($user, $sc)){
-			return new JsonResponse(1);
+			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
 		}
 
-		$datas = $request->request->all()['datas'];
+		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
+
+		$datas = isset($request->request->all()['datas'])
+			? $request->request->all()['datas']
+			: []
+		;
 	
 		foreach($datas as $ope){
-			$ope_ent = $or->find($ope['id']);
+			$id = $ope['id'];
+			$ope_ent = $or->find($id);
 
 			if ($ope_ent->hasSubCategory($ope_ent, $sc)){
 				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
@@ -280,14 +287,25 @@ class CompteController extends AbstractController
 				;
 
 				$or->add($ope_ent, true);
+
+				// Do not deletee
+				foreach($operations as $key => $operation){
+					if ($id == $operation['id']){
+						unset($operations[$key]);
+					}
+				}
 			}
 		}
 
-		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+		// Do not deletee
+		foreach($operations as $operation){
+			$del = $or->find($operation['id']);
+			$or->remove($del, true);
+		}
 
 		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
 
-		return new JsonResponse($operations);
+		return new JsonResponse(['save' => true, 'operations' => $operations]);
 	}
 
 	/**
