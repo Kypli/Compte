@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Compte;
+use App\Entity\Operation;
 use App\Entity\SubCategory;
 
 use App\Form\CompteType;
@@ -266,38 +267,52 @@ class CompteController extends AbstractController
 			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
 		}
 
+		// Datas from DB
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
 
+		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
 			? $request->request->all()['datas']
 			: []
 		;
 	
+		// Save
 		foreach($datas as $ope){
-			$id = $ope['id'];
-			$ope_ent = $or->find($id);
 
-			if ($ope_ent->hasSubCategory($ope_ent, $sc)){
+			// Edit
+			if (!empty($ope['id'])){
+				$id = $ope['id'];
+				$ope_ent = $or->find($id);
+
+			// Add
+			} else {
+				$id = null;
+				$ope_ent = new operation();
+				$ope_ent->setSubcategory($sc);
+			}
+
+			// Do not delete
+			foreach($operations as $key => $operation){
+				if ($id == $operation['id'] || $id == null){
+					unset($operations[$key]);
+				}
+			}
+
+			// Save ?
+			if ($id == null || ($ope_ent->hasSubCategory($ope_ent, $sc) && $ope['number'] != null && $ope['number'] != '')){
+
 				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
 				$ope_ent
-					->setNumber($ope['number'])
+					->setNumber((float)$ope['number'])
 					->setDate($date)
 					->setComment($ope['comment'])
 				;
-
 				$or->add($ope_ent, true);
-
-				// Do not deletee
-				foreach($operations as $key => $operation){
-					if ($id == $operation['id']){
-						unset($operations[$key]);
-					}
-				}
 			}
 		}
 
-		// Do not deletee
+		// Delete
 		foreach($operations as $operation){
 			$del = $or->find($operation['id']);
 			$or->remove($del, true);
@@ -309,10 +324,10 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/operation/add/{month}/{year}/{daysInMonth}", name="_operation_add")
+	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{anticipe}", name="_operation_add")
 	 * Ajax only
 	 */
-	public function operationAdd($month, $year, $daysInMonth, Request $request): Response
+	public function operationAdd($month, $year, $daysInMonth, $anticipe, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -320,6 +335,7 @@ class CompteController extends AbstractController
 		$render = $this->render('compte/modal/operations/_add.html.twig', [
 			'year' => $year,
 			'month' => $month,
+			'anticipe' => $anticipe,
 			'daysInMonth' => $daysInMonth,
 		])->getContent();
 

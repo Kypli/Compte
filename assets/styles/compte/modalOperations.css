@@ -28,3 +28,7 @@
 .modalOpeInputComment {
 	max-width: 215px!important;
 }
+
+.alerte {
+	border-color: red;
+}
