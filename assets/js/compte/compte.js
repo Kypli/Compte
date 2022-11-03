@@ -320,7 +320,9 @@ $(document).ready(function(){
 		let
 			daysInMonth = $('#modalOpeListeTbody').data('daysinmonth'),
 			month = $('#modalOpeListeTbody').data('month'),
-			year = $('#modalOpeListeTbody').data('year')
+			year = $('#modalOpeListeTbody').data('year'),
+			type = $('#modalOpeListeTbody').data('type'),
+			limit = type == 'neg' ? 'max' : 'min'
 		;
 
 		// editMod ON
@@ -335,7 +337,7 @@ $(document).ready(function(){
 				let number = $(this).text()
 				if (number != ''){
 					$(this).empty()
-					let input = "<input class='modalOpeInputNumber' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' />"
+					let input = "<input class='modalOpeInputNumber' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' "+limit+"='0' />"
 					$(this).append(input)
 				}
 			})
@@ -343,7 +345,7 @@ $(document).ready(function(){
 				let number = $(this).text()
 				if (number != ''){
 					$(this).empty()
-					let input = "<input class='modalOpeInputAnticipe' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' />"
+					let input = "<input class='modalOpeInputAnticipe' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' "+limit+"='0' />"
 					$(this).append(input)
 				}
 			})
