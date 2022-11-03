@@ -11,11 +11,8 @@ Compte
 	Gestion (show)
 
 		Operations
-			Prendre en compte la suppression
 			Mettre à jour le tableau si sauvegarde
 			Colorier les changements de la modal
-			Tab a venir a faire
-			Ajout ope
 
 		Category
 			Creation
@@ -33,4 +30,7 @@ Tableau de bord
 
 Service
 	Toaster
+
+Page de connexion
+	- Faire des sessions avec des comptes test pour une inscription ultérieur et inciter à l'inscription
 

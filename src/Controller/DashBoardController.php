@@ -31,6 +31,6 @@ class DashBoardController extends AbstractController
 		// User
 		$user = $this->getUser();
 
-		return $this->render('dashbord/index.html.twig');
+		return $this->render('dashboard/index.html.twig');
 	}
 }

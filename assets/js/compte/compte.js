@@ -20,19 +20,24 @@ $(document).ready(function(){
 	// ON EVENTS
 	////////////
 
+	// Table edit
+	$(".anticipe").hover(
+		function(){ $(this).prev().addClass('jauni')},
+		function(){	$(this).prev().removeClass('jauni')	}
+	);
+
 	// Open Modal Operations
 	$("body").not('.counterEdit').on("click", ".edit td:not(.counterEdit)", function(e){
 
 		let
 			sc_id = $(this).data('scid'),
 			type = $(this).data('type'),
-			anticipe = $(this).data('anticipe'),
 			month = $(this).data('month'),
 			months = $('#datas').data('months'),
 			year = $('#datas').data('year')
 		;
 
-		modalGetOperations(sc_id, type, anticipe, months, month, year)
+		modalGetOperations(sc_id, type, months, month, year)
 	})
 
 	// Modal Ope editMod
@@ -42,10 +47,12 @@ $(document).ready(function(){
 			: editMod(false, false)
 	})
 
-	// Modal ope Add + addMod
+	// Modal ope addMod + Add 1 input
 	$("body").on("click", "#modalOpeAdd", function(e){
 		addMod(true)
 		$('#modalOpeListeTbody').append(modalOpeAdd)
+		$('#modalOpeSolde_tr_collabo').insertAfter('#modalOpeListeTbody tr:last')
+		$('#modalOpeSolde_tr').insertAfter('#modalOpeListeTbody tr:last')
 	})
 
 	// Modal ope input max 2 decimal
@@ -60,7 +67,12 @@ $(document).ready(function(){
 				input.val(oldVal); 
 			}
 		}, 1);
-	});
+	})
+
+	// Switch
+	$("body").on("click", ".switch", function(e){
+		toSwitch($(this).parent('td').parent('tr'))
+	})
 
 	// Save edit
 	$("body").on("click", "#modalOpeSaveEdit", function(e){
@@ -96,7 +108,7 @@ $(document).ready(function(){
 	})
 
 	// Control + calcul
-	$("body").on("input", ".modalOpeInputNumber", function(e){
+	$("body").on("input", ".modalOpeInputNumber, .modalOpeInputAnticipe", function(e){
 		controlGestion()
 		calculSolde()
 	})
@@ -110,11 +122,11 @@ $(document).ready(function(){
 	// FONCTIONS
 	////////////
 
-	function modalGetOperations(sc_id, type, anticipe, months, month, year){
+	function modalGetOperations(sc_id, type, months, month, year){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_gestion', { sc: sc_id, year: year, month: month, type: type, anticipe: anticipe }),
+			url: Routing.generate('compte_gestion', { sc: sc_id, year: year, month: month, type: type }),
 			timeout: 15000,
 			beforeSend: function(){
 				modalOpMeta1(year, months[month], type)
@@ -122,9 +134,9 @@ $(document).ready(function(){
 			},
 			success: function(response){
 				modalOpMeta2(response.category_libelle, response.subcategory_libelle)
-				modalOpShow(response.operations, month, year, response.days_in_month, sc_id, type, anticipe)
+				modalOpShow(response.operations, month, year, response.days_in_month, sc_id, type)
 				modalOpSpinner(false)
-				getModalOpAdd(month, year, response.days_in_month, anticipe)
+				getModalOpAdd(month, year, response.days_in_month, type)
 
 			},
 			error: function(error){
@@ -133,11 +145,11 @@ $(document).ready(function(){
 			}
 		})
 	}
-	function getModalOpAdd(month, year, daysInMonth, anticipe){
+	function getModalOpAdd(month, year, daysInMonth, type){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_operation_add', { month: month, year: year, daysInMonth: daysInMonth, anticipe: anticipe }),
+			url: Routing.generate('compte_operation_add', { month: month, year: year, daysInMonth: daysInMonth, type: type }),
 			timeout: 15000,
 			success: function(response){
 				modalOpeAdd = response.render
@@ -163,51 +175,6 @@ $(document).ready(function(){
 		}
 	}
 
-	function modalOpShow(operations, month, year, daysInMonth, sc_id, type, anticipe){
-
-		save_operations = operations
-
-		// UPDATE TBODY
-		$('#modalOpeListeTbody')
-			.data('year', year)
-			.data('month', month)
-			.data('daysinmonth', daysInMonth)
-			.data('scid', sc_id)
-			.data('type', type)
-			.data('anticipe', anticipe)
-			.empty()
-		;
-
-		let
-			tr = "",
-			day = '',
-			montant = 0
-		;
-
-		operations.forEach(function(item, index){
-
-			day = item.day < 10 ? '0' + item.day : item.day
-			month = item.month < 10 ? '0' + item.month : item.month
-			montant = montant + item.number
-
-			tr = 
-				"<tr id='ope_id_" + item.id + "'>" +
-					"<td class='number'>" + item.number + "</td>" +
-					"<td class='date'>" + day + '/' + month + '/' + item.year + "</td>" +
-					"<td class='comment'>" + ucFirst(item.comment) + "</td>" +
-					"<td class='modal_ope_th_actions'>" +
-						"<button class='modalOpeDelete hide m-1 disabled' data-opeid='" + item.id + "'>Supprimer</button> " +
-					"</td>" +
-				"</tr>"
-
-			$('#modalOpeListeTbody').append(tr)
-
-			tr = ''
-		})
-
-		$('#modalOpeSolde').text(Math.round(montant*100)/100)
-	}
-
 	function modalOpMeta1(year, month, type){
 
 		// HEAD DATE
@@ -220,6 +187,11 @@ $(document).ready(function(){
 		$('#modal_subcategory').text('.............')
 		$('#modal_category, #modal_subcategory, #modalOpeSolde').removeClass("total_month_full_pos").removeClass("total_month_full_neg").addClass(classType)
 
+		// BODY
+		$('#modalOpeListe tbody tr').not('#modalOpeSolde_tr, #modalOpeSolde_tr_collabo').remove()
+		$('#modalOpeSolde_tr').hide()
+		$('#modalOpeSolde').text('0').hide()
+
 		// FOOTER BUTTON
 		$('#modalOpeSaveEdit, #modalOpeSaveAdd').prop('disabled', true).hide()
 	}
@@ -228,6 +200,60 @@ $(document).ready(function(){
 		// HEAD LIBELLE
 		$('#modal_category').text(ucFirst(cat_libelle))
 		$('#modal_subcategory').text(ucFirst(subcat_libelle))
+		$('#modalOpeSolde, #modalOpeSolde_tr').show()
+	}
+
+	function modalOpShow(operations, month, year, daysInMonth, sc_id, type){
+
+		save_operations = operations
+
+		// UPDATE TBODY
+		$('#modalOpeListeTbody')
+			.data('year', year)
+			.data('month', month)
+			.data('daysinmonth', daysInMonth)
+			.data('scid', sc_id)
+			.data('type', type)
+		;
+		$('#modalOpeListeTbody tr')
+			.not('#modalOpeSolde_tr, #modalOpeSolde_tr_collabo')
+			.remove()
+		;
+
+		let
+			tr = "",
+			day = ''
+		;
+
+		operations.forEach(function(item, index){
+
+			day = item.day < 10 ? '0' + item.day : item.day
+			month = item.month < 10 ? '0' + item.month : item.month
+
+			tr =
+				"<tr id='ope_id_" + item.id + "'>" +
+					"<td class='td_number p-1'>" + (item.anticipe ? '' : item.number) + "</td>" +
+					"<td class='td_switch'>" +
+						"<span class='switch hide'><i class='fa-solid fa-repeat'></i></span>" +
+					"</td>" +
+					"<td class='td_anticipe p-1'>" +
+						(item.anticipe ? item.number : '') +
+					"</td>" +
+					"<td class='td_date p-1'>" + day + '/' + month + '/' + item.year + "</td>" +
+					"<td class='td_comment p-1'>" + ucFirst(item.comment) + "</td>" +
+					"<td class='modal_ope_th_actions'>" +
+						"<button class='modalOpeDelete hide m-1 disabled' data-opeid='" + item.id + "'>Supprimer</button> " +
+					"</td>" +
+				"</tr>"
+
+			$('#modalOpeListeTbody').append(tr)
+
+			tr = ''
+		})
+
+		$('#modalOpeSolde_tr_collabo').insertAfter('#modalOpeListeTbody tr:last')
+		$('#modalOpeSolde_tr').insertAfter('#modalOpeListeTbody tr:last')
+		calculSolde()
 	}
 
 	function addMod(etat, save){
@@ -249,15 +275,20 @@ $(document).ready(function(){
 					addModOff()
 					sauvegarde()
 
+					$('.switch').hide()
 					$(".modalOpeListeAdd").each(function(index, value){
 						let
 							inputNumber = $(this).find('.modalOpeInputNumber'),
+							inputAnticipe = $(this).find('.modalOpeInputAnticipe'),
+							inputNumberVal = inputNumber.val() == 0 ? '' : inputNumber.val(),
+							inputAnticipeVal = inputAnticipe.val() == 0 ? '' : inputAnticipe.val(),
 							inputDay = $(this).find('.modalOpeInputDay'),
 							inputComment = $(this).find('.modalOpeInputComment'),
 							day = inputDay.val()
 						;
 
-						inputNumber.after(inputNumber.val()).remove()
+						inputNumber.after(inputNumberVal).remove()
+						inputAnticipe.after(inputAnticipeVal).remove()
 						inputDay.after(day < 10 ? '0'+ day : day).remove()
 						inputComment.after(inputComment.val()).remove()
 					})
@@ -297,16 +328,26 @@ $(document).ready(function(){
 			addMod(false)
 			$('#modalOpeEdit').text("Annuler les modifications").addClass('btn btn-danger').val(1)
 			$('#modalOpeAdd').prop('disabled', true).hide()
-			$('#modalOpeSaveEdit, .modalOpeDelete').prop('disabled', false).show()
+			$('#modalOpeSaveEdit, .modalOpeDelete, .switch').prop('disabled', false).show()
 			$('#modalOpeClose').prop('disabled', true).prop('title', 'Veuillez valider/annuler les changements avant de fermer la fenêtre.')
 
-			$(".number").each(function(index, value){
+			$(".td_number").each(function(index, value){
 				let number = $(this).text()
-				$(this).empty()
-				let input = "<input class='modalOpeInputNumber' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' />"
-				$(this).append(input)
+				if (number != ''){
+					$(this).empty()
+					let input = "<input class='modalOpeInputNumber' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' />"
+					$(this).append(input)
+				}
 			})
-			$(".date").each(function(index, value){
+			$(".td_anticipe").each(function(index, value){
+				let number = $(this).text()
+				if (number != ''){
+					$(this).empty()
+					let input = "<input class='modalOpeInputAnticipe' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='" + number + "' />"
+					$(this).append(input)
+				}
+			})
+			$(".td_date").each(function(index, value){
 				let date = $(this).text().split('/')
 				$(this).empty()
 				let input = "<select class='modalOpeInputDay'/>"
@@ -320,11 +361,11 @@ $(document).ready(function(){
 						input = input + "<option value='" + i + "' " + loopFirst + ">" + i + "</option>"
 					}
 
-				input = input + "</select> / "+ date[1] + " / " + date[2]
+				input = input + "</select>/"+ date[1] + "/" + date[2]
 
 				$(this).append(input)
 			})
-			$(".comment").each(function(index, value){
+			$(".td_comment").each(function(index, value){
 				let text = $(this).text()
 				$(this).empty()
 				let input = "<input class='modalOpeInputComment' type='text' value='" + text + "' />"
@@ -339,11 +380,16 @@ $(document).ready(function(){
 
 				if (controlGestion()){
 
-					editModOff()
 					sauvegarde()
+					editModOff()
 
+					$('.switch').hide()
 					$(".modalOpeInputNumber").each(function(index, value){
-						$(this).parent('.number').append($(this).val())
+						$(this).parent('.td_number').append($(this).val())
+						$(this).remove()
+					})
+					$(".modalOpeInputAnticipe").each(function(index, value){
+						$(this).parent('.td_anticipe').append($(this).val())
 						$(this).remove()
 					})
 					$(".modalOpeInputDay").each(function(index, value){
@@ -352,7 +398,7 @@ $(document).ready(function(){
 						$(this).remove()
 					})
 					$(".modalOpeInputComment").each(function(index, value){
-						$(this).parent('.comment').append($(this).val())
+						$(this).parent('.td_comment').append($(this).val())
 						$(this).remove()
 					})
 				}
@@ -379,24 +425,113 @@ $(document).ready(function(){
 		$('#modalOpeClose').prop('disabled', false).prop('title', 'Fermer la fenêtre')
 	}
 
+	function toSwitch(tr){
+		let
+			input = tr.find('input'),
+			val = input.val(),
+			clas = input.attr('class'),
+			type = $('#modalOpeListeTbody').data('type'),
+			limit = type == 'neg' ? 'max' : 'min'
+		;
+
+		// Add anticipe
+		if (clas == 'modalOpeInputNumber'){
+			tr.find('.td_anticipe').append("<input class='modalOpeInputAnticipe' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='"+val+"' "+limit+"='0' />")
+			tr.find('.td_number').empty()
+
+		// Add number
+		} else if(clas == 'modalOpeInputAnticipe'){
+			tr.find('.td_number').append("<input class='modalOpeInputNumber' type='number' step='0.01' pattern='^\d*(\.\d{0,2})?$' value='"+val+"' "+limit+"='0' />")
+			tr.find('.td_anticipe').empty()
+		}
+		controlGestion()
+		calculSolde()
+	}
+
 	function controlGestion(){
 
 		let	control = true;
 
-		$("#modalOpeListeTbody tr").each(function(index, value){
+		$("#modalOpeListeTbody tr").not('#modalOpeSolde_tr_collabo, #modalOpeSolde_tr').each(function(index, value){
 
 			let
-				input = $(this).find('.modalOpeInputNumber'),
-				val = input.val()
+				switch_icon = $(this).find('.switch'),
+				input_number = $(this).find('.modalOpeInputNumber'),
+				input_anticipe = $(this).find('.modalOpeInputAnticipe'),
+				input_number_val = input_number.val(),
+				input_anticipe_val = input_anticipe.val()
 			;
 
-			if (val == '' || val == '0' || val == 0){
-				input.addClass('alerte')
-				$("#modalOpeListeTbody .alerte:first").focus()
-				$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
-				control = false
-			} else {
-				input.removeClass('alerte')
+			// Input existant
+			if (input_number_val != undefined && input_anticipe_val != undefined){
+
+				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
+					? false
+					: true
+
+				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
+					? false
+					: true
+
+				// 2 vides
+				if (!input_number_valid && !input_anticipe_valid){
+					input_number.addClass('alerte').removeClass('alerte-doublon')
+					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
+					$("#modalOpeListeTbody .alerte:first").focus()
+					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					control = false
+
+				// 2 remplis (ne doit plus apparaitre)
+				} else if(input_number_valid && input_anticipe_valid){
+					input_number.addClass('alerte-doublon').removeClass('alerte')
+					input_anticipe.addClass('alerte-doublon').removeClass('alerte')
+					$("#modalOpeListeTbody .alerte-doublon:first").focus()
+					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Un seul montant autorisé par ligne').removeClass('btn-success').addClass('btn-danger')
+					control = false
+
+				// 1 rempli et 1 vide
+				} else {
+					switch_icon.show()
+					input_number_valid
+						? input_anticipe.remove() && input_number.removeClass('alerte').removeClass('alerte-doublon')
+						: input_number.remove() && input_anticipe.removeClass('alerte').removeClass('alerte-doublon')
+				}
+
+			// Only Number valid
+			} else if(input_number_val != undefined && input_anticipe_val == undefined){
+
+				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
+					? false
+					: true
+
+				if (input_number_valid){
+					input_number.removeClass('alerte').removeClass('alerte-doublon')
+					switch_icon.show()
+				} else {
+					input_number.addClass('alerte').removeClass('alerte-doublon')
+					switch_icon.hide()
+					$("#modalOpeListeTbody .alerte:first").focus()
+					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					control = false
+				}
+
+			// Only Anticipe valid
+			} else if(input_number_val == undefined && input_anticipe_val != undefined){
+
+				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
+					? false
+					: true
+
+				if (input_anticipe_valid){
+					input_anticipe.removeClass('alerte').removeClass('alerte-doublon')
+					switch_icon.show()
+				} else {
+					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
+					switch_icon.hide()
+					$("#modalOpeListeTbody .alerte:first").focus()
+					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					control = false
+				}
 			}
 		})
 
@@ -406,6 +541,58 @@ $(document).ready(function(){
 
 		return control
 	}
+	function calculSolde(){
+
+		let
+			type = $('#modalOpeListeTbody').data('type'),
+			counterType = type == 'pos' ? 'neg' : 'pos',
+			solde_fait = 0,
+			solde_anticipe = 0
+		;
+
+		// Sous-total
+		$(".td_number").each(function(index, value){
+			if ($(this).is(":visible")){
+
+				solde_fait = $(this).find('.modalOpeInputNumber').val() != undefined
+					? solde_fait + parseFloat($(this).find('.modalOpeInputNumber').val())
+					: $(this).text().trim() != ''
+						? solde_fait + parseFloat($(this).text())
+						: solde_fait
+			}
+		})
+
+		$(".td_anticipe").each(function(index, value){
+			if ($(this).is(":visible")){
+
+				solde_anticipe = $(this).find('.modalOpeInputAnticipe').val() != undefined
+					? solde_anticipe + parseFloat($(this).find('.modalOpeInputAnticipe').val())
+					: $(this).text().trim() != ''
+						? solde_anticipe + parseFloat($(this).text())
+						: solde_anticipe
+			}
+		})
+
+		// Math
+		solde_fait = Math.round((solde_fait)*100)/100
+		solde_anticipe = Math.round((solde_anticipe)*100)/100
+
+		solde_fait = (solde_fait % 1 != 0) == true
+			? solde_fait.toFixed(2)
+			: solde_fait
+
+		solde_anticipe = (solde_anticipe % 1 != 0) == true
+			? solde_anticipe.toFixed(2)
+			: solde_anticipe
+
+		$('#modalOpeSoldeReel').text(solde_fait)
+		$('#modalOpeSoldeAnticipe').text(solde_anticipe)
+		$('#modalOpeSolde').text(Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100)
+
+		// Color Reel
+		$('#modalOpeSoldeReel').addClass('total_month_detail_'+ type).removeClass('total_month_detail_' + counterType)
+	}
+
 	function sauvegarde(){
 
 		let
@@ -413,23 +600,24 @@ $(document).ready(function(){
 			sc_id = $('#modalOpeListeTbody').data('scid'),
 			month = $('#modalOpeListeTbody').data('month'),
 			year = $('#modalOpeListeTbody').data('year'),
-			type = $('#modalOpeListeTbody').data('type'),
-			anticipe = $('#modalOpeListeTbody').data('anticipe')
+			type = $('#modalOpeListeTbody').data('type')
 		;
 
-		$("#modalOpeListeTbody tr").each(function(index, value){
+		$("#modalOpeListeTbody tr").not('#modalOpeSolde_tr_collabo, #modalOpeSolde_tr').each(function(index, value){
 
-			let 
+			let
 				id_array = value.id.split('_'),
 				id = id_array[2] ? id_array[2] : null,
 				number = $(this).find('.modalOpeInputNumber').val() == undefined ? null : $(this).find('.modalOpeInputNumber').val(),
+				number_anticipe = $(this).find('.modalOpeInputAnticipe').val() == undefined ? null : $(this).find('.modalOpeInputAnticipe').val(),
 				day = $(this).find('.modalOpeInputDay').val() == undefined ? null : $(this).find('.modalOpeInputDay').val(),
 				comment = $(this).find('.modalOpeInputComment').val() == undefined ? null : $(this).find('.modalOpeInputComment').val()
 			;
 
-			datas.push({ 
+			datas.push({
 				id: id,
 				number: number,
+				number_anticipe: number_anticipe,
 				day: day,
 				month: month,
 				year: year,
@@ -439,7 +627,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_gestion_save', { sc: sc_id, year: year, month: month, type: type, anticipe: anticipe }),
+			url: Routing.generate('compte_gestion_save', { sc: sc_id, year: year, month: month, type: type }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,
@@ -457,20 +645,7 @@ $(document).ready(function(){
 		})
 	}
 
-	function calculSolde(){
-		let solde = 0
-		$(".number").each(function(index, value){
-			if ($(this).is(":visible")){
-
-				solde = $(this).find('.modalOpeInputNumber').val() != undefined
-					? solde + parseFloat($(this).find('.modalOpeInputNumber').val())
-					: solde + parseFloat($(this).text())
-			}
-		})
-		$('#modalOpeSolde').text(Math.round(solde*100)/100)
-	}
-
 	function calculTable(){
-		
+		//TODO
 	}
 })

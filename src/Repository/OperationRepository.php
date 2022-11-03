@@ -101,7 +101,7 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie les opérations d'une SC pour un mois
 	 */
-	public function gestion($sc, $year, $month, $type, $anticipe, $daysInMonth): ?array
+	public function gestion($sc, $year, $month, $type, $daysInMonth): ?array
 	{
 		$type = $type == 'pos'
 			? '>= 0'
@@ -129,11 +129,9 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.date >= :date_start')
 			->andWhere('x.date <= :date_end')
 			->andWhere('x.number '.$type)
-			->andWhere('x.anticipe = :anticipe')
 
 			->setParameters([
 				'sc' => $sc,
-				'anticipe' => $anticipe,
 				'date_end' => $date_end,
 				'date_start' => $date_start,
 			])

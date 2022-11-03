@@ -199,7 +199,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * Renvoie sous formes d'array les informations liés à des opérations
+	 * Renvoie sous formes d'array le solde d'un compte
 	 */
 	public function soldes($operations_ent): Array
 	{
@@ -234,117 +234,6 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/{sc}/{year}/{month}/{type}/{anticipe}", name="_gestion")
-	 * Ajax only
-	 */
-	public function gestion(SubCategory $sc, $year, $month, $type, $anticipe, Request $request, OperationRepository $or): Response
-	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-
-		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
-		$datas['days_in_month'] = $daysInMonth;
-		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
-		$datas['subcategory_libelle'] = $sc->getLibelle();
-
-		return new JsonResponse($datas);
-	}
-
-	/**
-	 * @Route("/gestion/save/{sc}/{year}/{month}/{type}/{anticipe}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
-	 * Ajax only
-	 */
-	public function gestion_save(SubCategory $sc, $year, $month, $type, $anticipe, Request $request, OperationRepository $or): Response
-	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		// Control Sc owner
-		$user = $this->getUser();
-		if (!$user->hasSubCategory($user, $sc)){
-			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
-		}
-
-		// Datas from DB
-		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
-
-		// Datas from ajax
-		$datas = isset($request->request->all()['datas'])
-			? $request->request->all()['datas']
-			: []
-		;
-	
-		// Save
-		foreach($datas as $ope){
-
-			// Edit
-			if (!empty($ope['id'])){
-				$id = $ope['id'];
-				$ope_ent = $or->find($id);
-
-			// Add
-			} else {
-				$id = null;
-				$ope_ent = new operation();
-				$ope_ent->setSubcategory($sc);
-			}
-
-			// Do not delete
-			foreach($operations as $key => $operation){
-				if ($id == $operation['id'] || $id == null){
-					unset($operations[$key]);
-				}
-			}
-
-			// Save ?
-			if ($id == null || ($ope_ent->hasSubCategory($ope_ent, $sc) && $ope['number'] != null && $ope['number'] != '')){
-
-				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
-				$ope_ent
-					->setNumber((float)$ope['number'])
-					->setDate($date)
-					->setComment($ope['comment'])
-				;
-				$or->add($ope_ent, true);
-			}
-		}
-
-		// Delete
-		foreach($operations as $operation){
-			$del = $or->find($operation['id']);
-			$or->remove($del, true);
-		}
-
-		$operations = $or->gestion($sc, $year, $month, $type, $anticipe, $daysInMonth);
-
-		return new JsonResponse(['save' => true, 'operations' => $operations]);
-	}
-
-	/**
-	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{anticipe}", name="_operation_add")
-	 * Ajax only
-	 */
-	public function operationAdd($month, $year, $daysInMonth, $anticipe, Request $request): Response
-	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		$render = $this->render('compte/modal/operations/_add.html.twig', [
-			'year' => $year,
-			'month' => $month,
-			'anticipe' => $anticipe,
-			'daysInMonth' => $daysInMonth,
-		])->getContent();
-
-		return new JsonResponse([
-			'render' => $render,
-		]);
-	}
-
-	/**
 	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
 	 */
 	public function edit(Request $request, Compte $compte, CompteRepository $cr): Response
@@ -374,5 +263,142 @@ class CompteController extends AbstractController
 		}
 
 		return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
+	}
+
+	// ****************
+	// MODAL GESTION
+	// ****************
+
+	/**
+	 * @Route("/gestion/{sc}/{year}/{month}/{type}", name="_gestion")
+	 * Ajax only
+	 */
+	public function gestion(SubCategory $sc, $year, $month, $type, Request $request, OperationRepository $or): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $daysInMonth);
+		$datas['days_in_month'] = $daysInMonth;
+		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
+		$datas['subcategory_libelle'] = $sc->getLibelle();
+
+		return new JsonResponse($datas);
+	}
+
+	/**
+	 * @Route("/gestion/save/{sc}/{year}/{month}/{type}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
+	 * Ajax only
+	 */
+	public function gestion_save(SubCategory $sc, $year, $month, $type, Request $request, OperationRepository $or): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		// Control Sc owner
+		$user = $this->getUser();
+		if (!$user->hasSubCategory($user, $sc)){
+			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
+		}
+
+		// Datas from DB
+		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+		$operations = $or->gestion($sc, $year, $month, $type, $daysInMonth);
+
+		// Datas from ajax
+		$datas = isset($request->request->all()['datas'])
+			? $request->request->all()['datas']
+			: []
+		;
+	
+		// Save
+		foreach($datas as $ope){
+
+			// Edit
+			if (!empty($ope['id'])){
+				$id = $ope['id'];
+				$ope_ent = $or->find($id);
+
+				if ($ope_ent == null){ return new JsonResponse(['save' => false]); }
+
+			// Add
+			} else {
+				$id = null;
+				$ope_ent = new operation();
+				$ope_ent->setSubcategory($sc);
+			}
+
+			// Do not delete
+			foreach($operations as $key => $operation){
+				if ($id == $operation['id'] || $id == null){
+					unset($operations[$key]);
+				}
+			}
+
+			// Save ?
+			if (
+				// Add
+				$id == null ||
+
+				// Edit
+				(
+					$ope_ent->hasSubCategory($ope_ent, $sc) &&
+					(
+						($ope['number'] != null && $ope['number'] != 0 && $ope['number'] != '0') ||
+						($ope['number_anticipe'] != null && $ope['number_anticipe'] != 0 && $ope['number_anticipe'] != '0')
+					)
+				)
+			){
+				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
+				$number = $ope['number'] == null || $ope['number'] == 0 || $ope['number'] == '0'
+					? (float) $ope['number_anticipe']
+					: (float) $ope['number']
+				;
+				$anticipe = $ope['number'] == null || $ope['number'] == 0 || $ope['number'] == '0'
+					? true
+					: false
+				;
+				$ope_ent
+					->setNumber($number)
+					->setDate($date)
+					->setComment($ope['comment'])
+					->setAnticipe($anticipe)
+				;
+				$or->add($ope_ent, true);
+			}
+		}
+
+		// Delete
+		foreach($operations as $operation){
+			$del = $or->find($operation['id']);
+			$or->remove($del, true);
+		}
+
+		$operations = $or->gestion($sc, $year, $month, $type, $daysInMonth);
+
+		return new JsonResponse(['save' => true, 'operations' => $operations]);
+	}
+
+	/**
+	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{type}", name="_operation_add")
+	 * Ajax only
+	 */
+	public function operationAdd($month, $year, $daysInMonth, $type, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/operations/_add.html.twig', [
+			'type' => $type,
+			'year' => $year,
+			'month' => (int) $month,
+			'daysInMonth' => $daysInMonth,
+		])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
 	}
 }

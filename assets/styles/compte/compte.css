@@ -119,7 +119,10 @@
 .compteTable .collabo td:not(:nth-child(3)){
 	border-top: 3px #575756 solid!important;
 }
-.compteTable .edit td:hover:not(.counterEdit) {
+
+.compteTable .edit td:hover:not(.counterEdit),
+.compteTable .edit td:hover:not(.counterEdit, .anticipe, .td_category_libelle, .td_subcategory_libelle) + td,
+.jauni{
 	cursor: pointer;
 	text-decoration: underline;
 	background-color: #F5F5C5!important;

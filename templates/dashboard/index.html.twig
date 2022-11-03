@@ -3,6 +3,13 @@
 {% block title %}Tableau de bord{% endblock %}
 
 {% block body %}
-	<h1>Tableau de bord</h1>
 
+	<div class="container">
+
+		<h1>Tableau de bord</h1>
+
+		{# ESPACE MEMBRE - FORM LOGIN #}
+		{% include 'home/connexion/_index.html.twig' %}
+
+	</div>
 {% endblock %}

@@ -1,34 +1,93 @@
+
+/*table, th, td {
+	border: 1px solid;
+}*/
+
 .modal_ope_th {
-	min-width: 140px!important;
+	width: 85px!important;
+	min-width: 85px!important;
+}
+.modal_ope_th_switch {
+	width: 30px!important;
+	max-width: 30px!important;
+}
+.modal_ope_th_date {
+	width: 160px!important;
+	min-width: 160px!important;
+	padding-left: 20px!important;
 }
 .modal_ope_th_comment {
-	min-width: 250px!important;
+	width: 235px!important;
+	min-width: 235px!important;
 }
 .modal_ope_th_actions {
-	min-width: 220px!important;
+	width: 140px!important;
+	min-width: 140px!important;
+}
+#modalOpeSolde_tr_collabo td {
+	height: 25px;
+	max-height: 35px;
 }
 
-#modalOpeSolde {
-	border: 1px black solid;
-	padding: 12px;
-	font-weight: bold;
-	background-color: #E6E6E6;
-	min-width: 80px!important;
-	text-align: center;
+.td_date {
+	padding-left: 20px!important;
 }
 
-.modalOpeInputNumber {
+.modalOpeInputNumber, .modalOpeInputAnticipe {
+	width: 85px!important;
 	max-width: 85px!important;
-	margin-left: -5px!important;
 }
 
 .modalOpeInputDay {
-	max-width: 110px!important;
+	width: 45px!important;
+	max-width: 45px!important;
+	margin-right: 3px!important;
 }
 .modalOpeInputComment {
+	width: 215px!important;
 	max-width: 215px!important;
 }
 
+.td_anticipe, .modalOpeInputAnticipe {
+	color: purple;
+}
+
+.switch {
+	cursor: pointer;
+	max-width: 25px!important;
+	margin-right: 10px!important;
+}
+
 .alerte {
-	border-color: red;
+	border: 2px red solid!important;
+}
+.alerte:focus, .alerte:hover {
+	border: 2px red solid!important;
+	box-shadow: 5px 2px 2px salmon;
+}
+.alerte-doublon {
+	border-color: blue;
+}
+
+.totalReel {
+	background-color: #E6E6E6;
+	padding-left: 5px;
+	font-style : italic;
+	text-decoration: underline;
+}
+.totalAnticipe {
+	color: purple;
+	background-color: #E6E6E6;
+	padding-left: 5px;
+	font-style : italic;
+	text-decoration: underline; 
+}
+#modalOpeSolde {
+	border: 1px black solid;
+	padding: 12px;
+	margin-left: 5px;
+	font-weight: bold;
+	text-align: center;
+	background-color: #E6E6E6;
+	min-width: 80px!important;
 }
