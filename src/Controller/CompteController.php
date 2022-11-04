@@ -89,11 +89,11 @@ class CompteController extends AbstractController
 		;
 
 		// Solde
-		$solde = $or->CompteSoldeActuel($compte->getId());
+		$solde = round(($or->CompteSoldeActuel($compte->getId(), true) - $or->CompteSoldeActuel($compte->getId(), false)), 2);
 
 		// Opérations
-		$operations_pos = $or->OperationsByYearAndCompte($compte->getId(), $year);
-		$operations_neg = $or->OperationsByYearAndCompte($compte->getId(), $year, false);
+		$operations_pos = $or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
+		$operations_neg = $or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
 
 		// Month
 		$months = [
@@ -128,21 +128,21 @@ class CompteController extends AbstractController
 			'operations_neg' => $this->operations($operations_neg, false),
 
 			'solde' => $solde, // Solde du compte
-			'soldes' => $this->soldes(array_merge($operations_pos, $operations_neg)), // Solde by month
+			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
 		]);
 	}
 
 	/**
 	 * Renvoie sous formes d'array les informations liés à des opérations
 	 */
-	public function operations($operations_ent, $pos = true): Array
+	public function operations($operations_ent, $sign = true): Array
 	{
 		$total_final = 0;
 		$operations = [];
 
 		foreach($operations_ent as $operation){
 
-			$number = $pos ? $operation->getNumber() : $operation->getNumber() * -1;
+			$number = $sign ? $operation->getNumber() : $operation->getNumber() * -1;
 
 			$total_final += $number;
 			$mois = $operation->getDate()->format('n');
@@ -201,13 +201,13 @@ class CompteController extends AbstractController
 	/**
 	 * Renvoie sous formes d'array le solde d'un compte
 	 */
-	public function soldes($operations_ent): Array
+	public function soldesByMonth($operations_pos, $operations_neg): Array
 	{
 		$cumule = 0;
 		$total_final = 0;
 		$operations = [];
 
-		foreach($operations_ent as $operation){
+		foreach($operations_pos as $operation){
 
 			$total_final += $operation->getNumber();
 			$mois = $operation->getDate()->format('n');
@@ -215,6 +215,18 @@ class CompteController extends AbstractController
 			// Total by month
 			isset($operations['totaux_solde'][$mois]['solde'])
 				? $operations['totaux_solde'][$mois]['solde'] += $operation->getNumber()
+				: $operations['totaux_solde'][$mois]['solde'] = $operation->getNumber()
+			;
+		}
+
+		foreach($operations_neg as $operation){
+
+			$total_final -= $operation->getNumber();
+			$mois = $operation->getDate()->format('n');
+
+			// Total by month
+			isset($operations['totaux_solde'][$mois]['solde'])
+				? $operations['totaux_solde'][$mois]['solde'] -= $operation->getNumber()
 				: $operations['totaux_solde'][$mois]['solde'] = $operation->getNumber()
 			;
 		}
@@ -270,29 +282,29 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/gestion/{sc}/{year}/{month}/{type}", name="_gestion")
+	 * @Route("/gestion/{sc}/{year}/{month}/{sign}", name="_gestion")
 	 * Ajax only
 	 */
-	public function gestion(SubCategory $sc, $year, $month, $type, Request $request, OperationRepository $or): Response
+	public function gestion(SubCategory $sc, $year, $month, $sign, Request $request, OperationRepository $or): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-		$datas['operations'] = $or->gestion($sc, $year, $month, $type, $daysInMonth);
 		$datas['days_in_month'] = $daysInMonth;
-		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
 		$datas['subcategory_libelle'] = $sc->getLibelle();
+		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
+		$datas['operations'] = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		return new JsonResponse($datas);
 	}
 
 	/**
-	 * @Route("/gestion/save/{sc}/{year}/{month}/{type}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
+	 * @Route("/gestion/save/{sc}/{year}/{month}/{sign}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
 	 * Ajax only
 	 */
-	public function gestion_save(SubCategory $sc, $year, $month, $type, Request $request, OperationRepository $or): Response
+	public function gestion_save(SubCategory $sc, $year, $month, $sign, Request $request, OperationRepository $or): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -305,7 +317,7 @@ class CompteController extends AbstractController
 
 		// Datas from DB
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-		$operations = $or->gestion($sc, $year, $month, $type, $daysInMonth);
+		$operations = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
@@ -376,22 +388,22 @@ class CompteController extends AbstractController
 			$or->remove($del, true);
 		}
 
-		$operations = $or->gestion($sc, $year, $month, $type, $daysInMonth);
+		$operations = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		return new JsonResponse(['save' => true, 'operations' => $operations]);
 	}
 
 	/**
-	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{type}", name="_operation_add")
+	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{sign}", name="_operation_add")
 	 * Ajax only
 	 */
-	public function operationAdd($month, $year, $daysInMonth, $type, Request $request): Response
+	public function operationAdd($month, $year, $daysInMonth, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$render = $this->render('compte/modal/operations/_add.html.twig', [
-			'type' => $type,
+			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
 			'daysInMonth' => $daysInMonth,

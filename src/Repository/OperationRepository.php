@@ -42,22 +42,22 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie les opérations selon compte, année et number positif/négatif
 	 */
-	public function OperationsByYearAndCompte($compte_id, $year_start, $pos = true): array
+	public function OperationsByYearAndCompteAndSign($compte_id, $year, $sign = true): array
 	{
-		$type = $pos ? '>=' : '<';
-		$date_start = date($year_start.'/01/01 00:00:00');
-		$date_end = date(($year_start + 1).'/01/01 00:00:00');
+		$date_start = date($year.'/01/01 00:00:00');
+		$date_end = date(($year).'/12/31 23:59:59');
 
 		return $this->createQueryBuilder('x')
-			->join('x.subcategory', 'sc')
-			->join('sc.category', 'ca')
-			->join('ca.compte', 'co')
+			->leftjoin('x.subcategory', 'sc')
+			->leftjoin('sc.category', 'ca')
+			->leftjoin('ca.compte', 'co')
 
 			->where('co.id = :compte_id')
-			->andWhere('x.number '.$type.' 0')
+			->andWhere('ca.sign = :sign')
 			->andWhere('x.date >= :date_start AND x.date <= :date_end')
 
 			->setParameters([
+				'sign' => $sign,
 				'compte_id' => $compte_id,
 				'date_start' => $date_start,
 				'date_end' => $date_end,
@@ -73,7 +73,7 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie le solde actuel
 	 */
-	public function CompteSoldeActuel($compte_id): ?float
+	public function CompteSoldeActuel($compte_id, $sign): ?float
 	{
 		$date = new \Datetime('now');
 
@@ -86,11 +86,13 @@ class OperationRepository extends ServiceEntityRepository
 
 			->where('co.id = :compte_id')
 			->andWhere('x.anticipe = false')
+			->andWhere('ca.sign = :sign')
 			->andWhere('x.date <= :date')
 
 			->setParameters([
 				'compte_id' => $compte_id,
 				'date' => $date,
+				'sign' => $sign,
 			])
 
 			->getQuery()
@@ -101,18 +103,15 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie les opérations d'une SC pour un mois
 	 */
-	public function gestion($sc, $year, $month, $type, $daysInMonth): ?array
+	public function gestion($sc, $year, $month, $sign, $daysInMonth): ?array
 	{
-		$type = $type == 'pos'
-			? '>= 0'
-			: '< 0'
-		;
-
+		$sign = $sign == 'pos' ? true : false;
 		$date_start = new \Datetime($year.'/'.$month.'/01 00:00:00');
 		$date_end = new \Datetime($year.'/'.$month.'/'.$daysInMonth.' 23:59:59');
 
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.subcategory', 'sc')
+			->leftjoin('sc.category', 'ca')
 
 			->select([
 				'x.id',
@@ -128,12 +127,13 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.date IS NOT NULL')
 			->andWhere('x.date >= :date_start')
 			->andWhere('x.date <= :date_end')
-			->andWhere('x.number '.$type)
+			->andWhere('ca.sign = :sign')
 
 			->setParameters([
 				'sc' => $sc,
 				'date_end' => $date_end,
 				'date_start' => $date_start,
+				'sign' => $sign,
 			])
 
 			->orderBy('x.date', 'DESC')

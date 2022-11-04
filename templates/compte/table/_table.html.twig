@@ -1,8 +1,8 @@
-<table class="compteTable center">
+<table class="table compteTable center">
 	<thead>
 		<tr class="tr_head">
-			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='col_start_top bck_{{ type }}'>
-				{{ type == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
+			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='col_start_top bck_{{ sign }}'>
+				{{ sign == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
 				<span class="">(€)</span>
 			</th>
 
@@ -19,9 +19,9 @@
 			{% endfor %}
 
 			{# TOTAL #}
-			<th id='total' class="td_total done">Total</th>
-			<th id='totalByMonth' class="done">Soit <br/>X€ / mois</th>
-			<th id='percent' class="done">%</th>
+			<th id='total' class="td_total_border done col_end_top">Total</th>
+			<th id='totalByMonth' class="done col_end_top">X€ / mois</th>
+			<th id='percent' class="done col_end_top">%</th>
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
@@ -37,28 +37,27 @@
 					<td class="{{ done }}">Fait</td>
 					<td class="{{ done }}">A ven.</td>
 				{% endfor %}
-				<th class="td_total done"></th>
-				<th class="done"></th>
-				<th class="done"></th>
+				<th colspan="3" class="td_total_border done"></th>
 			</tr>
 		{% endif %}
 	</thead>
 	<tbody>
 		{% for category in compte.categories %}
+			{% if category.sign == signBool %}
+				{% for subcategory in category.subcategories %}
+					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
+						{% if loop.first %}
+							<td class='td_category_libelle' rowspan='{{ category.subcategories|length }}'>
+								{{ category.libelle|capitalize }}
+							<td/>
+						{% endif %}
 
-			{% for subcategory in category.subcategories %}
-				<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
-					{% if loop.first %}
-						<td class='td_category_libelle' rowspan='{{ category.subcategories|length }}'>
-							{{ category.libelle|capitalize }}
-						<td/>
-					{% endif %}
+						<td class='td_subcategory_libelle'>{{ subcategory.libelle|capitalize }}</td>
 
-					<td class='td_subcategory_libelle'>{{ subcategory.libelle|capitalize }}</td>
-
-					{{ include('compte/table/_sc_operations.html.twig') }}
-				</tr>
-			{% endfor %}
+						{{ include('compte/table/_sc_operations.html.twig') }}
+					</tr>
+				{% endfor %}
+			{% endif %}
 		{% endfor %}
 		{{ include('compte/table/_totaux_mois.html.twig') }}
 	</tbody>

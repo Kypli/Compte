@@ -1,7 +1,7 @@
 {# EMPTY TR #}
 <tr class="collabo">
-	<td colspan="2" class="col_start_middle bck_{{ type }}"></td>
-	<td colspan="24" class="bck_{{ type }}"></td>
+	<td colspan="2" class="col_start_middle bck_{{ sign }}"></td>
+	<td colspan="24" class="bck_{{ sign }}"></td>
 	<td colspan="3" class="td_total bck_black"></td>
 </tr>
 
@@ -9,7 +9,7 @@
 
 	{# DETAILS (reel & anticipe) #}
 	<tr>
-		<td colspan="2" class="col_start_bottom bck_{{ type }}"></td>
+		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in 1..12 %}
@@ -22,18 +22,20 @@
 								: ''
 				%}
 
-				{% set ope = operations['totaux_mois'][month] %}
+				{% if operations['totaux_mois'][month] is defined %}
 
-				{% if ope is defined %}
-					<td class="{{ done }} total_month_detail_{{ type }}">
+					{% set ope = operations['totaux_mois'][month] %}
+
+					<td class="{{ done }} total_month_detail_{{ sign }}">
 						{{ ope['reel'] is defined ? ope['reel'] : '0' }}
 					</td>
-					<td class="{{ done }} total_month_detail_{{ type }}">
+					<td class="{{ done }} total_month_detail_{{ sign }}">
 						{{ ope['anticipe'] is defined ? ope['anticipe'] : '0' }}
 					</td>
+
 				{% else %}
-					<td class="{{ done }} total_month_detail_{{ type }}">0</td>
-					<td class="{{ done }} total_month_detail_{{ type }}">0</td>
+					<td class="{{ done }} total_month_detail_{{ sign }}">0</td>
+					<td class="{{ done }} total_month_detail_{{ sign }}">0</td>
 				{% endif %}
 			{% endfor %}
 		{% else %}
@@ -44,7 +46,7 @@
 
 	{# FULL #}
 	<tr>
-		<td colspan="2" class="col_start_bottom bck_{{ type }}"></td>
+		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in 1..12 %}
@@ -58,11 +60,11 @@
 				%}
 
 				{% if operations['totaux_mois'][month] is defined %}
-					<td colspan="2" class="{{ done }} total_month_full_{{ type }}">
+					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">
 						{{ operations['totaux_mois'][month]['total'] }}
 					</td>
 				{% else %}
-					<td colspan="2" class="{{ done }} total_month_full_{{ type }}">0</td>
+					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">0</td>
 				{% endif %}
 			{% endfor %}
 		{% else %}

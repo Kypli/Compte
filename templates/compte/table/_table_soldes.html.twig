@@ -1,8 +1,8 @@
-<table class="compteTable center">
+<table class="table compteTable center">
 
 	{# SOLDE MENSUEL #}
 	<tr class='tr_head'>
-		<th colspan="4" class="solde_th_cache alignRight">Solde mensuel</th>
+		<th colspan="4" class="th_solde_cache col_start_top alignRight centerHor">Solde mensuel</th>
 
 		{% set revenuAnnuel = 0 %}
 
@@ -29,17 +29,13 @@
 				<th colspan='2' class="total_month_full_pos {{ done }}">0</th>
 			{% endif %}
 		{% endfor %}
-		<th class="solde_th_cache_2"></th>
-		<th rowspan="2" class="solde_th_cache souligne">Revenu annuel</th>
-		<th rowspan="2" class="revenuAnnuel {{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
-			{{ revenuAnnuel }}
-		</th>
+		<th colspan="3" class="col_end_top_solde th_solde_cache_2 souligne">Revenu annuel</th>
 	</tr>
 
 	{# SOLDE CUMULE #}
 	<tr class='tr_head'>
-		<th class="solde_th_cache"></th>
-		<th colspan="3" class="solde_th_cache alignRight">Solde cumulé</th>
+		<th class="th_solde_cache"></th>
+		<th colspan="3" class="th_solde_cache alignRight centerHor">Solde cumulé</th>
 
 		{% for month in 1..12 %}
 
@@ -55,14 +51,19 @@
 			{% if soldes['totaux_solde'][month] is defined %}
 				{% set number = soldes['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
 
-				<th colspan='2' class="{{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+				<th colspan='2' class="centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number }}
 				</th>
 
 			{% else %}
-				<th colspan='2' class="{{ done }} total_month_full_pos">0</th>
+				<th colspan='2' class="centerHor {{ done }} total_month_full_pos">0</th>
 			{% endif %}
 		{% endfor %}
-		<th class="solde_th_cache_2"></th>
+		<td
+			colspan="3"
+			class="th_solde_cache_2 revenuAnnuel {{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}"
+		>
+			{{ revenuAnnuel }}
+		</td>
 	</tr>
 </table>

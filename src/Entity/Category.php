@@ -25,6 +25,12 @@ class Category
     private $libelle;
 
     /**
+     * @ORM\Column(type="boolean")
+     * True = Positive, False = Negative
+     */
+    private $sign = 1;
+
+    /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="categories")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -53,6 +59,18 @@ class Category
     public function setLibelle(string $libelle): self
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function isSign(): ?bool
+    {
+        return $this->sign;
+    }
+
+    public function setSign(bool $sign): self
+    {
+        $this->sign = $sign;
 
         return $this;
     }

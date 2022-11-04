@@ -19,11 +19,15 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 		$subcategories = [
 			SubCategoryFixtures::SUBCATEGORY_ADMIN_1,
 			SubCategoryFixtures::SUBCATEGORY_ADMIN_2,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_3,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_4,
 			SubCategoryFixtures::SUBCATEGORY_USER_1,
 			SubCategoryFixtures::SUBCATEGORY_USER_2,
+			SubCategoryFixtures::SUBCATEGORY_USER_3,
+			SubCategoryFixtures::SUBCATEGORY_USER_4,
 		];
 
-		for($i = 0; $i <= 250; $i++){
+		for($i = 0; $i <= 400; $i++){
 
 			$year = date('Y');
 			$month = rand(1, 12);
@@ -36,13 +40,12 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			$date_now = new \Datetime('now');
 			$date_now_month = $date_now->format('m');
 
-
 			if ($month > $date_now->format('n')){
 				$anticipe = 1;
 
 			} elseif($month < $date_now->format('n')){
 				$rand = rand(1, 100);
-				$anticipe = $rand <= 7
+				$anticipe = $rand <= 5
 					? 1
 					: 0
 				;
@@ -55,7 +58,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 
 			$entity = new Entity();
 			$entity
-				->setNumber(rand(-10000, 10000) / 100)
+				->setNumber(rand(0, 10000) / 100)
 				->setAnticipe($anticipe)
 				->setDate($date)
 				->setComment('comment '.$i)

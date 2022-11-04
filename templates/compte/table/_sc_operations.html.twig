@@ -38,7 +38,7 @@
 			class="{{ done }}"
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
-			data-type="{{ type }}"
+			data-sign="{{ sign }}"
 			data-anticipe="0"
 			data-target="#modalGestion"
 			data-toggle="modal"
@@ -51,7 +51,7 @@
 			class='{{ done }} {{ blink }} anticipe'
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
-			data-type="{{ type }}"
+			data-sign="{{ sign }}"
 			data-anticipe="1"
 			data-target="#modalGestion"
 			data-toggle="modal"
@@ -61,7 +61,7 @@
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="counterEdit done td_total">{{ operationsBySc['total'] }}</td>
+	<td class="counterEdit done td_total_border">{{ operationsBySc['total'] }}</td>
 	<td class="counterEdit done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
 	<td class="counterEdit done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

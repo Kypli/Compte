@@ -1,49 +1,38 @@
 
 /* MAIN COLORS */
 
-
-/* SOLDE ACTUEL */
-.soldeActuel {
-	border: 1px black solid;
-	padding: 12px;
-	font-weight: bold;
-	background-color: #E6E6E6;
-	min-width: 350px!important;
-}
-
-/* YEAR */
-.navigation {
-	margin: 15px 0 0 15px;
-}
-.navigation_elem {
-	margin: 0 10px 0 10px;
-	font-size: 18px!important;
-}
-.button {
-	color: black;
-	padding: 6px;
-	cursor: pointer;
-	margin-left: 25px;
-	border-radius: 15px;
-	border: 1px black solid;
-	background-color: #E6E6E6;
-	text-decoration: #E6E6E6 underline;
-}
-
+/**********/
 /* TABLE */
+/**********/
+
+table, th, td {
+	/*border: 1px solid;*/
+}
+
+table {
+	table-layout: fixed;
+}
+
 .compteTable, .compteTable th, .compteTable tr, .compteTable td {
 	padding: 3px;
-	font-size: 14px;
+	font-size: 13px;
 	min-width: 45px;
+	overflow: hidden;
+	word-break: break-all;
 	border: 1px black solid;
 }
 .compteTable th, .compteTable tr, .compteTable td {
 	background-color: #E6E6E6;
 }
+.compteTable th {
+	padding-bottom: 10px;
+}
 
-/* FIRST COL */
+/* COL */
 .col_start_top {
+	width: 200px!important;
 	min-width: 200px!important;
+	max-width: 200px!important;
 	border-top: hidden!important;
 	border-left: hidden!important;
 }
@@ -52,18 +41,22 @@
 	border-right: hidden!important;
 }
 .col_start_bottom {
-	min-width: 200px!important;
 	border-top: hidden!important;
 	border-left: hidden!important;
 	border-bottom: hidden!important;
 }
+.col_end_top {
+	width: 70px!important;
+	min-width: 70px!important;
+	min-width: 100px!important;
+}
+.col_end_top_solde {
+	width: 210px!important;
+	min-width: 210px!important;
+	min-width: 210px!important;
+}
 
 /* TR */
-.tr_head th {
-	width: 100px!important;
-	min-width: 100px!important;
-	max-width: 100px!important;
-}
 .tr_etat td {
 	font-size: 11px!important;
 }
@@ -73,17 +66,19 @@
 
 /* TD */
 .td_category_libelle {
-	min-width: 90px;
 	text-align: left;
 	background-color: #C1C1C1!important;
 }
 .td_subcategory_libelle {
-	min-width: 120px;
 	text-align: left;
 	background-color: #C1C1C1!important;
 }
-.td_total {
+.td_total_border {
 	border-left: 5px black solid!important;
+}
+
+.centerHor {
+	padding: 5px 3px 3px 3px!important;
 }
 
 /* ETAT */
@@ -143,19 +138,21 @@
 }
 
 /* SOLDE */
-.solde_th_cache {
+.th_solde_cache {
 	border-top: hidden!important;
 	border-left: hidden!important;
 	border-bottom: hidden!important;
 	background-color: #D6DBE2!important;
 }
-.solde_th_cache_2 {
+.th_solde_cache_2 {
 	border-top: hidden!important;
+	border-right: hidden!important;
 	border-bottom: hidden!important;
 	background-color: #D6DBE2!important;
 }
 .revenuAnnuel {
-	font-size: 19px!important;
+	font-weight: bold;
+	font-size: 16px!important;
 }
 
 /* BCK COLOR */
@@ -167,4 +164,32 @@
 }
 .bck_black {
 	background-color: black!important;
+}
+
+/* SOLDE ACTUEL */
+.soldeActuel {
+	border: 1px black solid;
+	padding: 12px;
+	font-weight: bold;
+	background-color: #E6E6E6;
+	min-width: 350px!important;
+}
+
+/* YEAR */
+.navigation {
+	margin: 15px 0 0 15px;
+}
+.navigation_elem {
+	margin: 0 10px 0 10px;
+	font-size: 18px!important;
+}
+.button {
+	color: black;
+	padding: 6px;
+	cursor: pointer;
+	margin-left: 25px;
+	border-radius: 15px;
+	border: 1px black solid;
+	background-color: #E6E6E6;
+	text-decoration: #E6E6E6 underline;
 }

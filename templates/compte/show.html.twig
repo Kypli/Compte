@@ -14,7 +14,7 @@
 
 {% block body %}
 
-	<div class="container-fluid" id='datas' data-year="{{ year }}" data-months="{{ months_json }}">
+	<div class="{# container-fluid #}" id='datas' data-year="{{ year }}" data-months="{{ months_json }}">
 
 		{# TITRE #}
 		<div class='row mt-2 mb-3'>
@@ -59,10 +59,10 @@
 		{# TABLE #}
 		<div class='row m-1'>
 			<div class="col-12 mb-4">
-				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'type': 'pos' } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true } %}
 			</div>
 			<div class="col-12 mb-5">
-				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'type': 'neg' } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
 			</div>
 			<div class="col-12">
 				{{ include('compte/table/_table_soldes.html.twig') }}
