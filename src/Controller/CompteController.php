@@ -9,6 +9,7 @@ use App\Entity\SubCategory;
 use App\Form\CompteType;
 
 use App\Repository\CompteRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -71,7 +72,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
-	public function show(Compte $compte, OperationRepository $or, Request $request): Response
+	public function show(Compte $compte, OperationRepository $or, CategoryRepository $cr, Request $request): Response
 	{
 		// Current Month
 		$date = new \Datetime('now');
@@ -129,6 +130,8 @@ class CompteController extends AbstractController
 
 			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
+
+			'categories' => json_encode($cr->mycategories($compte->getId())),
 		]);
 	}
 
@@ -402,7 +405,7 @@ class CompteController extends AbstractController
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/operations/_add.html.twig', [
+		$render = $this->render('compte/modal/gestion/_add.html.twig', [
 			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
@@ -412,5 +415,22 @@ class CompteController extends AbstractController
 		return new JsonResponse([
 			'render' => $render,
 		]);
+	}
+
+	// ****************
+	// MODAL CATEGORY
+	// ****************
+
+	/**
+	 * @Route("/category/{id}", name="_category")
+	 * Ajax only
+	 */
+	public function category(Category $cat, Request $request, CategoryRepository $cr): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+
+		return new JsonResponse(1);
 	}
 }

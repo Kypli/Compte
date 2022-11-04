@@ -1,0 +1,31 @@
+<div
+	id="modalSubCategory"
+	class="modal"
+	data-backdrop="static"
+	data-keyboard="false"
+	tabindex="-1"
+	aria-labelledby="myModalLabel"
+	aria-hidden="true"
+>
+	<div class="modal-dialog modal-dialog-scrollable modal-lg">
+		<div class="modal-content">
+
+			{# HEADER #}
+			<div class="modal-header">
+				<h4 class="modal-title">
+					<span class="souligne">Gestion des sous-catégories</span>
+				</h4>
+			</div>
+
+			{# BODY #}
+			<div class="modal-body">
+				{{ include('compte/modal/subcategory/_body.html.twig') }}
+			</div>
+
+			{# FOOTER #}
+			<div class="modal-footer">
+				<button type="button" id="modalOpeClose" class="btn btn-dark ml-5" data-dismiss="modal">Fermer</button>
+			</div>
+		</div>
+	</div>
+</div>

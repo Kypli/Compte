@@ -14,8 +14,12 @@
 
 {% block body %}
 
-	<div class="{# container-fluid #}" id='datas' data-year="{{ year }}" data-months="{{ months_json }}">
-
+	<div
+		class="{# container-fluid #}"
+		id='datas' data-year="{{ year }}"
+		data-months="{{ months_json }}"
+		data-categories="{{ categories }}"
+	>
 		{# TITRE #}
 		<div class='row mt-2 mb-3'>
 			<div class="offset-4 col-4 center">
@@ -80,8 +84,14 @@
 			</div>
 		</div>
 
-		{# MODAL GESTION OPERATIONS #}
-		{{ include('compte/modal/operations/index.html.twig') }}
+		{# MODAL GESTION #}
+		{{ include('compte/modal/gestion/index.html.twig') }}
+
+		{# MODAL CATEGORY #}
+		{{ include('compte/modal/category/index.html.twig') }}
+
+		{# MODAL SUBCATEGORY #}
+		{{ include('compte/modal/subcategory/index.html.twig') }}
 
 	</div>
 {% endblock %}

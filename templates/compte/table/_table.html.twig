@@ -47,12 +47,25 @@
 				{% for subcategory in category.subcategories %}
 					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
 						{% if loop.first %}
-							<td class='td_category_libelle' rowspan='{{ category.subcategories|length }}'>
+							<td
+								data-target="#modalCategory"
+								data-toggle="modal"
+								data-id="category_{{ category.id }}"
+								class='td_category_libelle'
+								rowspan='{{ category.subcategories|length }}'
+							>
 								{{ category.libelle|capitalize }}
 							<td/>
 						{% endif %}
 
-						<td class='td_subcategory_libelle'>{{ subcategory.libelle|capitalize }}</td>
+						<td
+							data-target="#modalSubCategory"
+							data-toggle="modal"
+							data-id="{{ subcategory.id }}"
+							class='td_subcategory_libelle'
+						>
+							{{ subcategory.libelle|capitalize }}
+						</td>
 
 						{{ include('compte/table/_sc_operations.html.twig') }}
 					</tr>
