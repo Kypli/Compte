@@ -42,27 +42,47 @@ class CategoryRepository extends ServiceEntityRepository
 	/**
 	 * Renvoie les opérations d'une SC pour un mois
 	 */
-	public function mycategories($compte_id): ?array
+	public function mycategories($compte_id, $sign): ?array
 	{
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.compte', 'co')
 
-			->select([
-				'x.id',
-				'x.libelle',
-				'x.sign',
-			])
+			->select('x')
 
 			->where('co.id = :compte_id')
+			->andWhere('x.sign = :sign')
 
 			->setParameters([
 				'compte_id' => $compte_id,
+				'sign' => $sign,
 			])
 
 			->orderBy('x.sign, x.id', 'DESC')
 
 			->getQuery()
-			->getArrayResult()
+			->getResult()
+		;
+	}
+
+	/**
+	 * Renvoie la dernière position des catégories d'un compte
+	 */
+	public function lastPos($compte_id): ?array
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.compte', 'co')
+
+			->select('x.position')
+
+			->where('co.id = :compte_id')
+
+			->setParameter('compte_id', $compte_id)
+
+			->orderBy('x.position', 'DESC')
+			->setMaxResults(1)
+
+			->getQuery()
+			->getOneOrNullResult()
 		;
 	}
 }

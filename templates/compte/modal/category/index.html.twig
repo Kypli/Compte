@@ -13,18 +13,35 @@
 			{# HEADER #}
 			<div class="modal-header">
 				<h4 class="modal-title">
-					<span class="souligne">Gestion des catégories</span>
+					<span class="souligne">
+						Gestion de la catégorie
+						<br/>
+						<span id='cat_name'></span>
+					</span>
 				</h4>
+				<button id="add_cat" class="m-1 p-1">
+					Nouvelle catégorie
+				</button>
+
+				<button type="button" id="modalCatClose" class="btn btn-dark minWitdh195" data-dismiss="modal">
+					Fermer
+				</button>
 			</div>
 
 			{# BODY #}
-			<div class="modal-body">
+			<div id="body_cat" data-sign="" class="modal-body">
 				{{ include('compte/modal/category/_body.html.twig') }}
 			</div>
 
 			{# FOOTER #}
 			<div class="modal-footer">
-				<button type="button" id="modalOpeClose" class="btn btn-dark ml-5" data-dismiss="modal">Fermer</button>
+
+				<button id="cancel_cat" class="hide btn btn-danger m-1 p-1" disabled>Annuler les changements</button>
+				<div class="col-3"></div>
+
+				<button type="button" id="modalCatSaveClose" class="btn btn-success" data-dismiss="modal">
+					Enregistrer et Fermer
+				</button>
 			</div>
 		</div>
 	</div>

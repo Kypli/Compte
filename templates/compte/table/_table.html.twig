@@ -42,15 +42,17 @@
 		{% endif %}
 	</thead>
 	<tbody>
-		{% for category in compte.categories %}
+		{% for category in compte.categories|sort((a) => a.position) %}
 			{% if category.sign == signBool %}
-				{% for subcategory in category.subcategories %}
+				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
 					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
 						{% if loop.first %}
 							<td
 								data-target="#modalCategory"
 								data-toggle="modal"
-								data-id="category_{{ category.id }}"
+								data-id="{{ category.id }}"
+								data-focusa="cat_{{ category.id }}"
+								data-sign="{{ signBool == false ? 0 : 1 }}"
 								class='td_category_libelle'
 								rowspan='{{ category.subcategories|length }}'
 							>
@@ -59,14 +61,15 @@
 						{% endif %}
 
 						<td
-							data-target="#modalSubCategory"
+							data-target="#modalCategory"
 							data-toggle="modal"
-							data-id="{{ subcategory.id }}"
+							data-id="{{ category.id }}"
+							data-focusa="sc_{{ subcategory.id }}"
+							data-sign="{{ signBool == false ? 0 : 1 }}"
 							class='td_subcategory_libelle'
 						>
 							{{ subcategory.libelle|capitalize }}
 						</td>
-
 						{{ include('compte/table/_sc_operations.html.twig') }}
 					</tr>
 				{% endfor %}

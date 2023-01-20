@@ -16,26 +16,70 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SubCategoryRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, SubCategory::class);
-    }
+	public function __construct(ManagerRegistry $registry)
+	{
+		parent::__construct($registry, SubCategory::class);
+	}
 
-    public function add(SubCategory $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
+	public function add(SubCategory $entity, bool $flush = false): void
+	{
+		$this->getEntityManager()->persist($entity);
 
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
+		if ($flush) {
+			$this->getEntityManager()->flush();
+		}
+	}
 
-    public function remove(SubCategory $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
+	public function remove(SubCategory $entity, bool $flush = false): void
+	{
+		$this->getEntityManager()->remove($entity);
 
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
+		if ($flush) {
+			$this->getEntityManager()->flush();
+		}
+	}
+
+	/**
+	 * Renvoie les opérations selon compte, année et number positif/négatif
+	 */
+	public function getSubcategories($category_id): array
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.category', 'c')
+
+			->where('c.id = :category_id')
+
+			->setParameters([
+				'category_id' => $category_id,
+			])
+
+			->orderBy('x.id', 'ASC')
+
+			->getQuery()
+			->getArrayResult()
+		;
+	}
+
+	/**
+	 * Renvoie les opérations selon compte, année et number positif/négatif
+	 */
+	public function idsFromCat($category_id): array
+	{
+		$q = $this->createQueryBuilder('x')
+			->leftjoin('x.category', 'c')
+
+			->select('x.id')
+
+			->where('c.id = :category_id')
+
+			->setParameters([
+				'category_id' => $category_id,
+			])
+
+			->getQuery()
+			->getResult()
+		;
+
+		return array_flip(array_map('current', $q));
+	}
 }

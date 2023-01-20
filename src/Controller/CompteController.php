@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Compte;
+use App\Entity\Category;
 use App\Entity\Operation;
 use App\Entity\SubCategory;
 
@@ -11,6 +12,7 @@ use App\Form\CompteType;
 use App\Repository\CompteRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
+use App\Repository\SubCategoryRepository;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
@@ -29,36 +31,48 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class CompteController extends AbstractController
 {
 	private $navigation_max_year;
-
 	private $navigation_min_year;
 
-	public function __construct()
-	{
+	private $cr;
+	private $or;
+	private $catr;
+	private $scr;
+
+	public function __construct(
+		CompteRepository $cr,
+		OperationRepository $or,
+		CategoryRepository $catr,
+		SubCategoryRepository $scr
+	){
 		$this->navigation_max_year = ((int)date('Y') + 40);
 		$this->navigation_min_year = ((int)date('Y') - 40);
+		$this->cr = $cr;
+		$this->or = $or;
+		$this->catr = $catr;
+		$this->scr = $scr;
 	}
 
 	/**
 	 * @Route("/", name="")
 	 */
-	public function index(CompteRepository $cr): Response
+	public function index(): Response
 	{
 		return $this->render('compte/index.html.twig', [
-			'comptes' => $cr->findAll(),
+			'comptes' => $this->cr->findAll(),
 		]);
 	}
 
 	/**
 	 * @Route("/new", name="_new", methods={"GET", "POST"})
 	 */
-	public function new(Request $request, CompteRepository $cr): Response
+	public function new(Request $request): Response
 	{
 		$compte = new Compte();
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$cr->add($compte, true);
+			$this->cr->add($compte, true);
 
 			return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
 		}
@@ -72,7 +86,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
-	public function show(Compte $compte, OperationRepository $or, CategoryRepository $cr, Request $request): Response
+	public function show(Compte $compte, Request $request): Response
 	{
 		// Current Month
 		$date = new \Datetime('now');
@@ -90,11 +104,14 @@ class CompteController extends AbstractController
 		;
 
 		// Solde
-		$solde = round(($or->CompteSoldeActuel($compte->getId(), true) - $or->CompteSoldeActuel($compte->getId(), false)), 2);
+		$solde = round(
+			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
+			2
+		);
 
 		// Opérations
-		$operations_pos = $or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
-		$operations_neg = $or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
+		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
 
 		// Month
 		$months = [
@@ -130,8 +147,6 @@ class CompteController extends AbstractController
 
 			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
-
-			'categories' => json_encode($cr->mycategories($compte->getId())),
 		]);
 	}
 
@@ -251,13 +266,13 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
 	 */
-	public function edit(Request $request, Compte $compte, CompteRepository $cr): Response
+	public function edit(Request $request, Compte $compte): Response
 	{
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$cr->add($compte, true);
+			$this->cr->add($compte, true);
 
 			return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
 		}
@@ -271,24 +286,24 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_delete", methods={"POST"})
 	 */
-	public function delete(Request $request, Compte $compte, CompteRepository $cr): Response
+	public function delete(Request $request, Compte $compte): Response
 	{
 		if ($this->isCsrfTokenValid('delete'.$compte->getId(), $request->request->get('_token'))) {
-			$cr->remove($compte, true);
+			$this->cr->remove($compte, true);
 		}
 
 		return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
 	}
 
 	// ****************
-	// MODAL GESTION
+	// MODAL GESTION OPERATIONS
 	// ****************
 
 	/**
 	 * @Route("/gestion/{sc}/{year}/{month}/{sign}", name="_gestion")
 	 * Ajax only
 	 */
-	public function gestion(SubCategory $sc, $year, $month, $sign, Request $request, OperationRepository $or): Response
+	public function gestion(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -298,7 +313,7 @@ class CompteController extends AbstractController
 		$datas['days_in_month'] = $daysInMonth;
 		$datas['subcategory_libelle'] = $sc->getLibelle();
 		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
-		$datas['operations'] = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
+		$datas['operations'] = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		return new JsonResponse($datas);
 	}
@@ -307,7 +322,7 @@ class CompteController extends AbstractController
 	 * @Route("/gestion/save/{sc}/{year}/{month}/{sign}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
 	 * Ajax only
 	 */
-	public function gestion_save(SubCategory $sc, $year, $month, $sign, Request $request, OperationRepository $or): Response
+	public function gestion_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -320,7 +335,7 @@ class CompteController extends AbstractController
 
 		// Datas from DB
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-		$operations = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
+		$operations = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
@@ -334,7 +349,7 @@ class CompteController extends AbstractController
 			// Edit
 			if (!empty($ope['id'])){
 				$id = $ope['id'];
-				$ope_ent = $or->find($id);
+				$ope_ent = $this->or->find($id);
 
 				if ($ope_ent == null){ return new JsonResponse(['save' => false]); }
 
@@ -381,26 +396,26 @@ class CompteController extends AbstractController
 					->setComment($ope['comment'])
 					->setAnticipe($anticipe)
 				;
-				$or->add($ope_ent, true);
+				$this->or->add($ope_ent, true);
 			}
 		}
 
 		// Delete
 		foreach($operations as $operation){
-			$del = $or->find($operation['id']);
-			$or->remove($del, true);
+			$del = $this->or->find($operation['id']);
+			$this->or->remove($del, true);
 		}
 
-		$operations = $or->gestion($sc, $year, $month, $sign, $daysInMonth);
+		$operations = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		return new JsonResponse(['save' => true, 'operations' => $operations]);
 	}
 
 	/**
-	 * @Route("/operation/add/{month}/{year}/{daysInMonth}/{sign}", name="_operation_add")
+	 * @Route("/gestion/add/{month}/{year}/{daysInMonth}/{sign}", name="_gestion_add")
 	 * Ajax only
 	 */
-	public function operationAdd($month, $year, $daysInMonth, $sign, Request $request): Response
+	public function gestionAdd($month, $year, $daysInMonth, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -422,15 +437,100 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/category/{id}", name="_category")
+	 * @Route("/categorie/{id}/{sign}", name="_categorie")
+	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	public function category(Category $cat, Request $request, CategoryRepository $cr): Response
+	public function categorie(Compte $compte, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
+		$render = $this->render('compte/modal/category/_tbody_form.html.twig', [
+			'categories' => $this->catr->mycategories($compte->getId(), $sign)
+		])->getContent();
 
-		return new JsonResponse(1);
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
+	 * @Route("/scategory/add", name="_scategory_add")
+	 * Récupère tr_subcategories_add
+	 * Ajax only
+	 */
+	public function scategory(Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/category/_sc_add.html.twig')->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
+	 * @Route("/categorie/edit/{id}/{year}", name="_categorie_edit")
+	 * Edit tr_categorie / Edit tr_subcategories / Add tr_subcategories_add
+	 * Ajax only
+	 */
+	public function categorieEdit(Compte $compte, $year, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$datas = $request->request->get('datas');
+
+		// Categorie
+		$datas_cat = $datas[0];
+		if ($datas_cat['type'] == 'cat'){
+
+			if ($datas_cat['id'] != ''){
+				$cat = $this->catr->find($datas_cat['id']);
+				$scs = $this->scr->idsFromCat($cat->getId());
+			} else {
+				$cat = new Category();
+				$cat
+					->setCompte($compte)
+					->setPosition($this->catr->lastPos($compte->getId())['position'] + 1)
+				;
+				$scs = [];
+			}
+
+			$cat->setLibelle($datas_cat['libelle']);
+			// TODO position
+
+			$this->catr->add($cat, true);
+		}
+		unset($datas[0]);
+
+		// Sub-catégories
+		foreach ($datas as $key => $datas_sc){
+			if ($datas_sc['id'] != ''){
+				$sc = $this->scr->find($datas_sc['id']);
+			} else {
+				$sc = new SubCategory();
+				$sc->setCategory($cat);
+			}
+
+			$sc
+				->setPosition($key)
+				->setLibelle($datas_sc['libelle'])
+			;
+
+			$this->scr->add($sc, true);
+		}
+
+		// Delete SubCategories
+		foreach($scs as $key => $osef){
+			$this->scr->remove($this->scr->find($key));
+		}
+
+		return new JsonResponse([
+			'save' => true,
+		]);
 	}
 }

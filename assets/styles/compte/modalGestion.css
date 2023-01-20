@@ -1,50 +1,47 @@
 
-.modal_ope_th {
+#gestion_tab th:not(.th_switch, .th_date, .th_comment, .th_actions){
 	width: 85px!important;
 	min-width: 85px!important;
 }
-.modal_ope_th_switch {
+#gestion_tab .th_switch {
 	width: 30px!important;
 	max-width: 30px!important;
 }
-.modal_ope_th_date {
+#gestion_tab .th_date {
+	padding-left: 20px!important;
 	width: 160px!important;
 	min-width: 160px!important;
 	padding-left: 20px!important;
 }
-.modal_ope_th_comment {
+#gestion_tab .th_comment {
 	width: 235px!important;
 	min-width: 235px!important;
 }
-.modal_ope_th_actions {
+#gestion_tab .th_actions {
 	width: 140px!important;
 	min-width: 140px!important;
 }
-#modalOpeSolde_tr_collabo td {
+
+#solde_tr_collabo td {
 	height: 25px;
 	max-height: 35px;
 }
 
-.td_date {
-	padding-left: 20px!important;
-}
-
-.modalOpeInputNumber, .modalOpeInputAnticipe {
+#gestion_tab .inputNumber, .inputAnticipe {
 	width: 85px!important;
 	max-width: 85px!important;
 }
-
-.modalOpeInputDay {
+#gestion_tab .inputDay {
 	width: 45px!important;
 	max-width: 45px!important;
 	margin-right: 3px!important;
 }
-.modalOpeInputComment {
+#gestion_tab .inputComment {
 	width: 215px!important;
 	max-width: 215px!important;
 }
 
-.td_anticipe, .modalOpeInputAnticipe {
+.td_anticipe, .inputAnticipe {
 	color: purple;
 }
 
@@ -78,7 +75,7 @@
 	font-style : italic;
 	text-decoration: underline; 
 }
-#modalOpeSolde {
+#solde {
 	border: 1px black solid;
 	padding: 12px;
 	margin-left: 5px;

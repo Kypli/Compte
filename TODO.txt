@@ -1,36 +1,56 @@
 php bin/console make:reset-password
 
-
 User
 	Preference
 		Affichage total (total / mois)
 		Affichage % du total
 
-
 Compte
 	Gestion (show)
 
-		Operations
+		Tableau
+			Limiter le nombre de character, si dépasse => ... + reste en prop title
+			Colorier bordure en jaune de la zone éditable
+			Année visible sur le titre
+			Revenu annuel -> Faire un border-radius
+
+		Modal Operations
+			Suggestion (selon opérations répété) lors d'une création
 			Mettre à jour le tableau si sauvegarde
-			Colorier les changements de la modal
+			Colorier les changements avant sauvegarde (bleu)
+			Raccourci fleche gauche droite pour changer de mois
+			Raccourci select on click pour cat et subcat
+			Fermer sans sauvegarder
+			Sauvegarder et fermer (vert clair)
+			Bouton Autres actions
+			Bouton supprimer en rouge avec croix
+			Alerte input vide en orange lors d'un ajout
+			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
+			Retirer bouton Ajouter et rajouter un symbole '+' au dessus des sous-total
+			Si téléphone, garder bouton d'édition global
+			Si pc, retirer bouton d'édition global et dition au détail au survol de la souris
+			bouton switch en gras si survol sans impacter les autres div
 
-		Category
-			Creation
-			Faire un placement numéroté
-
-		SubCategory
-			Creation
-			Faire un placement numéroté
-			Limiter le nombre de character, si dépasse => ... + reste en title
-
+		Modal Category / Sub-cat
+			Nouvelle catégorie
+			Titre Catégorie ->Limiter le nombre de character, si dépasse => ... + reste en prop title
+			Input border blue si position change + retour si annulation
+			Supprimer input (non add)
+				-> Garde editMode(true)
+				-> Alerte visuelle juste text en rouge barré à la place de l'input
+				-> Possibilité de le faire revenir
+			Input category 
+				-> Color blue si edit + retour si annulation
+				-> Position -> Faire défiler les autres catégorie position x-1 && x+1 avec chevrons a droite de l'input
+							-> Blue si edit + retour si annulation
+			Controller vérifier suppression + position
 
 Tableau de bord
-	- Afficher Compte principal
-
+	- Afficher Résumé de tout les comptes avec lien
+	- Préciser compte principal
 
 Service
 	Toaster
 
 Page de connexion
 	- Faire des sessions avec des comptes test pour une inscription ultérieur et inciter à l'inscription
-

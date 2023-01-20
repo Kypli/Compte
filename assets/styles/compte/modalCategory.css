@@ -1,0 +1,47 @@
+
+/* ADD */
+.tr_subcategories_add input {
+	color: green;
+	border: 1px green solid!important;
+}
+.tr_subcategories_add input:hover {
+	border: 2px green solid!important;
+}
+.tr_subcategories_add input:focus {
+	border: 3px darkgreen solid!important;
+}
+
+/* EDIT */
+.edit input {
+	color: blue;
+	border: 1px blue solid!important;
+}
+.edit input:hover {
+	border: 2px blue solid!important;
+}
+.edit input:focus {
+	border: 3px darkblue solid!important;
+}
+
+/* CHEVRONS */
+.td_chevron_up, .td_chevron_down {
+	min-width: 45px;
+}
+
+.fa-chevron-down:hover, .fa-chevron-up:hover  {
+	font-size: 19px;
+}
+
+/* ALERTE */
+.alerte {
+	border: 2px red solid!important;
+}
+.alerte:focus, .alerte:hover {
+	border: 2px red solid!important;
+	box-shadow: 5px 2px 2px salmon;
+}
+
+/* DIVERS */
+.minWitdh195 {
+	min-width: 195px!important;
+}

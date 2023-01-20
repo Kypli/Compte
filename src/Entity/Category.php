@@ -31,6 +31,11 @@ class Category
     private $sign = 1;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $position = 1;
+
+    /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="categories")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -71,6 +76,18 @@ class Category
     public function setSign(bool $sign): self
     {
         $this->sign = $sign;
+
+        return $this;
+    }
+
+    public function isPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }

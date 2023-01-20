@@ -25,6 +25,11 @@ class SubCategory
     private $libelle;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $position = 1;
+
+    /**
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="subCategories")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -53,6 +58,18 @@ class SubCategory
     public function setLibelle(string $libelle): self
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function isPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }

@@ -1,6 +1,6 @@
 // JS
-import './gestion.js';
-import './category.js';
+import './modalGestion.js';
+import './modalCategory.js';
 
 // CSS
 import '../../styles/compte/compte.css';

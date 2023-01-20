@@ -11,7 +11,7 @@ $(document).ready(function(){
 	////////////
 
 	var
-		modalOpeAdd = '',
+		add = '',
 		save_operations = []
 	;
 
@@ -19,8 +19,8 @@ $(document).ready(function(){
 	// ON EVENTS
 	////////////
 
-	// Open Modal Operations
-	$("body").not('.counterEdit').on("click", ".edit td:not(.counterEdit)", function(e){
+	// Get Operations
+	$("body").not('.counterEdit, .td_category_libelle, .td_subcategory_libelle').on("click", ".edit td:not(.counterEdit, .td_category_libelle, .td_subcategory_libelle)", function(e){
 
 		let
 			sc_id = $(this).data('scid'),
@@ -30,22 +30,22 @@ $(document).ready(function(){
 			year = $('#datas').data('year')
 		;
 
-		modalGetOperations(sc_id, sign, months, month, year)
+		getOperations(sc_id, sign, months, month, year)
 	})
 
-	// Modal Ope editMod
-	$("body").on("click", "#modalOpeEdit", function(e){
+	// EditMod
+	$("body").on("click", "#edit", function(e){
 		$(this).val() == 0
 			? editMod(true, false)
 			: editMod(false, false)
 	})
 
-	// Modal ope addMod + Add 1 input
-	$("body").on("click", "#modalOpeAdd", function(e){
+	// AddMod + Add 1 input
+	$("body").on("click", "#add", function(e){
 		addMod(true)
-		$('#modalOpeListeTbody').append(modalOpeAdd)
-		$('#modalOpeSolde_tr_collabo').insertAfter('#modalOpeListeTbody tr:last')
-		$('#modalOpeSolde_tr').insertAfter('#modalOpeListeTbody tr:last')
+		$('#gestion_tab tbody').append(add)
+		$('#solde_tr_collabo').insertAfter('#gestion_tab tbody tr:last')
+		$('#solde_tr').insertAfter('#gestion_tab tbody tr:last')
 	})
 
 	// Switch
@@ -54,44 +54,44 @@ $(document).ready(function(){
 	})
 
 	// Save edit
-	$("body").on("click", "#modalOpeSaveEdit", function(e){
+	$("body").on("click", "#saveEdit", function(e){
 		editMod(false, true)
 	})
 
 	// Save add
-	$("body").on("click", "#modalOpeSaveAdd", function(e){
+	$("body").on("click", "#saveAdd", function(e){
 		addMod(false, true)
 	})
 
 	// Retrait
-	$("body").on("click", ".modalOpeInputRetrait", function(e){
+	$("body").on("click", ".inputRetrait", function(e){
 
-		$(this).parent().parent('.modalOpeListeAdd').remove()
+		$(this).parent().parent('.listeAdd').remove()
 
-		$('body').find('.modalOpeListeAdd').length == 0
+		$('body').find('.listeAdd').length == 0
 			? addMod(false)
 			: calculSolde()
 	})
 
 	// Retrait all
-	$("body").on("click", "#modalOpeDeleteAllAdd", function(e){
-		$('.modalOpeListeAdd').remove()
+	$("body").on("click", "#deleteAllAdd", function(e){
+		$('.listeAdd').remove()
 		addMod(false)
 	})
 
 	// Delete
-	$("body").on("click", ".modalOpeDelete", function(e){
+	$("body").on("click", ".delete", function(e){
 		let ope_id = $(this).data('opeid')
 		$('#ope_id_' + ope_id).remove()
 		calculSolde()
 	})
 
 	// Control + calcul
-	$("body").on("input", ".modalOpeInputNumber, .modalOpeInputAnticipe", function(e){
+	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
 		controlGestion()
 		calculSolde()
 	})
-	$("body").on("click", ".modalOpeInputRetrait, #modalOpeAdd, #modalOpeEdit, .modalOpeDelete ", function(e){
+	$("body").on("click", ".inputRetrait, #add, #edit, .delete ", function(e){
 		controlGestion()
 		calculSolde()
 	})
@@ -101,37 +101,37 @@ $(document).ready(function(){
 	// FONCTIONS
 	////////////
 
-	function modalGetOperations(sc_id, sign, months, month, year){
+	function getOperations(sc_id, sign, months, month, year){
 
 		$.ajax({
 			type: "POST",
 			url: Routing.generate('compte_gestion', { sc: sc_id, year: year, month: month, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
-				modalOpMeta1(year, months[month], sign)
-				modalOpSpinner(true)
+				meta1(year, months[month], sign)
+				spinner(true)
 			},
 			success: function(response){
-				modalOpMeta2(response.category_libelle, response.subcategory_libelle)
-				modalOpShow(response.operations, month, year, response.days_in_month, sc_id, sign)
-				modalOpSpinner(false)
-				getModalOpAdd(month, year, response.days_in_month, sign)
+				meta2(response.category_libelle, response.subcategory_libelle)
+				show(response.operations, month, year, response.days_in_month, sc_id, sign)
+				spinner(false)
+				getInputAdd(month, year, response.days_in_month, sign)
 
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)
-				modalOpSpinner(false)
+				spinner(false)
 			}
 		})
 	}
-	function getModalOpAdd(month, year, daysInMonth, sign){
+	function getInputAdd(month, year, daysInMonth, sign){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_operation_add', { month: month, year: year, daysInMonth: daysInMonth, sign: sign }),
+			url: Routing.generate('compte_gestion_add', { month: month, year: year, daysInMonth: daysInMonth, sign: sign }),
 			timeout: 15000,
 			success: function(response){
-				modalOpeAdd = response.render
+				add = response.render
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)
@@ -139,63 +139,57 @@ $(document).ready(function(){
 		})
 	}
 
-	function modalOpSpinner(etat){
+	function spinner(etat){
 		if (etat){
 			$('.spinner').show()
-			$('#modal_reel_contenu').hide()
-			$('#modal_avenir_contenu').hide()
-			$('#myTab').hide()
 
 		} else {
 			$('.spinner').hide()
-			$('#modal_reel_contenu').show()
-			$('#modal_avenir_contenu').show()
-			$('#myTab').show()
 		}
 	}
 
-	function modalOpMeta1(year, month, sign){
+	function meta1(year, month, sign){
 
 		// HEAD DATE
-		$('#modal_date_annee').text(year)
-		$('#modal_date_mois').text(ucFirst(month))
+		$('#date_annee').text(year)
+		$('#date_mois').text(ucFirst(month))
 
 		// HEAD LIBELLE + COLOR
 		let classSign = 'total_month_full_' + sign
-		$('#modal_category').text('.............')
-		$('#modal_subcategory').text('.............')
-		$('#modal_category, #modal_subcategory, #modalOpeSolde').removeClass("total_month_full_pos").removeClass("total_month_full_neg").addClass(classSign)
+		$('#category').text('.............')
+		$('#subcategory').text('.............')
+		$('#category, #subcategory, #solde').removeClass("total_month_full_pos").removeClass("total_month_full_neg").addClass(classSign)
 
 		// BODY
-		$('#modalOpeListe tbody tr').not('#modalOpeSolde_tr, #modalOpeSolde_tr_collabo').remove()
-		$('#modalOpeSolde_tr').hide()
-		$('#modalOpeSolde').text('0').hide()
+		$('#liste tbody tr').not('#solde_tr, #solde_tr_collabo').remove()
+		$('#solde_tr').hide()
+		$('#solde').text('0').hide()
 
 		// FOOTER BUTTON
-		$('#modalOpeSaveEdit, #modalOpeSaveAdd').prop('disabled', true).hide()
+		$('#saveEdit, #saveAdd').prop('disabled', true).hide()
 	}
-	function modalOpMeta2(cat_libelle, subcat_libelle){
+	function meta2(cat_libelle, subcat_libelle){
 
 		// HEAD LIBELLE
-		$('#modal_category').text(ucFirst(cat_libelle))
-		$('#modal_subcategory').text(ucFirst(subcat_libelle))
-		$('#modalOpeSolde, #modalOpeSolde_tr').show()
+		$('#category').text(ucFirst(cat_libelle))
+		$('#subcategory').text(ucFirst(subcat_libelle))
+		$('#solde, #solde_tr').show()
 	}
 
-	function modalOpShow(operations, month, year, daysInMonth, sc_id, sign){
+	function show(operations, month, year, daysInMonth, sc_id, sign){
 
 		save_operations = operations
 
 		// UPDATE TBODY
-		$('#modalOpeListeTbody')
+		$('#gestion_tab tbody')
 			.data('year', year)
 			.data('month', month)
 			.data('daysinmonth', daysInMonth)
 			.data('scid', sc_id)
 			.data('sign', sign)
 		;
-		$('#modalOpeListeTbody tr')
-			.not('#modalOpeSolde_tr, #modalOpeSolde_tr_collabo')
+		$('#gestion_tab tbody tr')
+			.not('#solde_tr, #solde_tr_collabo')
 			.remove()
 		;
 
@@ -220,18 +214,18 @@ $(document).ready(function(){
 					"</td>" +
 					"<td class='td_date p-1'>" + day + '/' + month + '/' + item.year + "</td>" +
 					"<td class='td_comment p-1'>" + ucFirst(item.comment) + "</td>" +
-					"<td class='modal_ope_th_actions'>" +
-						"<button class='modalOpeDelete hide m-1 disabled' data-opeid='" + item.id + "'>Supprimer</button> " +
+					"<td class='th_actions'>" +
+						"<button class='delete hide m-1 disabled' data-opeid='" + item.id + "'>Supprimer</button> " +
 					"</td>" +
 				"</tr>"
 
-			$('#modalOpeListeTbody').append(tr)
+			$('#gestion_tab tbody').append(tr)
 
 			tr = ''
 		})
 
-		$('#modalOpeSolde_tr_collabo').insertAfter('#modalOpeListeTbody tr:last')
-		$('#modalOpeSolde_tr').insertAfter('#modalOpeListeTbody tr:last')
+		$('#solde_tr_collabo').insertAfter('#gestion_tab tbody tr:last')
+		$('#solde_tr').insertAfter('#gestion_tab tbody tr:last')
 		calculSolde()
 	}
 
@@ -239,9 +233,9 @@ $(document).ready(function(){
 
 		// addMod ON
 		if (etat){
-			$('#modalOpeSaveAdd, .modalOpeRetrait, #modalOpeDeleteAllAdd').prop('disabled', false).show()
-			$('#modalOpeEdit, #modalOpeSaveEdit').prop('disabled', true).hide()
-			$('#modalOpeClose, #modalOpeEdit').prop('disabled', true).prop('title', 'Veuillez valider les changements avant de fermer la fenêtre.')
+			$('#saveAdd, .retrait, #deleteAllAdd').prop('disabled', false).show()
+			$('#edit, #saveEdit').prop('disabled', true).hide()
+			$('#close, #edit').prop('disabled', true).prop('title', 'Veuillez valider les changements avant de fermer la fenêtre.')
 
 		// addMod OFF
 		} else {
@@ -255,15 +249,15 @@ $(document).ready(function(){
 					sauvegarde()
 
 					$('.switch').hide()
-					$(".modalOpeListeAdd").each(function(index, value){
+					$(".listeAdd").each(function(index, value){
 
 						let
-							inputNumber = $(this).find('.modalOpeInputNumber'),
-							inputAnticipe = $(this).find('.modalOpeInputAnticipe'),
+							inputNumber = $(this).find('.inputNumber'),
+							inputAnticipe = $(this).find('.inputAnticipe'),
 							inputNumberVal = inputNumber.val() == 0 ? '' : correctNumber(inputNumber.val()),
 							inputAnticipeVal = inputAnticipe.val() == 0 ? '' : correctNumber(inputAnticipe.val()),
-							inputDay = $(this).find('.modalOpeInputDay'),
-							inputComment = $(this).find('.modalOpeInputComment'),
+							inputDay = $(this).find('.inputDay'),
+							inputComment = $(this).find('.inputComment'),
 							day = inputDay.val()
 						;
 
@@ -279,43 +273,43 @@ $(document).ready(function(){
 
 				addModOff()
 
-				modalOpShow(
+				show(
 					save_operations,
-					$('#modalOpeListeTbody').data('month'),
-					$('#modalOpeListeTbody').data('year'),
-					$('#modalOpeListeTbody').data('daysinmonth')
+					$('#gestion_tab tbody').data('month'),
+					$('#gestion_tab tbody').data('year'),
+					$('#gestion_tab tbody').data('daysinmonth')
 				)
 			}
 			calculSolde()
 		}
 	}
 	function addModOff(){
-		$('#modalOpeSaveAdd, .modalOpeDelete, #modalOpeDeleteAllAdd, .modalOpeInputRetrait').prop('disabled', true).hide()
-		$('#modalOpeEdit').prop('disabled', false).show()
-		$('#modalOpeClose, #modalOpeEdit').prop('disabled', false).prop('title', 'Fermer la fenêtre')
+		$('#saveAdd, .delete, #deleteAllAdd, .inputRetrait').prop('disabled', true).hide()
+		$('#edit').prop('disabled', false).show()
+		$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
 	}
 
 	function editMod(etat, save){
 
 		let
-			daysInMonth = $('#modalOpeListeTbody').data('daysinmonth'),
-			month = $('#modalOpeListeTbody').data('month'),
-			year = $('#modalOpeListeTbody').data('year')
+			daysInMonth = $('#gestion_tab tbody').data('daysinmonth'),
+			month = $('#gestion_tab tbody').data('month'),
+			year = $('#gestion_tab tbody').data('year')
 		;
 
 		// editMod ON
 		if (etat){
 			addMod(false)
-			$('#modalOpeEdit').text("Annuler les modifications").addClass('btn btn-danger').val(1)
-			$('#modalOpeAdd').prop('disabled', true).hide()
-			$('#modalOpeSaveEdit, .modalOpeDelete, .switch').prop('disabled', false).show()
-			$('#modalOpeClose').prop('disabled', true).prop('title', 'Veuillez valider/annuler les changements avant de fermer la fenêtre.')
+			$('#edit').text("Annuler les modifications").addClass('btn btn-danger').val(1)
+			$('#add').prop('disabled', true).hide()
+			$('#saveEdit, .delete, .switch').prop('disabled', false).show()
+			$('#close').prop('disabled', true).prop('title', 'Veuillez valider/annuler les changements avant de fermer la fenêtre.')
 
 			$(".td_number").each(function(index, value){
 				let number = $(this).text()
 				if (number != ''){
 					$(this).empty()
-					let input = "<input class='modalOpeInputNumber' type='number' step='0.01' value='" + number + "' min='0' />"
+					let input = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />"
 					$(this).append(input)
 				}
 			})
@@ -323,14 +317,14 @@ $(document).ready(function(){
 				let number = $(this).text()
 				if (number != ''){
 					$(this).empty()
-					let input = "<input class='modalOpeInputAnticipe' type='number' step='0.01' value='" + number + "' min='0' />"
+					let input = "<input class='inputAnticipe' type='number' step='0.01' value='" + number + "' min='0' />"
 					$(this).append(input)
 				}
 			})
 			$(".td_date").each(function(index, value){
 				let date = $(this).text().split('/')
 				$(this).empty()
-				let input = "<select class='modalOpeInputDay'/>"
+				let input = "<select class='inputDay'/>"
 
 					for (var i = 1; i <= daysInMonth; i++) {
 
@@ -348,7 +342,7 @@ $(document).ready(function(){
 			$(".td_comment").each(function(index, value){
 				let text = $(this).text()
 				$(this).empty()
-				let input = "<input class='modalOpeInputComment' type='text' value='" + text + "' />"
+				let input = "<input class='inputComment' type='text' value='" + text + "' />"
 				$(this).append(input)
 			})
 
@@ -364,20 +358,20 @@ $(document).ready(function(){
 					editModOff()
 
 					$('.switch').hide()
-					$(".modalOpeInputNumber").each(function(index, value){
+					$(".inputNumber").each(function(index, value){
 						$(this).parent('.td_number').append(correctNumber($(this).val()))
 						$(this).remove()
 					})
-					$(".modalOpeInputAnticipe").each(function(index, value){
+					$(".inputAnticipe").each(function(index, value){
 						$(this).parent('.td_anticipe').append(correctNumber($(this).val()))
 						$(this).remove()
 					})
-					$(".modalOpeInputDay").each(function(index, value){
+					$(".inputDay").each(function(index, value){
 						let day = $(this).val()
 						$(this).after(day < 10 ? '0'+ day : day)
 						$(this).remove()
 					})
-					$(".modalOpeInputComment").each(function(index, value){
+					$(".inputComment").each(function(index, value){
 						$(this).parent('.td_comment').append($(this).val())
 						$(this).remove()
 					})
@@ -388,21 +382,21 @@ $(document).ready(function(){
 
 				editModOff()
 
-				modalOpShow(
+				show(
 					save_operations,
-					$('#modalOpeListeTbody').data('month'),
-					$('#modalOpeListeTbody').data('year'),
-					$('#modalOpeListeTbody').data('daysinmonth')
+					$('#gestion_tab tbody').data('month'),
+					$('#gestion_tab tbody').data('year'),
+					$('#gestion_tab tbody').data('daysinmonth')
 				)
 			}
 			calculSolde()
 		}
 	}
 	function editModOff(){
-		$('#modalOpeEdit').text("Modifier").removeClass('btn btn-danger').val(0)
-		$('#modalOpeAdd').prop('disabled', false).show()
-		$('#modalOpeSaveEdit, .modalOpeDelete').prop('disabled', true).hide()
-		$('#modalOpeClose').prop('disabled', false).prop('title', 'Fermer la fenêtre')
+		$('#edit').text("Modifier").removeClass('btn btn-danger').val(0)
+		$('#add').prop('disabled', false).show()
+		$('#saveEdit, .delete').prop('disabled', true).hide()
+		$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
 	}
 
 	function toSwitch(tr){
@@ -413,13 +407,13 @@ $(document).ready(function(){
 		;
 
 		// Add anticipe
-		if (clas == 'modalOpeInputNumber'){
-			tr.find('.td_anticipe').append("<input class='modalOpeInputAnticipe' type='number' step='0.01' value='"+val+"' min='0' />")
+		if (clas == 'inputNumber'){
+			tr.find('.td_anticipe').append("<input class='inputAnticipe' type='number' step='0.01' value='"+val+"' min='0' />")
 			tr.find('.td_number').empty()
 
 		// Add number
-		} else if(clas == 'modalOpeInputAnticipe'){
-			tr.find('.td_number').append("<input class='modalOpeInputNumber' type='number' step='0.01' value='"+val+"' min='0' />")
+		} else if(clas == 'inputAnticipe'){
+			tr.find('.td_number').append("<input class='inputNumber' type='number' step='0.01' value='"+val+"' min='0' />")
 			tr.find('.td_anticipe').empty()
 		}
 		controlGestion()
@@ -430,12 +424,12 @@ $(document).ready(function(){
 
 		let	control = true;
 
-		$("#modalOpeListeTbody tr").not('#modalOpeSolde_tr_collabo, #modalOpeSolde_tr').each(function(index, value){
+		$("#gestion_tab tbody tr").not('#solde_tr_collabo, #solde_tr').each(function(index, value){
 
 			let
 				switch_icon = $(this).find('.switch'),
-				input_number = $(this).find('.modalOpeInputNumber'),
-				input_anticipe = $(this).find('.modalOpeInputAnticipe'),
+				input_number = $(this).find('.inputNumber'),
+				input_anticipe = $(this).find('.inputAnticipe'),
 				input_number_val = input_number.val(),
 				input_anticipe_val = input_anticipe.val()
 			;
@@ -455,16 +449,16 @@ $(document).ready(function(){
 				if (!input_number_valid && !input_anticipe_valid){
 					input_number.addClass('alerte').removeClass('alerte-doublon')
 					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
-					$("#modalOpeListeTbody .alerte:first").focus()
-					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					$("#gestion_tab tbody .alerte:first").focus()
+					$('#saveAdd, #saveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
 					control = false
 
 				// 2 remplis (ne doit plus apparaitre)
 				} else if(input_number_valid && input_anticipe_valid){
 					input_number.addClass('alerte-doublon').removeClass('alerte')
 					input_anticipe.addClass('alerte-doublon').removeClass('alerte')
-					$("#modalOpeListeTbody .alerte-doublon:first").focus()
-					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Un seul montant autorisé par ligne').removeClass('btn-success').addClass('btn-danger')
+					$("#gestion_tab tbody .alerte-doublon:first").focus()
+					$('#saveAdd, #saveEdit').text('Un seul montant autorisé par ligne').removeClass('btn-success').addClass('btn-danger')
 					control = false
 
 				// 1 rempli et 1 vide
@@ -488,8 +482,8 @@ $(document).ready(function(){
 				} else {
 					input_number.addClass('alerte').removeClass('alerte-doublon')
 					switch_icon.hide()
-					$("#modalOpeListeTbody .alerte:first").focus()
-					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					$("#gestion_tab tbody .alerte:first").focus()
+					$('#saveAdd, #saveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
 					control = false
 				}
 
@@ -506,15 +500,15 @@ $(document).ready(function(){
 				} else {
 					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
 					switch_icon.hide()
-					$("#modalOpeListeTbody .alerte:first").focus()
-					$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
+					$("#gestion_tab tbody .alerte:first").focus()
+					$('#saveAdd, #saveEdit').text('Champs à remplir').removeClass('btn-success').addClass('btn-danger')
 					control = false
 				}
 			}
 		})
 
 		if(control){
-			$('#modalOpeSaveAdd, #modalOpeSaveEdit').text('Enregistrer').removeClass('btn-danger').addClass('btn-success')
+			$('#saveAdd, #saveEdit').text('Enregistrer').removeClass('btn-danger').addClass('btn-success')
 		}
 
 		return control
@@ -522,7 +516,7 @@ $(document).ready(function(){
 	function calculSolde(){
 
 		let
-			sign = $('#modalOpeListeTbody').data('sign'),
+			sign = $('#gestion_tab tbody').data('sign'),
 			counterSign = sign == 'pos' ? 'neg' : 'pos',
 			solde_fait = 0,
 			solde_anticipe = 0
@@ -532,8 +526,8 @@ $(document).ready(function(){
 		$(".td_number").each(function(index, value){
 			if ($(this).is(":visible")){
 
-				solde_fait = $(this).find('.modalOpeInputNumber').val() != undefined
-					? solde_fait + parseFloat($(this).find('.modalOpeInputNumber').val())
+				solde_fait = $(this).find('.inputNumber').val() != undefined
+					? solde_fait + parseFloat($(this).find('.inputNumber').val())
 					: $(this).text().trim() != ''
 						? solde_fait + parseFloat($(this).text())
 						: solde_fait
@@ -543,8 +537,8 @@ $(document).ready(function(){
 		$(".td_anticipe").each(function(index, value){
 			if ($(this).is(":visible")){
 
-				solde_anticipe = $(this).find('.modalOpeInputAnticipe').val() != undefined
-					? solde_anticipe + parseFloat($(this).find('.modalOpeInputAnticipe').val())
+				solde_anticipe = $(this).find('.inputAnticipe').val() != undefined
+					? solde_anticipe + parseFloat($(this).find('.inputAnticipe').val())
 					: $(this).text().trim() != ''
 						? solde_anticipe + parseFloat($(this).text())
 						: solde_anticipe
@@ -558,33 +552,33 @@ $(document).ready(function(){
 		solde_fait = correctNumber(solde_fait)
 		solde_anticipe = correctNumber(solde_anticipe)
 
-		$('#modalOpeSoldeReel').text(solde_fait)
-		$('#modalOpeSoldeAnticipe').text(solde_anticipe)
-		$('#modalOpeSolde').text(Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100)
+		$('#soldeReel').text(solde_fait)
+		$('#soldeAnticipe').text(solde_anticipe)
+		$('#solde').text(Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100)
 
 		// Color Reel
-		$('#modalOpeSoldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
+		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
 	function sauvegarde(){
 
 		let
 			datas = [],
-			sc_id = $('#modalOpeListeTbody').data('scid'),
-			month = $('#modalOpeListeTbody').data('month'),
-			year = $('#modalOpeListeTbody').data('year'),
-			sign = $('#modalOpeListeTbody').data('sign')
+			sc_id = $('#gestion_tab tbody').data('scid'),
+			month = $('#gestion_tab tbody').data('month'),
+			year = $('#gestion_tab tbody').data('year'),
+			sign = $('#gestion_tab tbody').data('sign')
 		;
 
-		$("#modalOpeListeTbody tr").not('#modalOpeSolde_tr_collabo, #modalOpeSolde_tr').each(function(index, value){
+		$("#gestion_tab tbody tr").not('#solde_tr_collabo, #solde_tr').each(function(index, value){
 
 			let
 				id_array = value.id.split('_'),
 				id = id_array[2] ? id_array[2] : null,
-				number = $(this).find('.modalOpeInputNumber').val() == undefined ? null : parseFloat($(this).find('.modalOpeInputNumber').val()).toFixed(2),
-				number_anticipe = $(this).find('.modalOpeInputAnticipe').val() == undefined ? null : parseFloat($(this).find('.modalOpeInputAnticipe').val()).toFixed(2),
-				day = $(this).find('.modalOpeInputDay').val() == undefined ? null : $(this).find('.modalOpeInputDay').val(),
-				comment = $(this).find('.modalOpeInputComment').val() == undefined ? null : $(this).find('.modalOpeInputComment').val()
+				number = $(this).find('.inputNumber').val() == undefined ? null : parseFloat($(this).find('.inputNumber').val()).toFixed(2),
+				number_anticipe = $(this).find('.inputAnticipe').val() == undefined ? null : parseFloat($(this).find('.inputAnticipe').val()).toFixed(2),
+				day = $(this).find('.inputDay').val() == undefined ? null : $(this).find('.inputDay').val(),
+				comment = $(this).find('.inputComment').val() == undefined ? null : $(this).find('.inputComment').val()
 			;
 
 			datas.push({
