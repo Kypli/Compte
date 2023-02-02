@@ -1,4 +1,27 @@
 
+/* CATEGORIE BEFORE-AFTER */
+.cat_before, .cat_after {
+	font-style : italic; 
+	height: 35px!important;
+}
+#td_chevron_cat_up, #td_chevron_cat_down {
+	cursor: pointer;
+}
+
+/* CATEGORIE */
+.tr_category {
+	min-height: 48px!important;
+	height: 48px!important;
+}
+
+/* CHEVRONS */
+.td_chevron_up, .td_chevron_down {
+	min-width: 45px;
+}
+.fa-chevron-down:hover, .fa-chevron-up:hover {
+	font-size: 19px;
+}
+
 /* ADD */
 .tr_subcategories_add input {
 	color: green;
@@ -12,24 +35,17 @@
 }
 
 /* EDIT */
-.edit input {
-	color: blue;
-	border: 1px blue solid!important;
+.input_edit_val {
+	color: #72A0C1;
 }
-.edit input:hover {
-	border: 2px blue solid!important;
+.input_edit {
+	border: 1px #72A0C1 solid!important;
 }
-.edit input:focus {
+.input_edit:hover {
+	border: 2px #72A0C1 solid!important;
+}
+.input_edit:focus {
 	border: 3px darkblue solid!important;
-}
-
-/* CHEVRONS */
-.td_chevron_up, .td_chevron_down {
-	min-width: 45px;
-}
-
-.fa-chevron-down:hover, .fa-chevron-up:hover  {
-	font-size: 19px;
 }
 
 /* ALERTE */

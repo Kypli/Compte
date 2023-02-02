@@ -62,7 +62,7 @@ class SubCategory
         return $this;
     }
 
-    public function isPosition(): ?int
+    public function getPosition(): ?int
     {
         return $this->position;
     }

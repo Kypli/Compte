@@ -42,7 +42,7 @@
 		{% endif %}
 	</thead>
 	<tbody>
-		{% for category in compte.categories|sort((a) => a.position) %}
+		{% for category in compte.categories|sort((a, b) => a.position <=> b.position) %}
 			{% if category.sign == signBool %}
 				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
 					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
@@ -56,7 +56,7 @@
 								class='td_category_libelle'
 								rowspan='{{ category.subcategories|length }}'
 							>
-								{{ category.libelle|capitalize }}
+								{{ category.libelle|capitalize }} ({{ category.position }})
 							<td/>
 						{% endif %}
 
@@ -68,7 +68,7 @@
 							data-sign="{{ signBool == false ? 0 : 1 }}"
 							class='td_subcategory_libelle'
 						>
-							{{ subcategory.libelle|capitalize }}
+							{{ subcategory.libelle|capitalize }} ({{ subcategory.position }})
 						</td>
 						{{ include('compte/table/_sc_operations.html.twig') }}
 					</tr>

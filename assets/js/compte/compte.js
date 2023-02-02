@@ -32,6 +32,6 @@ $(document).ready(function(){
 	////////////
 
 	function calculTable(){
-		//TODO
+		// TODO
 	}
 })

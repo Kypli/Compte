@@ -29,41 +29,49 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS,
 				'addRef' => self::SUBCATEGORY_ADMIN_1,
 				'libelle' => "salaire",
+				'position' => 1,
 			],
 			2 => [
 				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS,
 				'addRef' => self::SUBCATEGORY_ADMIN_2,
 				'libelle' => "prime",
+				'position' => 2,
 			],
 			3 => [
 				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG,
 				'addRef' => self::SUBCATEGORY_ADMIN_3,
 				'libelle' => "jeux",
+				'position' => 1,
 			],
 			4 => [
 				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG,
 				'addRef' => self::SUBCATEGORY_ADMIN_4,
 				'libelle' => "cinéma",
+				'position' => 2,
 			],
 			5 => [
 				'setRef' => CategoryFixtures::CATEGORY_USER_POS,
 				'addRef' => self::SUBCATEGORY_USER_1,
 				'libelle' => "salaire",
+				'position' => 1,
 			],
 			6 => [
 				'setRef' => CategoryFixtures::CATEGORY_USER_POS,
 				'addRef' => self::SUBCATEGORY_USER_2,
 				'libelle' => "prime",
+				'position' => 2,
 			],
 			7 => [
 				'setRef' => CategoryFixtures::CATEGORY_USER_NEG,
 				'addRef' => self::SUBCATEGORY_USER_3,
 				'libelle' => "jeux",
+				'position' => 1,
 			],
 			8 => [
 				'setRef' => CategoryFixtures::CATEGORY_USER_NEG,
 				'addRef' => self::SUBCATEGORY_USER_4,
 				'libelle' => "cinéma",
+				'position' => 2,
 			],
 		];
 
@@ -72,6 +80,7 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 			$entity = new Entity();
 			$entity
 				->setLibelle($value['libelle'])
+				->setPosition($value['position'])
 				->setCategory($this->getReference($value['setRef']))
 			;
 			$this->addReference($value['addRef'], $entity);

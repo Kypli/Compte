@@ -1,0 +1,40 @@
+<tr class="tr_category_{{ statut }} italique">
+	<td class='{{ statut == 'before' ? 'pb-2' }}'>
+		{% for cat in categories %}
+
+			{# LIMITE BEFORE #}
+			{% if loop.first and statut == 'before' %}
+				<div id="cat_{{ statut }}_x" class='hide limite'>
+					....
+				</div>
+			{% endif %}
+
+			{# ACTIF ? #}
+			{% 
+				set actif =
+					statut == 'before' and not loop.last
+						? 'hide'
+						: statut == 'after' and not loop.first
+							? 'hide'
+							: statut ~ '_actif'
+			%}
+
+			<div data-id='{{ cat.id }}' class='{{ actif }}'>
+				{{ cat.libelle|capitalize }}
+			</div>
+
+			{# LIMITE AFTER #}
+			{% if loop.last and statut == 'after' %}
+				<div id="cat_{{ statut }}_x" class='hide limite'>
+					....
+				</div>
+			{% endif %}
+
+		{# LIMITE #}
+		{% else %}
+			<div id="cat_{{ statut }}_x" class='{{ statut ~ '_actif' }} limite'>
+				....
+			</div>
+		{% endfor %}
+	</td>
+</tr>

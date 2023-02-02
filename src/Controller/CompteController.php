@@ -437,17 +437,21 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/categorie/{id}/{sign}", name="_categorie")
+	 * @Route("/categorie/{id}/{cat_id}/{sign}", name="_categorie")
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	public function categorie(Compte $compte, $sign, Request $request): Response
+	public function categorie(Compte $compte, $cat_id, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/category/_tbody_form.html.twig', [
-			'categories' => $this->catr->mycategories($compte->getId(), $sign)
+		$cat = $this->catr->find($cat_id);
+
+		$render = $this->render('compte/modal/category/_tbody.html.twig', [
+			'category' => $cat,
+			'categories_before' => $this->catr->mycategoriesBefore($compte->getId(), $sign, $cat->getPosition()),
+			'categories_after' => $this->catr->mycategoriesAfter($compte->getId(), $sign, $cat->getPosition()),
 		])->getContent();
 
 		return new JsonResponse([
@@ -511,6 +515,7 @@ class CompteController extends AbstractController
 		foreach ($datas as $key => $datas_sc){
 			if ($datas_sc['id'] != ''){
 				$sc = $this->scr->find($datas_sc['id']);
+				unset($scs[$datas_sc['id']]);
 			} else {
 				$sc = new SubCategory();
 				$sc->setCategory($cat);

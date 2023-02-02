@@ -40,24 +40,61 @@ class CategoryRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * Renvoie les opérations d'une SC pour un mois
+	 * Renvoie libellés, position et id des catégories d'un compte avant la position d'une categorie
 	 */
-	public function mycategories($compte_id, $sign): ?array
+	public function mycategoriesBefore($compte_id, $sign, $cat_pos): ?array
 	{
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.compte', 'co')
 
-			->select('x')
+			->select([
+				'x.id',
+				'x.libelle',
+				'x.position',
+			])
 
 			->where('co.id = :compte_id')
 			->andWhere('x.sign = :sign')
+			->andWhere('x.position < :cat_pos')
 
 			->setParameters([
 				'compte_id' => $compte_id,
 				'sign' => $sign,
+				'cat_pos' => $cat_pos,
 			])
 
-			->orderBy('x.sign, x.id', 'DESC')
+			->orderBy('x.position', 'ASC')
+
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
+	 * Renvoie libellés, position et id des catégories d'un compte après la position d'une categorie
+	 */
+	public function mycategoriesAfter($compte_id, $sign, $cat_pos): ?array
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.compte', 'co')
+
+			->select([
+				'x.id',
+				'x.libelle',
+				'x.position',
+			])
+
+			->where('co.id = :compte_id')
+			->andWhere('x.sign = :sign')
+			->andWhere('x.position > :cat_pos')
+
+			->setParameters([
+				'compte_id' => $compte_id,
+				'sign' => $sign,
+				'cat_pos' => $cat_pos,
+			])
+
+			->orderBy('x.position', 'ASC')
 
 			->getQuery()
 			->getResult()

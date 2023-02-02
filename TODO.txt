@@ -33,17 +33,16 @@ Compte
 
 		Modal Category / Sub-cat
 			Nouvelle catégorie
+			Supprimer catégorie
 			Titre Catégorie ->Limiter le nombre de character, si dépasse => ... + reste en prop title
-			Input border blue si position change + retour si annulation
 			Supprimer input (non add)
 				-> Garde editMode(true)
 				-> Alerte visuelle juste text en rouge barré à la place de l'input
-				-> Possibilité de le faire revenir
-			Input category 
-				-> Color blue si edit + retour si annulation
-				-> Position -> Faire défiler les autres catégorie position x-1 && x+1 avec chevrons a droite de l'input
-							-> Blue si edit + retour si annulation
 			Controller vérifier suppression + position
+			Les chevrons et bouton delete doivent etre visible mais presque transparent si pas de mouseover
+			Afficher bouton delete en disabled avec title sur delete impossible
+			Faire move sc avec une transition
+			Move add_sc bug bordure color blue
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

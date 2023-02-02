@@ -1,0 +1,72 @@
+{% set class_td = 'minWitdh40 center pointeur' %}
+
+{# CATEGORIE BEFORE #}
+{% include('compte/modal/category/_tr_other_cat.html.twig') with {
+	'categories': categories_before,
+	'statut': 'before',
+} %}
+
+{# CATEGORIE #}
+<tr id='tr_category_{{ category.id }}' class='tr_category'>
+	<td>
+		<input
+			type='text'
+			id='cat_{{ category.id }}'
+			value='{{ category.libelle|capitalize }}'
+			name='category'
+			placeholder='Libellé catégorie'
+			data-pos='{{ category.position }}'
+		/>
+	</td>
+	<td class="row minWitdh20 m-2">
+		<div class="col-3">
+			<i id='td_chevron_cat_up' class="pointeur fas fa-chevron-circle-up"></i>
+		</div>
+		<div class="col-2">
+			<i id='td_chevron_cat_down' class="pointeur fas fa-chevron-circle-down"></i>
+		</div>
+	</td>
+</tr>
+
+{# CATEGORIE AFTER #}
+{% include('compte/modal/category/_tr_other_cat.html.twig') with {
+	'categories': categories_after,
+	'statut': 'after',
+} %}
+
+{# SUB-CATEGORIE #}
+{% for sc in category.subcategories|sort((a, b) => a.position <=> b.position) %}
+	<tr id='tr_subcategories_{{ sc.id }}' class='tr_subcategories'>
+		<td></td>
+		<td>
+			<input
+				type='text'
+				class='m-1'
+				id='sc_{{ sc.id }}'
+				value='{{ sc.libelle }}'
+				name='sc_{{ sc.id }}'
+				placeholder='Libellé'
+				data-pos='{{ sc.position }}'
+			/>
+		</td>
+		<td class='td_chevron_up {{ class_td }}'>
+			<i class="fa-solid fa-chevron-up"></i>
+		</td>
+		<td class='td_chevron_down {{ class_td }}'>
+			<i class="fa-solid fa-chevron-down"></i>
+		</td>
+		<td class='ml-1'>
+			{% if sc.operations|length == 0 %}
+				<button class='hide btn btn-danger delete_sc'><i class='fa-solid fa-xmark'></i></button>
+			{% endif %}
+		</td>
+	</tr>
+{% endfor %}
+
+{# ADD SUB-CATEGORIE #}
+<tr class='tr_add'>
+	<td></td>
+	<td>
+		<button class='add_sub mt-2'>Ajouter</button>
+	</td>
+</tr>
