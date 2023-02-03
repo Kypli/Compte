@@ -11,6 +11,7 @@ Compte
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Colorier bordure en jaune de la zone éditable
+			Bordure entre catégorie + grosse
 			Année visible sur le titre
 			Revenu annuel -> Faire un border-radius
 
@@ -34,7 +35,6 @@ Compte
 		Modal Category / Sub-cat
 			Nouvelle catégorie
 			Supprimer catégorie
-			Titre Catégorie ->Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Supprimer input (non add)
 				-> Garde editMode(true)
 				-> Alerte visuelle juste text en rouge barré à la place de l'input
@@ -42,7 +42,7 @@ Compte
 			Les chevrons et bouton delete doivent etre visible mais presque transparent si pas de mouseover
 			Afficher bouton delete en disabled avec title sur delete impossible
 			Faire move sc avec une transition
-			Move add_sc bug bordure color blue
+			Enregistrement
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

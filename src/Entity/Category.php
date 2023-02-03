@@ -36,6 +36,11 @@ class Category
     private $position = 1;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $year;
+
+    /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="categories")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -88,6 +93,18 @@ class Category
     public function setPosition(int $position): self
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getYear(): ?int
+    {
+        return $this->year;
+    }
+
+    public function setYear(int $year): self
+    {
+        $this->year = $year;
 
         return $this;
     }

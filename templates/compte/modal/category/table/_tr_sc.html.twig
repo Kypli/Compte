@@ -1,0 +1,25 @@
+<tr id='tr_subcategories_{{ sc.id }}' class='tr_subcategories'>
+	<td></td>
+	<td>
+		<input
+			type='text'
+			class='m-1'
+			id='sc_{{ sc.id }}'
+			value='{{ sc.libelle }}'
+			name='sc_{{ sc.id }}'
+			placeholder='Libellé'
+			data-pos='{{ sc.position }}'
+		/>
+	</td>
+	<td class='td_chevron_up minWitdh40 center pointeur'>
+		<i class="fa-solid fa-chevron-up"></i>
+	</td>
+	<td class='td_chevron_down minWitdh40 center pointeur'>
+		<i class="fa-solid fa-chevron-down"></i>
+	</td>
+	<td class='ml-1'>
+		{% if sc.operations|length == 0 %}
+			<button class='hide btn btn-danger delete_sc'><i class='fa-solid fa-xmark'></i></button>
+		{% endif %}
+	</td>
+</tr>

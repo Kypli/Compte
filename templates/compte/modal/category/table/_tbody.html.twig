@@ -1,7 +1,5 @@
-{% set class_td = 'minWitdh40 center pointeur' %}
-
 {# CATEGORIE BEFORE #}
-{% include('compte/modal/category/_tr_other_cat.html.twig') with {
+{% include('compte/modal/category/table/_tr_cat_other.html.twig') with {
 	'categories': categories_before,
 	'statut': 'before',
 } %}
@@ -29,38 +27,14 @@
 </tr>
 
 {# CATEGORIE AFTER #}
-{% include('compte/modal/category/_tr_other_cat.html.twig') with {
+{% include('compte/modal/category/table/_tr_cat_other.html.twig') with {
 	'categories': categories_after,
 	'statut': 'after',
 } %}
 
 {# SUB-CATEGORIE #}
 {% for sc in category.subcategories|sort((a, b) => a.position <=> b.position) %}
-	<tr id='tr_subcategories_{{ sc.id }}' class='tr_subcategories'>
-		<td></td>
-		<td>
-			<input
-				type='text'
-				class='m-1'
-				id='sc_{{ sc.id }}'
-				value='{{ sc.libelle }}'
-				name='sc_{{ sc.id }}'
-				placeholder='Libellé'
-				data-pos='{{ sc.position }}'
-			/>
-		</td>
-		<td class='td_chevron_up {{ class_td }}'>
-			<i class="fa-solid fa-chevron-up"></i>
-		</td>
-		<td class='td_chevron_down {{ class_td }}'>
-			<i class="fa-solid fa-chevron-down"></i>
-		</td>
-		<td class='ml-1'>
-			{% if sc.operations|length == 0 %}
-				<button class='hide btn btn-danger delete_sc'><i class='fa-solid fa-xmark'></i></button>
-			{% endif %}
-		</td>
-	</tr>
+	{% include('compte/modal/category/table/_tr_sc.html.twig') %}
 {% endfor %}
 
 {# ADD SUB-CATEGORIE #}

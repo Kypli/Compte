@@ -437,18 +437,18 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/categorie/{id}/{cat_id}/{sign}", name="_categorie")
+	 * @Route("/category/{id}/{cat_id}/{sign}", name="_category")
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	public function categorie(Compte $compte, $cat_id, $sign, Request $request): Response
+	public function category(Compte $compte, $cat_id, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$cat = $this->catr->find($cat_id);
 
-		$render = $this->render('compte/modal/category/_tbody.html.twig', [
+		$render = $this->render('compte/modal/category/table/_tbody.html.twig', [
 			'category' => $cat,
 			'categories_before' => $this->catr->mycategoriesBefore($compte->getId(), $sign, $cat->getPosition()),
 			'categories_after' => $this->catr->mycategoriesAfter($compte->getId(), $sign, $cat->getPosition()),
@@ -460,16 +460,18 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/scategory/add", name="_scategory_add")
-	 * Récupère tr_subcategories_add
+	 * @Route("/subcategory/{id}", name="_subcategory")
+	 * Récupère tr_subcategorie_back
 	 * Ajax only
 	 */
-	public function scategory(Request $request): Response
+	public function subcategory(SubCategory $sc, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/category/_sc_add.html.twig')->getContent();
+		$render = $this->render('compte/modal/category/table/_tr_sc.html.twig', [
+			'sc' => $sc,
+		])->getContent();
 
 		return new JsonResponse([
 			'render' => $render,
@@ -477,8 +479,25 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/categorie/edit/{id}/{year}", name="_categorie_edit")
-	 * Edit tr_categorie / Edit tr_subcategories / Add tr_subcategories_add
+	 * @Route("/scategory/add", name="_subcategory_add")
+	 * Récupère tr_subcategories_add
+	 * Ajax only
+	 */
+	public function addSubCategory(Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/category/table/_tr_sc_add.html.twig')->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
+	 * @Route("/categorie/edit/{id}/{year}", name="_category_edit")
+	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * Ajax only
 	 */
 	public function categorieEdit(Compte $compte, $year, Request $request): Response

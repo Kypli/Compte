@@ -23,6 +23,10 @@
 }
 
 /* ADD */
+.tr_add button {
+	margin-left: 5px;
+}
+
 .tr_subcategories_add input {
 	color: green;
 	border: 1px green solid!important;
@@ -55,6 +59,15 @@
 .alerte:focus, .alerte:hover {
 	border: 2px red solid!important;
 	box-shadow: 5px 2px 2px salmon;
+}
+
+/* DELETE ZONE */
+.delete_zone {
+	border-top: 1px #dee2e6 solid!important;
+}
+.delete_zone.barre {
+	text-decoration: line-through;
+	text-decoration-thickness: 0.3rem;
 }
 
 /* DIVERS */

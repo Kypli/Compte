@@ -9,6 +9,7 @@ $(document).ready(function(){
 
 	var
 		add = '',
+		sc_back_nb = 0,
 		input_datas = {},
 		reset_render = '',
 		reset_focus = ''
@@ -39,6 +40,16 @@ $(document).ready(function(){
 		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').hide();
 	})
 
+	// Cat position up
+	$("body").on("click", "#td_chevron_cat_up", function(e){
+		cat_posChange(true, $(this))
+	})
+
+	// Cat position down
+	$("body").on("click", "#td_chevron_cat_down", function(e){
+		cat_posChange(false, $(this))
+	})
+
 	// Sc chevron mouseover
 	$("body").on("mouseover", ".tr_subcategories", function(e){
 		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc').show();
@@ -48,16 +59,6 @@ $(document).ready(function(){
 	// Sc chevron mouseout
 	$("body").on("mouseout", ".tr_subcategories", function(e){
 		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc').hide();
-	})
-
-	// Cat position up
-	$("body").on("click", "#td_chevron_cat_up", function(e){
-		cat_posChange(true, $(this))
-	})
-
-	// Cat position down
-	$("body").on("click", "#td_chevron_cat_down", function(e){
-		cat_posChange(false, $(this))
 	})
 
 	// Sub-Cat position up
@@ -71,28 +72,33 @@ $(document).ready(function(){
 	})
 
 
-	/** Édition **/
+	/** Add **/
 
 	// Add Sc
 	$("body").on("click", ".add_sub", function(e){
-		$('#cat_tab tbody').append(add)
-		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
-		$('#cat_tab tbody input:last').focus()
-		chevronAddToggle()
-		editMod(true)
+		addSc()
 	})
 
-	// Delete Sc
-	$("body").on("click", ".delete_sc", function(e){
-		$(this).parent().parent().remove()
-		chevronAddToggle()
-		editAlert()
-	})
+
+	/** Édition **/
 
 	// Edit name
 	$("body").on("keyup", "#modalCategory input", function(e){
 		editAlert()
 		controlForm()
+	})
+
+
+	/** Delete **/
+
+	// Delete Sc
+	$("body").on("click", ".delete_sc", function(e){
+		deleteSc($(this))
+	})
+
+	// Delete Back Sc
+	$("body").on("click", ".fa-rotate-right", function(e){
+		getSc($(this))
 	})
 
 
@@ -121,7 +127,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_categorie', { id: $('#datas').data('compteid'), cat_id: cat_id, sign: sign }),
+			url: Routing.generate('compte_category', { id: $('#datas').data('compteid'), cat_id: cat_id, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
 				$('#cat_name').text('')
@@ -143,6 +149,31 @@ $(document).ready(function(){
 		})
 	}
 
+	// Récupère le render d'une subCatégorie
+	function getSc(icon){
+
+		let
+			div = icon.parent('div'),
+			id = div.prop('id'),
+			pos = div.data('pos')
+		;
+
+		$.ajax({
+			type: "POST",
+			url: Routing.generate('compte_subcategory', { id: id }),
+			timeout: 15000,
+			beforeSend: function(){
+			},
+			success: function(response){
+				backSc(response.render, pos)
+				div.remove()
+			},
+			error: function(error){
+				console.log('Erreur ajax: ' + error)
+			}
+		})
+	}
+
 	// Affiche le render et focus
 	function show(tr, focus){
 		$('#cat_tab tbody').append(tr)
@@ -156,7 +187,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_scategory_add'),
+			url: Routing.generate('compte_subcategory_add'),
 			timeout: 15000,
 			success: function(response){
 				add = response.render
@@ -291,11 +322,6 @@ $(document).ready(function(){
 	// Change la position d'un tr
 	function sc_posChange(pos, tr){
 
-		let
-			input = tr.find('input'),
-			number = input.data('pos')
-		;
-
 		// Up
 		if (pos){
 
@@ -304,10 +330,6 @@ $(document).ready(function(){
 
 				// Move
 				tr.insertBefore(tr_prev)
-
-				// Change pos
-				input.data('pos', number - 1)
-				tr_prev.find('input').data('pos', number)
 			}
 		}
 
@@ -319,10 +341,6 @@ $(document).ready(function(){
 
 				// Move
 				tr.insertAfter(tr_next)
-
-				// Change pos
-				input.data('pos', number + 1)
-				tr_next.find('input').data('pos', number)
 			}
 		}
 		
@@ -362,12 +380,60 @@ $(document).ready(function(){
 	}
 
 
+	/** Add **/
+
+	// Add Sc
+	function addSc(){
+		$('#cat_tab tbody').append(add)
+		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
+		$('#cat_tab tbody input:last').focus()
+		chevronAddToggle()
+		editAlert()
+	}
+
+	// Back Sc
+	function backSc(tr_back, pos){
+
+		let add = false
+
+		// Pos 1
+		if (pos == 1){
+			$('.tr_category_after').after(tr_back)
+		}
+
+		// Pos x
+		$("#body_cat tbody tr:not(.tr_category_before, .tr_category, .tr_category_after, .tr_add)").each(function(){
+
+			let tr = $(this).find('input'),
+				tr_pos = tr.data('pos')
+			;
+
+			if (tr_pos == pos){
+				add = true
+				$(this).before(tr_back)
+			}
+		})
+
+		// Pos last
+		if (!add){
+			$('.tr_add').before(tr_back)
+		}
+		$('.fa-chevron-up, .fa-chevron-down').hide()
+
+		sc_back_nb -= 1
+
+		chevronAddToggle()
+		editAlert()
+	}
+
+
 	/** Édition **/
 
 	// Alerte visuelle d'édition
 	function editAlert(){
 
 		let checkEditMod = false
+
 
 		/** Cat **/
 		let cat_input = $('.tr_category input')
@@ -384,6 +450,13 @@ $(document).ready(function(){
 
 
 		/** Sc **/
+
+		// Set Pos
+		$("#body_cat tbody tr:not(.tr_category_before, .tr_category, .tr_category_after, .tr_add)").each(function(index){
+			$(this).find('input').data('pos', index + 1)
+		})
+
+		// Check Val && Pos
 		$('#modalCategory .tr_subcategories input').each(function(index, inputText){
 
 			// Val
@@ -392,15 +465,23 @@ $(document).ready(function(){
 				: checkEditMod = true && $(this).addClass('input_edit_val')
 
 			// Pos
-			input_datas['pos_' + inputText.id] == $(this).data('pos')
-				? $(this).removeClass('input_edit')
-				: checkEditMod = true && $(this).addClass('input_edit')
+			if (input_datas['pos_' + inputText.id] == $(this).data('pos')){
+				$(this).removeClass('input_edit')
+			} else {
+				$(this).addClass('input_edit')
+				checkEditMod = true
+			}
 		})
 
 		// Add sc ?
 		let nb_sc_add = $('#cat_tab .tr_subcategories_add').length
 		if(nb_sc_add > 0){ checkEditMod = true }
-		
+
+		// Delete sc ?
+		sc_back_nb > 0
+			? checkEditMod = true
+			: $('.delete_zone').hide()
+
 		// Check EditMod
 		editMod(checkEditMod)
 	}
@@ -412,21 +493,54 @@ $(document).ready(function(){
 			$('#modalCatClose').text('Fermer sans enregistrer')
 			$('#modalCatSaveClose').prop('disabled', false).show()
 			$('#cancel_cat').prop('disabled', false).show()
+			$('.modal-footer').show()
 
 		} else {
 			$('#modalCatClose').text('Fermer')
 			$('#modalCatSaveClose').prop('disabled', true).hide()
 			$('#cancel_cat').prop('disabled', true).hide()
+			$('.modal-footer').hide()
 		}
 	}
 
 	// Reset les éditions
 	function editReset(){
-
 		$('#cat_tab tbody').empty()
+		$('.delete_zone').empty().hide()
+		sc_back_nb = 0
 		show(reset_render, reset_focus)
 		editAlert()
 		controlForm()
+	}
+
+
+	/** Delete **/
+
+	// Delete Sc
+	function deleteSc(button_del){
+
+		let
+			tr = button_del.parent().parent(),
+			input = tr.find('input'),
+			pos_delete = input.data('pos'),
+			id = input.prop('id').substr(3),
+			div = 
+			"<div id='"+id+"' class='col-2 m-3 delete_zone_div' data-pos='" + pos_delete + "'>" +
+				"<i class='pointeur fa-solid fa-rotate-right'></i>" +
+				"&nbsp;&nbsp;&nbsp;<span class='barre red taille18'>" + input.val() + "</span>" +
+			"</div>"
+		;
+
+		// Add input_delete to delete_zone
+		if (!tr.hasClass('tr_subcategories_add')){
+			$('.delete_zone').append(div).show()
+		}
+
+		sc_back_nb += 1
+
+		tr.remove()
+		chevronAddToggle()
+		editAlert()
 	}
 
 
@@ -498,7 +612,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_categorie_edit', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
+			url: Routing.generate('compte_category_edit', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,
