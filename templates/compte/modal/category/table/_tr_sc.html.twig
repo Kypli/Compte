@@ -12,14 +12,25 @@
 		/>
 	</td>
 	<td class='td_chevron_up minWitdh40 center pointeur'>
-		<i class="fa-solid fa-chevron-up"></i>
+		<i class="opacity_low fa-solid fa-chevron-up"></i>
 	</td>
 	<td class='td_chevron_down minWitdh40 center pointeur'>
-		<i class="fa-solid fa-chevron-down"></i>
+		<i class="opacity_low fa-solid fa-chevron-down"></i>
 	</td>
-	<td class='ml-1'>
+	<td class='minWitdh40 center ml-1'>
 		{% if sc.operations|length == 0 %}
-			<button class='hide btn btn-danger delete_sc'><i class='fa-solid fa-xmark'></i></button>
+			<button class='opacity_low btn btn-danger delete_sc' title="Supprimer cette sous-catégorie">
+				<i class='fa-solid fa-xmark'></i>
+			</button>
+		{% else %}
+			<span
+				class="pointeur_help"
+				title="Vous ne pouvez pas supprimer cette sous-catégorie car des opérations liées persistent"
+			>
+				<button class='opacity_low btn btn-muted not_delete_sc' disabled>
+					<i class='fa-solid fa-xmark'></i>
+				</button>
+			</span>
 		{% endif %}
 	</td>
 </tr>

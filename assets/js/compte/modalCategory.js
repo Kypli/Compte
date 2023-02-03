@@ -31,13 +31,13 @@ $(document).ready(function(){
 
 	// Cat chevron mouseover
 	$("body").on("mouseover", ".tr_category", function(e){
-		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').show();
+		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').addClass('opacity_full').removeClass('opacity_low');
 		cat_chevronToggle()
 	})
 
 	// Cat chevron mouseout
 	$("body").on("mouseout", ".tr_category", function(e){
-		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').hide();
+		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').addClass('opacity_low').removeClass('opacity_full');
 	})
 
 	// Cat position up
@@ -51,14 +51,13 @@ $(document).ready(function(){
 	})
 
 	// Sc chevron mouseover
-	$("body").on("mouseover", ".tr_subcategories", function(e){
-		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc').show();
-		sc_chevronToggle($(this))
+	$("body").on("mouseover", ".tr_subcategories, .tr_subcategories_add", function(e){
+		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc').addClass('opacity_full').removeClass('opacity_low');
 	})
 
 	// Sc chevron mouseout
-	$("body").on("mouseout", ".tr_subcategories", function(e){
-		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc').hide();
+	$("body").on("mouseout", ".tr_subcategories, .tr_subcategories_add", function(e){
+		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc').addClass('opacity_low').removeClass('opacity_full');
 	})
 
 	// Sub-Cat position up
@@ -179,7 +178,8 @@ $(document).ready(function(){
 		$('#cat_tab tbody').append(tr)
 		$('#' + focus).focus()
 		$('#cat_name').text($('.tr_category input').val())
-		$('.fa-chevron-up, .fa-chevron-down, .fa-chevron-circle-up, .fa-chevron-circle-down').hide()
+		sc_chevronToggle()
+		cat_chevronToggle()
 	}
 
 	// Récupère le tr_add
@@ -300,6 +300,7 @@ $(document).ready(function(){
 				}
 			}
 
+			cat_chevronToggle()
 			editAlert()
 		}
 		setTimeout(function(){
@@ -310,13 +311,13 @@ $(document).ready(function(){
 	// Cache/Montre les chevrons si limite atteinte
 	function cat_chevronToggle(){
 
-		if ($('.before_actif').hasClass('limite')){
-			$('.fa-chevron-circle-up').hide()
-		}
+		$('.before_actif').hasClass('limite')
+			? $('.fa-chevron-circle-up').hide()
+			: $('.fa-chevron-circle-up').show()
 
-		if ($('.after_actif').hasClass('limite')){
-			$('.fa-chevron-circle-down').hide()
-		}
+		$('.after_actif').hasClass('limite')
+			? $('.fa-chevron-circle-down').hide()
+			: $('.fa-chevron-circle-down').show()
 	}
 
 	// Change la position d'un tr
@@ -343,40 +344,23 @@ $(document).ready(function(){
 				tr.insertAfter(tr_next)
 			}
 		}
-		
-		chevronAddToggle()
+
+		sc_chevronToggle()
 		editAlert()
 	}
 
 	// Cache/Montre les chevrons si limite atteinte
-	function sc_chevronToggle(tr){
+	function sc_chevronToggle(){
 
-		let tr_prev = tr.prev('tr')
-		tr_prev.hasClass('tr_category_after')
-			? tr.find('.td_chevron_up .fa-chevron-up').hide() && tr.find('.td_chevron_up').removeClass('pointeur')
-			: tr.find('.td_chevron_up .fa-chevron-up').show() && tr.find('.td_chevron_up').addClass('pointeur')
-
-		let tr_next = tr.next('tr')
-		tr_next.hasClass('tr_add')
-			? tr.find('.td_chevron_down .fa-chevron-down').hide() && tr.find('.td_chevron_down').removeClass('pointeur')
-			: tr.find('.td_chevron_down .fa-chevron-down').show() && tr.find('.td_chevron_down').addClass('pointeur')
-	}
-
-	// Cache/Montre les chevrons des input ajoutés
-	function chevronAddToggle(){
-
-		$('#modalCategory .tr_subcategories_add').each(function(index, tr){
-
-			let tr_prev = $(this).prev('tr')
-			tr_prev.hasClass('tr_category')
-				? $(this).find('.td_chevron_up .fa-chevron-up').hide()
-				: $(this).find('.td_chevron_up .fa-chevron-up').show()
-
-			let tr_next = $(this).next('tr')
-			tr_next.hasClass('tr_add')
-				? $(this).find('.td_chevron_down .fa-chevron-down').hide()
-				: $(this).find('.td_chevron_down .fa-chevron-down').show()
+		$(".td_chevron_up, .td_chevron_down").each(function(){
+			$(this).addClass('pointeur').show().find('.fa-chevron-up, .fa-chevron-down').show()
 		})
+
+		$(".tr_category_after").next('tr').find('.td_chevron_up').removeClass('pointeur')
+		$(".tr_category_after").next('tr').find('.fa-chevron-up').hide()
+
+		$(".tr_add").prev('tr').find('.td_chevron_down').removeClass('pointeur')
+		$(".tr_add").prev('tr').find('.fa-chevron-down').hide()
 	}
 
 
@@ -387,7 +371,7 @@ $(document).ready(function(){
 		$('#cat_tab tbody').append(add)
 		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
 		$('#cat_tab tbody input:last').focus()
-		chevronAddToggle()
+		sc_chevronToggle()
 		editAlert()
 	}
 
@@ -418,11 +402,10 @@ $(document).ready(function(){
 		if (!add){
 			$('.tr_add').before(tr_back)
 		}
-		$('.fa-chevron-up, .fa-chevron-down').hide()
 
 		sc_back_nb -= 1
 
-		chevronAddToggle()
+		sc_chevronToggle()
 		editAlert()
 	}
 
@@ -538,7 +521,7 @@ $(document).ready(function(){
 		}
 
 		tr.remove()
-		chevronAddToggle()
+		sc_chevronToggle()
 		editAlert()
 	}
 

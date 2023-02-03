@@ -14,12 +14,25 @@
 	height: 48px!important;
 }
 
+/* SUB-CATEGORY */
+.tr_subcategories input:hover {
+	border: 2px black solid;
+}
+
 /* CHEVRONS */
 .td_chevron_up, .td_chevron_down {
 	min-width: 45px;
 }
 .fa-chevron-down:hover, .fa-chevron-up:hover {
 	font-size: 19px;
+}
+
+/* TRANSPARENT */
+.opacity_low {
+	opacity: 0.10!important;
+}
+.opacity_full {
+	opacity: 1;
 }
 
 /* ADD */
