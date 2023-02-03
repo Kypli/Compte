@@ -534,9 +534,8 @@ $(document).ready(function(){
 		// Add input_delete to delete_zone
 		if (!tr.hasClass('tr_subcategories_add')){
 			$('.delete_zone').append(div).show()
+			sc_back_nb += 1
 		}
-
-		sc_back_nb += 1
 
 		tr.remove()
 		chevronAddToggle()

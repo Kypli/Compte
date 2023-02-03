@@ -35,9 +35,6 @@ Compte
 		Modal Category / Sub-cat
 			Nouvelle catégorie
 			Supprimer catégorie
-			Supprimer input (non add)
-				-> Garde editMode(true)
-				-> Alerte visuelle juste text en rouge barré à la place de l'input
 			Controller vérifier suppression + position
 			Les chevrons et bouton delete doivent etre visible mais presque transparent si pas de mouseover
 			Afficher bouton delete en disabled avec title sur delete impossible
