@@ -233,6 +233,7 @@ $(document).ready(function(){
 
 		// addMod ON
 		if (etat){
+			$('.modal-footer').show()
 			$('#saveAdd, .retrait, #deleteAllAdd').prop('disabled', false).show()
 			$('#edit, #saveEdit').prop('disabled', true).hide()
 			$('#close, #edit').prop('disabled', true).prop('title', 'Veuillez valider les changements avant de fermer la fenêtre.')
@@ -300,6 +301,7 @@ $(document).ready(function(){
 		// editMod ON
 		if (etat){
 			addMod(false)
+			$('.modal-footer').show()
 			$('#edit').text("Annuler les modifications").addClass('btn btn-danger').val(1)
 			$('#add').prop('disabled', true).hide()
 			$('#saveEdit, .delete, .switch').prop('disabled', false).show()

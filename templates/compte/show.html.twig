@@ -37,7 +37,7 @@
 
 				{# SOLDE #}
 				<div class="offset-1 col-4">
-					Solde tout compte :
+					Solde actuel du compte :
 					<span class="soldeActuel total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
 						{{ solde == null ? 0 : solde }}
 					</span>
@@ -72,7 +72,7 @@
 				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
 			</div>
 			<div class="col-12">
-				{{ include('compte/table/_table_soldes.html.twig') }}
+				{{ include('compte/table/_soldes_mensuel_total.html.twig') }}
 			</div>
 		</div>
 

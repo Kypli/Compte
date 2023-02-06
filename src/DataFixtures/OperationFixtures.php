@@ -17,17 +17,29 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 	public function load(ObjectManager $manager)
 	{
 		$subcategories = [
-			SubCategoryFixtures::SUBCATEGORY_ADMIN_1,
-			SubCategoryFixtures::SUBCATEGORY_ADMIN_2,
-			SubCategoryFixtures::SUBCATEGORY_ADMIN_3,
-			SubCategoryFixtures::SUBCATEGORY_ADMIN_4,
-			SubCategoryFixtures::SUBCATEGORY_USER_1,
-			SubCategoryFixtures::SUBCATEGORY_USER_2,
-			SubCategoryFixtures::SUBCATEGORY_USER_3,
-			SubCategoryFixtures::SUBCATEGORY_USER_4,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_1_1,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_1_2,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_1_3,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_2_1,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_2_2,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_NEG_1_1,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_NEG_1_2,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_NEG_1_3,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_NEG_2_1,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_NEG_2_2,
+			SubCategoryFixtures::SUBCATEGORY_USER_POS_1_1,
+			SubCategoryFixtures::SUBCATEGORY_USER_POS_1_2,
+			SubCategoryFixtures::SUBCATEGORY_USER_POS_1_3,
+			SubCategoryFixtures::SUBCATEGORY_USER_POS_2_1,
+			SubCategoryFixtures::SUBCATEGORY_USER_POS_2_2,
+			SubCategoryFixtures::SUBCATEGORY_USER_NEG_1_1,
+			SubCategoryFixtures::SUBCATEGORY_USER_NEG_1_2,
+			SubCategoryFixtures::SUBCATEGORY_USER_NEG_1_3,
+			SubCategoryFixtures::SUBCATEGORY_USER_NEG_2_1,
+			SubCategoryFixtures::SUBCATEGORY_USER_NEG_2_2,
 		];
 
-		for($i = 0; $i <= 400; $i++){
+		for($i = 0; $i <= 500; $i++){
 
 			$year = date('Y');
 			$month = rand(1, 12);
@@ -54,7 +66,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				$anticipe = rand(0, 1);
 			}
 
-			$subcategory = $subcategories[rand(0, 3)];
+			$subcategory = $subcategories[rand(0, 19)];
 
 			$entity = new Entity();
 			$entity

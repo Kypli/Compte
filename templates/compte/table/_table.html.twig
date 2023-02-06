@@ -1,7 +1,8 @@
 <table class="table compteTable center">
 	<thead>
 		<tr class="tr_head">
-			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='col_start_top bck_{{ sign }}'>
+			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat col_start_top bck_{{ sign }}'>
+				<button class='test'>Ajout catégorie</button>
 				{{ sign == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
 				<span class="">(€)</span>
 			</th>
@@ -43,7 +44,7 @@
 	</thead>
 	<tbody>
 		{% for category in compte.categories|sort((a, b) => a.position <=> b.position) %}
-			{% if category.sign == signBool %}
+			{% if category.sign == signBool and category.year == year %}
 				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
 					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
 						{% if loop.first %}
@@ -75,6 +76,6 @@
 				{% endfor %}
 			{% endif %}
 		{% endfor %}
-		{{ include('compte/table/_totaux_mois.html.twig') }}
+		{{ include('compte/table/_soldes_mensuel.html.twig') }}
 	</tbody>
 </table>

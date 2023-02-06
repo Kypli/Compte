@@ -11,66 +11,150 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
+	public const SUBCATEGORY_ADMIN_POS_1_1 = 'subcategory_admin_pos_1_1';
+	public const SUBCATEGORY_ADMIN_POS_1_2 = 'subcategory_admin_pos_1_2';
+	public const SUBCATEGORY_ADMIN_POS_1_3 = 'subcategory_admin_pos_1_3';
+	public const SUBCATEGORY_ADMIN_POS_2_1 = 'subcategory_admin_pos_2_1';
+	public const SUBCATEGORY_ADMIN_POS_2_2 = 'subcategory_admin_pos_2_2';
+	public const SUBCATEGORY_ADMIN_NEG_1_1 = 'subcategory_admin_neg_1_1';
+	public const SUBCATEGORY_ADMIN_NEG_1_2 = 'subcategory_admin_neg_1_2';
+	public const SUBCATEGORY_ADMIN_NEG_1_3 = 'subcategory_admin_neg_1_3';
+	public const SUBCATEGORY_ADMIN_NEG_2_1 = 'subcategory_admin_neg_2_1';
+	public const SUBCATEGORY_ADMIN_NEG_2_2 = 'subcategory_admin_neg_2_2';
 
-	public const SUBCATEGORY_ADMIN_1 = 'subcategory_admin_1';
-	public const SUBCATEGORY_ADMIN_2 = 'subcategory_admin_2';
-	public const SUBCATEGORY_ADMIN_3 = 'subcategory_admin_3';
-	public const SUBCATEGORY_ADMIN_4 = 'subcategory_admin_4';
-	public const SUBCATEGORY_USER_1 = 'subcategory_user_1';
-	public const SUBCATEGORY_USER_2 = 'subcategory_user_2';
-	public const SUBCATEGORY_USER_3 = 'subcategory_user_3';
-	public const SUBCATEGORY_USER_4 = 'subcategory_user_4';
+	public const SUBCATEGORY_USER_POS_1_1 = 'subcategory_user_pos_1_1';
+	public const SUBCATEGORY_USER_POS_1_2 = 'subcategory_user_pos_1_2';
+	public const SUBCATEGORY_USER_POS_1_3 = 'subcategory_user_pos_1_3';
+	public const SUBCATEGORY_USER_POS_2_1 = 'subcategory_user_pos_2_1';
+	public const SUBCATEGORY_USER_POS_2_2 = 'subcategory_user_pos_2_2';
+	public const SUBCATEGORY_USER_NEG_1_1 = 'subcategory_user_neg_1_1';
+	public const SUBCATEGORY_USER_NEG_1_2 = 'subcategory_user_neg_1_2';
+	public const SUBCATEGORY_USER_NEG_1_3 = 'subcategory_user_neg_1_3';
+	public const SUBCATEGORY_USER_NEG_2_1 = 'subcategory_user_neg_2_1';
+	public const SUBCATEGORY_USER_NEG_2_2 = 'subcategory_user_neg_2_2';
 
 	public function load(ObjectManager $manager)
 	{
 
 		$datas = [
 			1 => [
-				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS,
-				'addRef' => self::SUBCATEGORY_ADMIN_1,
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_POS_1_1,
 				'libelle' => "salaire",
 				'position' => 1,
 			],
 			2 => [
-				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS,
-				'addRef' => self::SUBCATEGORY_ADMIN_2,
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_POS_1_2,
 				'libelle' => "prime",
 				'position' => 2,
 			],
 			3 => [
-				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG,
-				'addRef' => self::SUBCATEGORY_ADMIN_3,
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_POS_1_3,
+				'libelle' => "13eme mois",
+				'position' => 3,
+			],
+			4 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS_2,
+				'addRef' => self::SUBCATEGORY_ADMIN_POS_2_1,
+				'libelle' => "CPAM",
+				'position' => 1,
+			],
+			5 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_POS_2,
+				'addRef' => self::SUBCATEGORY_ADMIN_POS_2_2,
+				'libelle' => "crédit",
+				'position' => 2,
+			],
+			6 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_NEG_1_1,
 				'libelle' => "jeux",
 				'position' => 1,
 			],
-			4 => [
-				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG,
-				'addRef' => self::SUBCATEGORY_ADMIN_4,
+			7 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_NEG_1_2,
 				'libelle' => "cinéma",
 				'position' => 2,
 			],
-			5 => [
-				'setRef' => CategoryFixtures::CATEGORY_USER_POS,
-				'addRef' => self::SUBCATEGORY_USER_1,
+			8 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_NEG_1_3,
+				'libelle' => "sorties",
+				'position' => 3,
+			],
+			9 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG_2,
+				'addRef' => self::SUBCATEGORY_ADMIN_NEG_2_1,
+				'libelle' => "entretien",
+				'position' => 1,
+			],
+			10 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_NEG_2,
+				'addRef' => self::SUBCATEGORY_ADMIN_NEG_2_2,
+				'libelle' => "meubles",
+				'position' => 2,
+			],
+			11 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_POS_1,
+				'addRef' => self::SUBCATEGORY_USER_POS_1_1,
 				'libelle' => "salaire",
 				'position' => 1,
 			],
-			6 => [
-				'setRef' => CategoryFixtures::CATEGORY_USER_POS,
-				'addRef' => self::SUBCATEGORY_USER_2,
+			12 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_POS_1,
+				'addRef' => self::SUBCATEGORY_USER_POS_1_2,
 				'libelle' => "prime",
 				'position' => 2,
 			],
-			7 => [
-				'setRef' => CategoryFixtures::CATEGORY_USER_NEG,
-				'addRef' => self::SUBCATEGORY_USER_3,
+			13 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_POS_1,
+				'addRef' => self::SUBCATEGORY_USER_POS_1_3,
+				'libelle' => "13eme mois",
+				'position' => 3,
+			],
+			14 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_POS_2,
+				'addRef' => self::SUBCATEGORY_USER_POS_2_1,
+				'libelle' => "CPAM",
+				'position' => 1,
+			],
+			15 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_POS_2,
+				'addRef' => self::SUBCATEGORY_USER_POS_2_2,
+				'libelle' => "crédit",
+				'position' => 2,
+			],
+			16 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_NEG_1,
+				'addRef' => self::SUBCATEGORY_USER_NEG_1_1,
 				'libelle' => "jeux",
 				'position' => 1,
 			],
-			8 => [
-				'setRef' => CategoryFixtures::CATEGORY_USER_NEG,
-				'addRef' => self::SUBCATEGORY_USER_4,
+			17 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_NEG_1,
+				'addRef' => self::SUBCATEGORY_USER_NEG_1_2,
 				'libelle' => "cinéma",
+				'position' => 2,
+			],
+			18 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_NEG_1,
+				'addRef' => self::SUBCATEGORY_USER_NEG_1_3,
+				'libelle' => "sorties",
+				'position' => 3,
+			],
+			19 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_NEG_2,
+				'addRef' => self::SUBCATEGORY_USER_NEG_2_1,
+				'libelle' => "entretien",
+				'position' => 1,
+			],
+			20 => [
+				'setRef' => CategoryFixtures::CATEGORY_USER_NEG_2,
+				'addRef' => self::SUBCATEGORY_USER_NEG_2_2,
+				'libelle' => "meubles",
 				'position' => 2,
 			],
 		];

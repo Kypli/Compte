@@ -44,9 +44,6 @@ class OperationRepository extends ServiceEntityRepository
 	 */
 	public function OperationsByYearAndCompteAndSign($compte_id, $year, $sign = true): array
 	{
-		$date_start = date($year.'/01/01 00:00:00');
-		$date_end = date(($year).'/12/31 23:59:59');
-
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.subcategory', 'sc')
 			->leftjoin('sc.category', 'ca')
@@ -54,13 +51,12 @@ class OperationRepository extends ServiceEntityRepository
 
 			->where('co.id = :compte_id')
 			->andWhere('ca.sign = :sign')
-			->andWhere('x.date >= :date_start AND x.date <= :date_end')
+			->andWhere('ca.year = :year')
 
 			->setParameters([
 				'sign' => $sign,
 				'compte_id' => $compte_id,
-				'date_start' => $date_start,
-				'date_end' => $date_end,
+				'year' => $year,
 			])
 
 			->orderBy('x.date', 'ASC')
@@ -75,8 +71,6 @@ class OperationRepository extends ServiceEntityRepository
 	 */
 	public function CompteSoldeActuel($compte_id, $sign): ?float
 	{
-		$date = new \Datetime('now');
-
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.subcategory', 'sc')
 			->leftjoin('sc.category', 'ca')
@@ -87,11 +81,9 @@ class OperationRepository extends ServiceEntityRepository
 			->where('co.id = :compte_id')
 			->andWhere('x.anticipe = false')
 			->andWhere('ca.sign = :sign')
-			->andWhere('x.date <= :date')
 
 			->setParameters([
 				'compte_id' => $compte_id,
-				'date' => $date,
 				'sign' => $sign,
 			])
 

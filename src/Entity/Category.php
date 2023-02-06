@@ -28,7 +28,7 @@ class Category
      * @ORM\Column(type="boolean")
      * True = Positive, False = Negative
      */
-    private $sign = 1;
+    private $sign = true;
 
     /**
      * @ORM\Column(type="integer")

@@ -1,4 +1,11 @@
 
+/* ADD CATEGORY */
+.add_cat button {
+	float : left;
+	top: -20px!important;
+	position:relative;
+}
+
 /* CATEGORIE BEFORE-AFTER */
 .cat_before, .cat_after {
 	font-style : italic; 
@@ -42,13 +49,13 @@
 
 .tr_subcategories_add input {
 	color: green;
-	border: 1px green solid!important;
+	border: 1px green solid;
 }
 .tr_subcategories_add input:hover {
-	border: 2px green solid!important;
+	border: 2px green solid;
 }
 .tr_subcategories_add input:focus {
-	border: 3px darkgreen solid!important;
+	border: 3px darkgreen solid;
 }
 
 /* EDIT */
@@ -56,13 +63,13 @@
 	color: #72A0C1;
 }
 .input_edit {
-	border: 1px #72A0C1 solid!important;
+	border: 1px #72A0C1 solid;
 }
 .input_edit:hover {
-	border: 2px #72A0C1 solid!important;
+	border: 2px #72A0C1 solid;
 }
 .input_edit:focus {
-	border: 3px darkblue solid!important;
+	border: 3px darkblue solid;
 }
 
 /* ALERTE */

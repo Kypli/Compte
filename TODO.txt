@@ -14,6 +14,13 @@ Compte
 			Bordure entre catégorie + grosse
 			Année visible sur le titre
 			Revenu annuel -> Faire un border-radius
+			Alerte si dépassement opération à venir avec la date d'opération
+			Alerte si anticipation opération fait avec la date d'opération
+			Pop-up de suggestion de correction d'erreur
+			Entité operation rajouter date_operation (!= date action)
+			Si ajout ope fait, suggerer date du jour et ne pas proposer > date du jour
+			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
+			Afficher 3 dernières opérations avec pop-up historique
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -36,8 +43,6 @@ Compte
 			Nouvelle catégorie
 			Supprimer catégorie
 			Controller vérifier suppression + position
-			Les chevrons et bouton delete doivent etre visible mais presque transparent si pas de mouseover
-			Afficher bouton delete en disabled avec title sur delete impossible
 			Faire move sc avec une transition
 			Enregistrement
 
