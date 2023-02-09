@@ -460,6 +460,30 @@ class CompteController extends AbstractController
 	}
 
 	/**
+	 * @Route("/category/{id}/{sign}", name="_category_add")
+	 * Récupère datas d'une catégorie
+	 * Ajax only
+	 */
+	public function addCategory(Compte $compte, $sign, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$cat = new Category();
+		$cat->setCompte($compte);
+
+		$render = $this->render('compte/modal/category/table/_tbody.html.twig', [
+			'category' => $cat,
+			'categories_before' => $this->catr->mycategoriesBefore($compte->getId(), $sign, $cat->getPosition()),
+			'categories_after' => $this->catr->mycategoriesAfter($compte->getId(), $sign, $cat->getPosition()-1),
+		])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
 	 * @Route("/subcategory/{id}", name="_subcategory")
 	 * Récupère tr_subcategorie_back
 	 * Ajax only
@@ -479,16 +503,16 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/scategory/add", name="_subcategory_add")
+	 * @Route("/scategory/add/{addMod}", name="_subcategory_add")
 	 * Récupère tr_subcategories_add
 	 * Ajax only
 	 */
-	public function addSubCategory(Request $request): Response
+	public function addSubCategory($addMod, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/category/table/_tr_sc_add.html.twig')->getContent();
+		$render = $this->render('compte/modal/category/table/_tr_sc_add.html.twig', ['addMod' => $addMod])->getContent();
 
 		return new JsonResponse([
 			'render' => $render,
@@ -496,11 +520,11 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/categorie/edit/{id}/{year}", name="_category_edit")
+	 * @Route("/categorie/save/{id}/{year}", name="_category_save")
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * Ajax only
 	 */
-	public function categorieEdit(Compte $compte, $year, Request $request): Response
+	public function categorySave(Compte $compte, $year, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -511,30 +535,46 @@ class CompteController extends AbstractController
 		$datas_cat = $datas[0];
 		if ($datas_cat['type'] == 'cat'){
 
-			if ($datas_cat['id'] != ''){
+			// Edit
+			if ($datas_cat['id'] != 'add'){
 				$cat = $this->catr->find($datas_cat['id']);
 				$scs = $this->scr->idsFromCat($cat->getId());
+
+			// Add
 			} else {
 				$cat = new Category();
 				$cat
 					->setCompte($compte)
-					->setPosition($this->catr->lastPos($compte->getId())['position'] + 1)
+					->setSign($datas_cat['sign'])
+					->setYear($year)
 				;
 				$scs = [];
 			}
 
-			$cat->setLibelle($datas_cat['libelle']);
-			// TODO position
+			// Commun Edit
+			$cat
+				->setLibelle($datas_cat['libelle'])
+				->setPosition($datas_cat['position'])
+			;
 
+			// Save
 			$this->catr->add($cat, true);
+
+			// Corrige les autres positions
+			$this->orderCatPosition($compte->getId(), $cat->getId(), $datas_cat['sign'], $year,  $datas_cat['position']);
+
 		}
 		unset($datas[0]);
 
 		// Sub-catégories
 		foreach ($datas as $key => $datas_sc){
+
+			// Edit
 			if ($datas_sc['id'] != ''){
 				$sc = $this->scr->find($datas_sc['id']);
 				unset($scs[$datas_sc['id']]);
+
+			// Add
 			} else {
 				$sc = new SubCategory();
 				$sc->setCategory($cat);
@@ -556,5 +596,36 @@ class CompteController extends AbstractController
 		return new JsonResponse([
 			'save' => true,
 		]);
+	}
+
+	/**
+
+	 * Edit position categories from compte
+	 */
+	public function orderCatPosition($compte_id, $cat_id, $sign, $year, $pos)
+	{
+		// Corrige les autres positions
+		$allPosAfterCatPos = $this->catr->getAllPosFromCompte(
+			$compte_id,
+			$cat_id,
+			$sign,
+			$year
+		);
+
+		dump($allPosAfterCatPos);
+
+		// Change positions
+		$i = 0;
+		foreach($allPosAfterCatPos as $cat){
+
+			$i++;
+			if ($i == $pos){ $i++; } // Position réservé par la cat sauvegardée
+
+			if ($cat['position'] != $i){
+				$cat_change = $this->catr->find($cat['id']);
+				$cat_change->setPosition($i);
+				$this->catr->add($cat_change, true);
+			}
+		}
 	}
 }

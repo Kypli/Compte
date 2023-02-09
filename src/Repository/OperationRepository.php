@@ -97,7 +97,6 @@ class OperationRepository extends ServiceEntityRepository
 	 */
 	public function gestion($sc, $year, $month, $sign, $daysInMonth): ?array
 	{
-		$sign = $sign == 'pos' ? true : false;
 		$date_start = new \Datetime($year.'/'.$month.'/01 00:00:00');
 		$date_end = new \Datetime($year.'/'.$month.'/'.$daysInMonth.' 23:59:59');
 

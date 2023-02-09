@@ -40,11 +40,9 @@ Compte
 			bouton switch en gras si survol sans impacter les autres div
 
 		Modal Category / Sub-cat
-			Nouvelle catégorie
 			Supprimer catégorie
-			Controller vérifier suppression + position
+			Ne pas supprimer dernier sc
 			Faire move sc avec une transition
-			Enregistrement
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

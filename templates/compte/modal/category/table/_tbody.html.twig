@@ -5,26 +5,11 @@
 } %}
 
 {# CATEGORIE #}
-<tr id='tr_category_{{ category.id }}' class='tr_category'>
-	<td>
-		<input
-			type='text'
-			id='cat_{{ category.id }}'
-			value='{{ category.libelle|capitalize }}'
-			name='category'
-			placeholder='Libellé catégorie'
-			data-pos='{{ category.position }}'
-		/>
-	</td>
-	<td class="row minWitdh20 m-2">
-		<div class="col-3">
-			<i id='td_chevron_cat_up' class="pointeur opacity_low fas fa-chevron-circle-up"></i>
-		</div>
-		<div class="col-2">
-			<i id='td_chevron_cat_down' class="pointeur opacity_low fas fa-chevron-circle-down"></i>
-		</div>
-	</td>
-</tr>
+{% if category.id != null %}
+	{% include('compte/modal/category/table/_tr_cat.html.twig') %}
+{% else %}
+	{% include('compte/modal/category/table/_tr_cat_add.html.twig') %}
+{% endif %}
 
 {# CATEGORIE AFTER #}
 {% include('compte/modal/category/table/_tr_cat_other.html.twig') with {

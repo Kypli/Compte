@@ -47,14 +47,14 @@
 	margin-left: 5px;
 }
 
-.tr_subcategories_add input {
+.tr_subcategories_add input, .input_add {
 	color: green;
 	border: 1px green solid;
 }
-.tr_subcategories_add input:hover {
+.tr_subcategories_add input:hover, .input_add:hover {
 	border: 2px green solid;
 }
-.tr_subcategories_add input:focus {
+.tr_subcategories_add input:focus, .input_add:focus {
 	border: 3px darkgreen solid;
 }
 

@@ -24,7 +24,7 @@ $(document).ready(function(){
 
 		let
 			sc_id = $(this).data('scid'),
-			sign = $(this).data('sign'),
+			sign = $(this).parent().parent().parent().data('sign'),
 			month = $(this).data('month'),
 			months = $('#datas').data('months'),
 			year = $('#datas').data('year')

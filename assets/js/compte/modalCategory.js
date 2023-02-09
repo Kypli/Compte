@@ -8,12 +8,16 @@ $(document).ready(function(){
 	////////////
 
 	var
-		add = '',
+		_addSc = '',
+		_addSc_disabled = '',
 		sc_back_nb = 0,
 		input_datas = {},
 		reset_render = '',
-		reset_focus = ''
+		cat_add_render = ''
 	;
+
+	getAddSc()
+	getAddSc(true)
 
 	////////////
 	// ON EVENTS
@@ -23,7 +27,9 @@ $(document).ready(function(){
 
 	// Open Modal Category
 	$("body").on("click", ".td_category_libelle, .td_subcategory_libelle", function(e){
-		getCategories($(this).data('id'), $(this).data('sign'), $(this).data('focusa'))
+		let sign = $(this).parent().parent().parent().data('sign')
+		$('#cat_tab').data('sign', sign)
+		getCategory($(this).data('id'), sign, $(this).data('focusa'))
 	})
 
 
@@ -73,6 +79,19 @@ $(document).ready(function(){
 
 	/** Add **/
 
+	// Add Cat from table
+	$("body").on("click", ".add_cat button", function(e){
+		let sign = $(this).parents('.table ').data('sign')
+		$('#cat_tab').data('sign', sign)
+		getAddCategory(sign)
+	})
+
+	// Add Cat from modal
+	$("body").on("click", "#add_cat", function(e){
+		getAddCategory($('#cat_tab').data('sign'))
+		$('#modalCatSaveClose').prop('disabled', true)
+	})
+
 	// Add Sc
 	$("body").on("click", ".add_sub", function(e){
 		addSc()
@@ -121,8 +140,36 @@ $(document).ready(function(){
 
 	/** Chargement **/
 
-	// Récupère le render de la catégorie
-	function getCategories(cat_id, sign, focus){
+	// Récupère le render d'une nouvelle catégorie
+	function getAddCategory(sign){
+
+		$.ajax({
+			type: "POST",
+			url: Routing.generate('compte_category_add', { id: $('#datas').data('compteid'), sign: sign }),
+			timeout: 15000,
+			beforeSend: function(){
+				$('#cat_name').text('')
+				addMod(true)
+				spinner(true)
+			},
+			success: function(response){
+				reset_render = response.render
+				show(response.render, 'tr_category_add input')
+				$('.tr_category input').addClass('input_add')
+				addSc(true)
+				getInputDatas()
+				spinner(false)
+			},
+			error: function(error){
+				console.log('Erreur ajax: ' + error)
+				addMod(false)
+				spinner(false)
+			}
+		})
+	}
+
+	// Récupère le render d'une catégorie
+	function getCategory(cat_id, sign, focus){
 
 		$.ajax({
 			type: "POST",
@@ -134,16 +181,32 @@ $(document).ready(function(){
 				spinner(true)
 			},
 			success: function(response){
-				reset_focus = focus
 				reset_render = response.render
 				show(response.render, focus)
 				spinner(false)
-				getInputAdd()
 				getInputDatas()
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)
 				spinner(false)
+			}
+		})
+	}
+
+	// Récupère le render d'une nouvelle subCatégorie
+	function getAddSc(addMod = false){
+
+		$.ajax({
+			type: "POST",
+			url: Routing.generate('compte_subcategory_add', { addMod: addMod == true ? '1' : '0' }),
+			timeout: 15000,
+			success: function(response){
+				addMod
+					? _addSc = response.render
+					: _addSc_disabled = response.render
+			},
+			error: function(error){
+				console.log('Erreur ajax: ' + error)
 			}
 		})
 	}
@@ -182,22 +245,6 @@ $(document).ready(function(){
 		cat_chevronToggle()
 	}
 
-	// Récupère le tr_add
-	function getInputAdd(){
-
-		$.ajax({
-			type: "POST",
-			url: Routing.generate('compte_subcategory_add'),
-			timeout: 15000,
-			success: function(response){
-				add = response.render
-			},
-			error: function(error){
-				console.log('Erreur ajax: ' + error)
-			}
-		})
-	}
-
 	// Récupère les datas des input pour control édition
 	function getInputDatas(){
 
@@ -225,7 +272,7 @@ $(document).ready(function(){
 
 	/** Position **/
 
-	// Change la position d'un tr
+	// Change la position d'un tr de catégory
 	function cat_posChange(pos, icon){
 
 		let
@@ -320,7 +367,7 @@ $(document).ready(function(){
 			: $('.fa-chevron-circle-down').show()
 	}
 
-	// Change la position d'un tr
+	// Change la position d'un tr de subCategory
 	function sc_posChange(pos, tr){
 
 		// Up
@@ -366,13 +413,38 @@ $(document).ready(function(){
 
 	/** Add **/
 
+	// Mode add
+	function addMod(etat){
+
+		if (etat){
+			$('#add_cat').hide()
+			$('.modal-footer').show()
+			$('#modalCatClose').text('Fermer sans enregistrer')
+			$('#modalCatSaveClose').prop('disabled', true).show()
+
+		} else {
+			$('#add_cat').show()
+			$('.modal-footer').hide()
+			$('#modalCatClose').text('Fermer')
+			$('.tr_category input').removeClass('input_add')
+		}
+		$('#cancel_cat').prop('disabled', false).hide()
+	}
+
 	// Add Sc
-	function addSc(){
-		$('#cat_tab tbody').append(add)
+	function addSc(addMod = false){
+
+		if (addMod){
+			$('#cat_tab tbody').append(_addSc_disabled)
+
+		} else {
+			$('#cat_tab tbody').append(_addSc)
+			$('#cat_tab tbody input:last').focus()
+			editAlert()
+		}
+
 		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
-		$('#cat_tab tbody input:last').focus()
 		sc_chevronToggle()
-		editAlert()
 	}
 
 	// Back Sc
@@ -412,8 +484,31 @@ $(document).ready(function(){
 
 	/** Édition **/
 
+	// Mode édition
+	function editMod(etat){
+
+		if (etat){
+			$('#modalCatClose').text('Fermer sans enregistrer')
+			$('#modalCatSaveClose').prop('disabled', false).show()
+			$('#cancel_cat').prop('disabled', false).show()
+			$('.modal-footer').show()
+
+		} else {
+			$('#modalCatClose').text('Fermer')
+			$('#modalCatSaveClose').prop('disabled', true).hide()
+			$('#cancel_cat').prop('disabled', true).hide()
+			$('.modal-footer').hide()
+		}
+		$('#add_cat').show()
+	}
+
 	// Alerte visuelle d'édition
 	function editAlert(){
+
+		// Pas d'alerte si addMod
+		if ($('#tr_category_add').length == 1){
+			return true
+		}
 
 		let checkEditMod = false
 
@@ -469,29 +564,12 @@ $(document).ready(function(){
 		editMod(checkEditMod)
 	}
 
-	// Mode édition
-	function editMod(etat){
-
-		if (etat){
-			$('#modalCatClose').text('Fermer sans enregistrer')
-			$('#modalCatSaveClose').prop('disabled', false).show()
-			$('#cancel_cat').prop('disabled', false).show()
-			$('.modal-footer').show()
-
-		} else {
-			$('#modalCatClose').text('Fermer')
-			$('#modalCatSaveClose').prop('disabled', true).hide()
-			$('#cancel_cat').prop('disabled', true).hide()
-			$('.modal-footer').hide()
-		}
-	}
-
 	// Reset les éditions
 	function editReset(){
 		$('#cat_tab tbody').empty()
 		$('.delete_zone').empty().hide()
 		sc_back_nb = 0
-		show(reset_render, reset_focus)
+		show(reset_render, 'tr_category input')
 		editAlert()
 		controlForm()
 	}
@@ -523,6 +601,7 @@ $(document).ready(function(){
 		tr.remove()
 		sc_chevronToggle()
 		editAlert()
+		controlForm()
 	}
 
 
@@ -531,9 +610,12 @@ $(document).ready(function(){
 	// Vérifie s'il n'y a pas d'erreur dans les input
 	function controlForm(){
 
-		let	control = true;
+		let
+			control = true,
+			controlAdd = false
+		;
 
-		$(".tr_category input, #cat_tab .tr_subcategories input").each(function(index, value){
+		$("#cat_tab .tr_category input, #cat_tab .tr_subcategories input").each(function(index, value){
 
 			if ($(this).val() == ''){
 				control = false
@@ -543,7 +625,19 @@ $(document).ready(function(){
 			}
 		})
 
-		if (control){
+		// If addMod
+		if ($('#tr_category_add').length == 1){
+			$("#cat_tab .tr_subcategories_add input").each(function(index, value){
+
+				if ($(this).val() != ''){
+					controlAdd = true
+				}
+			})
+		} else {
+			controlAdd = true
+		}
+
+		if (control && controlAdd){
 			$('#modalCatSaveClose').prop('disabled', false)
 		} else {
 			$('#modalCatSaveClose').prop('disabled', true)
@@ -574,7 +668,8 @@ $(document).ready(function(){
 				id: id,
 				libelle: $(this).find('input').val(),
 				type: 'cat',
-				position: 0,
+				sign: $('#cat_tab').data('sign'),
+				position: $(this).find('input').data('pos'),
 			})
 		})
 
@@ -594,7 +689,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_edit', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
+			url: Routing.generate('compte_category_save', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,

@@ -122,4 +122,38 @@ class CategoryRepository extends ServiceEntityRepository
 			->getOneOrNullResult()
 		;
 	}
+
+	/**
+	 * Renvoie les position après la position d'une catégory
+	 */
+	public function getAllPosFromCompte($compte_id, $cat_id, $sign, $year): ?array
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.compte', 'co')
+
+			->select([
+				'x.id',
+				'x.position',
+				'x.libelle',
+			])
+
+			->where('co.id = :compte_id')
+			->andWhere('x.id != :cat_id')
+			->andWhere('x.sign = :sign')
+			->andWhere('x.year = :year')
+
+			->setParameters([
+				'compte_id' => $compte_id,
+				'cat_id' => $cat_id,
+				'sign' => $sign,
+				'year' => $year,
+			])
+
+			->orderBy('x.position', 'ASC')
+			->addOrderBy('x.id', 'DESC')
+
+			->getQuery()
+			->getArrayResult()
+		;
+	}
 }

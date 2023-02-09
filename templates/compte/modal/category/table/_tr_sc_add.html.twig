@@ -10,6 +10,19 @@
 		<i class="fa-solid fa-chevron-down"></i>
 	</td>
 	<td class='minWitdh40 center pointeur'>
-		<button class='btn btn-danger delete_sc '><i class='fa-solid fa-xmark'></i></button>
+		{% if addMod == '1' %}
+			<button class='opacity_low btn btn-danger delete_sc' title="Supprimer cette sous-catégorie">
+				<i class='fa-solid fa-xmark'></i>
+			</button>
+		{% else %}
+			<span
+				class="pointeur_help"
+				title="Vous ne pouvez pas supprimer cette sous-catégorie car vous devez en garder au minimum une"
+			>
+				<button class='opacity_low btn btn-muted not_delete_sc pointeur_help' disabled>
+					<i class='fa-solid fa-xmark'></i>
+				</button>
+			</span>
+		{% endif %}
 	</td>
 </tr>

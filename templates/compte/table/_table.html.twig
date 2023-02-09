@@ -1,8 +1,8 @@
-<table class="table compteTable center">
+<table class="table compteTable center" data-sign="{{ signBool == 1 ? '1' : '0' }}">
 	<thead>
 		<tr class="tr_head">
 			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat col_start_top bck_{{ sign }}'>
-				<button class='test'>Ajout catégorie</button>
+				<button data-target="#modalCategory" data-toggle="modal">Ajout catégorie</button>
 				{{ sign == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
 				<span class="">(€)</span>
 			</th>
@@ -53,7 +53,6 @@
 								data-toggle="modal"
 								data-id="{{ category.id }}"
 								data-focusa="cat_{{ category.id }}"
-								data-sign="{{ signBool == false ? 0 : 1 }}"
 								class='td_category_libelle'
 								rowspan='{{ category.subcategories|length }}'
 							>
@@ -66,7 +65,6 @@
 							data-toggle="modal"
 							data-id="{{ category.id }}"
 							data-focusa="sc_{{ subcategory.id }}"
-							data-sign="{{ signBool == false ? 0 : 1 }}"
 							class='td_subcategory_libelle'
 						>
 							{{ subcategory.libelle|capitalize }} ({{ subcategory.position }})
