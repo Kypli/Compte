@@ -445,6 +445,7 @@ $(document).ready(function(){
 
 		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
 		sc_chevronToggle()
+		controlForm()
 	}
 
 	// Back Sc
@@ -454,6 +455,7 @@ $(document).ready(function(){
 
 		// Pos 1
 		if (pos == 1){
+			add = true
 			$('.tr_category_after').after(tr_back)
 		}
 
@@ -464,7 +466,7 @@ $(document).ready(function(){
 				tr_pos = tr.data('pos')
 			;
 
-			if (tr_pos == pos){
+			if (tr_pos == pos && pos != 1){
 				add = true
 				$(this).before(tr_back)
 			}
@@ -612,9 +614,10 @@ $(document).ready(function(){
 
 		let
 			control = true,
-			controlAdd = false
+			nb_Sc = 0
 		;
 
+		// Input vide
 		$("#cat_tab .tr_category input, #cat_tab .tr_subcategories input").each(function(index, value){
 
 			if ($(this).val() == ''){
@@ -625,19 +628,15 @@ $(document).ready(function(){
 			}
 		})
 
-		// If addMod
-		if ($('#tr_category_add').length == 1){
-			$("#cat_tab .tr_subcategories_add input").each(function(index, value){
+		// Au moins 1 sc
+		$("#cat_tab .tr_subcategories input, #cat_tab .tr_subcategories_add input").each(function(index, value){
 
-				if ($(this).val() != ''){
-					controlAdd = true
-				}
-			})
-		} else {
-			controlAdd = true
-		}
+			if ($(this).val() != ''){
+				++nb_Sc
+			}
+		})
 
-		if (control && controlAdd){
+		if (control && nb_Sc > 0){
 			$('#modalCatSaveClose').prop('disabled', false)
 		} else {
 			$('#modalCatSaveClose').prop('disabled', true)
