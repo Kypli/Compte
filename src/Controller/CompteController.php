@@ -557,7 +557,7 @@ class CompteController extends AbstractController
 			}
 
 			$sc
-				->setPosition($key)
+				->setPosition($key - 1)
 				->setLibelle($datas_sc['libelle'])
 			;
 

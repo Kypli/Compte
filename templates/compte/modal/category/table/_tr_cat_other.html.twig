@@ -20,7 +20,14 @@
 			%}
 
 			<div data-id='{{ cat.id }}' class='{{ actif }}'>
-				{{ cat.libelle|capitalize }}
+				<span
+					data-id='{{ cat.id }}'
+					data-sign='{{ cat.sign }}'
+					class='other_actif'
+					title="Afficher cette catégorie"
+				>
+					{{ cat.libelle|capitalize }}
+				</span>
 			</div>
 
 			{# LIMITE AFTER #}

@@ -51,6 +51,7 @@ class CategoryRepository extends ServiceEntityRepository
 				'x.id',
 				'x.libelle',
 				'x.position',
+				'x.sign',
 			])
 
 			->where('co.id = :compte_id')
@@ -82,6 +83,7 @@ class CategoryRepository extends ServiceEntityRepository
 				'x.id',
 				'x.libelle',
 				'x.position',
+				'x.sign',
 			])
 
 			->where('co.id = :compte_id')

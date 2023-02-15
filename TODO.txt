@@ -45,10 +45,7 @@ Compte
 			bouton switch en gras si survol sans impacter les autres div
 
 		Modal Category / Sub-cat
-			Faire move sc avec une transition
-			Passer d'une catégorie à une autre
-				-> Fleche pres du nom
-				-> Clic sur before/after
+			Garder les bouton delete disabled ?
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

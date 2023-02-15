@@ -32,6 +32,11 @@ $(document).ready(function(){
 		getCategory($(this).data('id'), sign, $(this).data('focusa'))
 	})
 
+	$("body").on("click", ".other_actif", function(e){
+		let id = $(this).data('id')
+		getCategory(id, $(this).data('sign'), 'cat_' + id)
+	})
+
 
 	/** Position **/
 
@@ -116,6 +121,11 @@ $(document).ready(function(){
 	$("body").on("keyup", "#modalCategory input", function(e){
 		editAlert()
 		controlForm()
+	})
+
+	// Edit titlename
+	$("body").on("keyup", "#tr_category_add input", function(e){
+		$('#cat_name').text($(this).val())
 	})
 
 
@@ -325,7 +335,7 @@ $(document).ready(function(){
 
 					// After
 					let div_after = $('.after_actif').removeClass('after_actif')
-					div_after.before("<div data-id='" + id + "' class='hide after_actif'> " + text + " </div>")
+					div_after.before("<div data-id='" + id + "' data-sign='" + $('#cat_tab').data('sign') + "'class='hide after_actif other_actif' title='Afficher cette catégorie'> " + text + " </div>")
 
 					div_after.slideUp(speed)
 					$('.after_actif').slideDown(speed)
@@ -356,7 +366,7 @@ $(document).ready(function(){
 
 					// Before
 					let div_before = $('.before_actif').removeClass('before_actif')
-					div_before.after("<div data-id='" + id + "' class='hide before_actif'> " + text + " </div>")
+					div_before.after("<div data-id='" + id + "' data-sign='" + $('#cat_tab').data('sign') + "'class='hide before_actif other_actif' title='Afficher cette catégorie'> " + text + " </div>")
 
 					div_before.slideUp(speed)
 					$('.before_actif').slideDown(speed)
@@ -396,7 +406,7 @@ $(document).ready(function(){
 			if (!tr_prev.hasClass('tr_category_after')){
 
 				// Move
-				tr.insertBefore(tr_prev)
+				tr.insertBefore(tr_prev).hide().show('slow')
 			}
 		}
 
@@ -407,7 +417,7 @@ $(document).ready(function(){
 			if (!tr_next.hasClass('tr_add')){
 
 				// Move
-				tr.insertAfter(tr_next)
+				tr.insertAfter(tr_next).hide().show('slow')
 			}
 		}
 
