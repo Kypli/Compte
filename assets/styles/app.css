@@ -48,6 +48,11 @@ body {
 .minWitdh40			{	min-width: 40px;				}
 .minWitdh50			{	min-width: 50px;				}
 
+.minHeight20		{	min-height: 20px;				}
+.minHeight30		{	min-height: 30px;				}
+.minHeight40		{	min-height: 40px;				}
+.minHeight50		{	min-height: 50px;				}
+
 .barre              {   text-decoration: line-through;  }
 .souligne           {   text-decoration: underline;     }
 .gras               {   font-weight: bold;              }

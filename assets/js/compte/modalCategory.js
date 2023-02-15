@@ -37,13 +37,19 @@ $(document).ready(function(){
 
 	// Cat chevron mouseover
 	$("body").on("mouseover", ".tr_category", function(e){
-		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').addClass('opacity_full').removeClass('opacity_low');
+		$(this)
+			.find('.fa-chevron-circle-up, .fa-chevron-circle-down, .delete_cat')
+			.addClass('opacity_full')
+			.removeClass('opacity_low');
 		cat_chevronToggle()
 	})
 
 	// Cat chevron mouseout
 	$("body").on("mouseout", ".tr_category", function(e){
-		$(this).find('.fa-chevron-circle-up, .fa-chevron-circle-down').addClass('opacity_low').removeClass('opacity_full');
+		$(this)
+			.find('.fa-chevron-circle-up, .fa-chevron-circle-down, .delete_cat')
+			.addClass('opacity_low')
+			.removeClass('opacity_full')
 	})
 
 	// Cat position up
@@ -56,14 +62,20 @@ $(document).ready(function(){
 		cat_posChange(false, $(this))
 	})
 
-	// Sc chevron mouseover
+	// Sc chevron/button mouseover
 	$("body").on("mouseover", ".tr_subcategories, .tr_subcategories_add", function(e){
-		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc').addClass('opacity_full').removeClass('opacity_low');
+		$(this)
+			.find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc')
+			.addClass('opacity_full')
+			.removeClass('opacity_low')
 	})
 
-	// Sc chevron mouseout
+	// Sc chevron/button mouseout
 	$("body").on("mouseout", ".tr_subcategories, .tr_subcategories_add", function(e){
-		$(this).find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc').addClass('opacity_low').removeClass('opacity_full');
+		$(this)
+			.find('.fa-chevron-up, .fa-chevron-down, .delete_sc, .not_delete_sc')
+			.addClass('opacity_low')
+			.removeClass('opacity_full')
 	})
 
 	// Sub-Cat position up
@@ -108,6 +120,13 @@ $(document).ready(function(){
 
 
 	/** Delete **/
+
+	// Delete Cat
+	$("body").on("click", ".delete_cat", function(e){
+		if (confirm('Êtes-vous certain de supprimer cette catégorie ? Attention, cette action est irréversible !')){
+			deleteCat($(this))
+		}
+	})
 
 	// Delete Sc
 	$("body").on("click", ".delete_sc", function(e){
@@ -578,6 +597,42 @@ $(document).ready(function(){
 
 
 	/** Delete **/
+
+	// Delete Sc
+	function deleteCat(button_del){
+
+		let
+			tr = button_del.parent().parent(),
+			input = tr.find('input'),
+			datas = {
+				compte_id: $('#datas').data('compteid'),
+				cat_id: input.prop('id').substr(4),
+				year: $('#datas').data('year'),
+			}
+		;
+
+		$.ajax({
+			type: "POST",
+			url: Routing.generate('compte_category_delete'),
+			timeout: 15000,
+			dataType: 'JSON',
+			data: { datas: datas },
+			// beforeSend: function(){
+
+			// },
+			success: function(response){
+				if (response.save == true){
+					console.log('ok')
+				}
+			},
+			error: function(error){
+				console.log('Erreur ajax: ' + error)
+			}
+		})
+
+		// Fait cliquer sur le bouton close
+		$('#modalCatClose').trigger('click');
+	}
 
 	// Delete Sc
 	function deleteSc(button_del){

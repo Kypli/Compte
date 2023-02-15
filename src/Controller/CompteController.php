@@ -15,6 +15,7 @@ use App\Repository\OperationRepository;
 use App\Repository\SubCategoryRepository;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -415,7 +416,7 @@ class CompteController extends AbstractController
 	 * @Route("/gestion/add/{month}/{year}/{daysInMonth}/{sign}", name="_gestion_add")
 	 * Ajax only
 	 */
-	public function gestionAdd($month, $year, $daysInMonth, $sign, Request $request): Response
+	public function gestion_add($month, $year, $daysInMonth, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -448,8 +449,14 @@ class CompteController extends AbstractController
 
 		$cat = $this->catr->find($cat_id);
 
+		$delete = $this->or->countOpeByCat($cat_id) == 0
+			? true
+			: false
+		;
+
 		$render = $this->render('compte/modal/category/table/_tbody.html.twig', [
 			'category' => $cat,
+			'delete' => $delete,
 			'categories_before' => $this->catr->mycategoriesBefore($compte->getId(), $sign, $cat->getPosition()),
 			'categories_after' => $this->catr->mycategoriesAfter($compte->getId(), $sign, $cat->getPosition()),
 		])->getContent();
@@ -464,7 +471,7 @@ class CompteController extends AbstractController
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	public function addCategory(Compte $compte, $sign, Request $request): Response
+	public function category_add(Compte $compte, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -484,47 +491,11 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/subcategory/{id}", name="_subcategory")
-	 * Récupère tr_subcategorie_back
-	 * Ajax only
-	 */
-	public function subcategory(SubCategory $sc, Request $request): Response
-	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		$render = $this->render('compte/modal/category/table/_tr_sc.html.twig', [
-			'sc' => $sc,
-		])->getContent();
-
-		return new JsonResponse([
-			'render' => $render,
-		]);
-	}
-
-	/**
-	 * @Route("/scategory/add/{addMod}", name="_subcategory_add")
-	 * Récupère tr_subcategories_add
-	 * Ajax only
-	 */
-	public function addSubCategory($addMod, Request $request): Response
-	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		$render = $this->render('compte/modal/category/table/_tr_sc_add.html.twig', ['addMod' => $addMod])->getContent();
-
-		return new JsonResponse([
-			'render' => $render,
-		]);
-	}
-
-	/**
-	 * @Route("/categorie/save/{id}/{year}", name="_category_save")
+	 * @Route("/category/save/{id}/{year}", name="_category_save")
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * Ajax only
 	 */
-	public function categorySave(Compte $compte, $year, Request $request): Response
+	public function category_save(Compte $compte, $year, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -599,6 +570,88 @@ class CompteController extends AbstractController
 	}
 
 	/**
+	 * @Route("/category/delete", name="_category_delete")
+	 * Delete category
+	 * Ajax only
+	 */
+	public function category_delete(Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		// Datas
+		$compte = $this->cr->find($request->request->get('datas')['compte_id']);
+		$cat = $this->catr->find($request->request->get('datas')['cat_id']);
+		$sign = $cat->isSign();
+		$year = $request->request->get('datas')['year'];
+
+		// Control Cat owner
+		$user = $this->getUser();
+		if (!$this->isGranted('ROLE_ADMIN') && !$user->hasCategory($user, $cat)){
+			return new JsonResponse(['save' => "Pas propriétaire de la categorie."]);
+		}
+
+		// Delete SubCategories
+		$scs = $cat->getSubCategories();
+		foreach($scs as $sc){
+
+			// Delete Operations
+			$ops = $sc->getOperations();
+			foreach($ops as $ope){
+				$this->or->remove($ope);
+			}
+
+			$this->scr->remove($sc);
+		}
+
+		// Delete Cat
+		$this->catr->remove($cat, true);
+
+		// Corrige les autres positions
+		$this->orderCatPosition($compte->getId(), $cat->getId(), $sign, $year, 0);
+
+		return new JsonResponse([
+			'save' => true,
+		]);
+	}
+
+	/**
+	 * @Route("/subcategory/{id}", name="_subcategory")
+	 * Récupère tr_subcategorie_back
+	 * Ajax only
+	 */
+	public function subcategory(SubCategory $sc, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/category/table/_tr_sc.html.twig', [
+			'sc' => $sc,
+		])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
+	 * @Route("/subcategory/add/{addMod}", name="_subcategory_add")
+	 * Récupère tr_subcategories_add
+	 * Ajax only
+	 */
+	public function subCategory_add($addMod, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		$render = $this->render('compte/modal/category/table/_tr_sc_add.html.twig', ['addMod' => $addMod])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+		]);
+	}
+
+	/**
 
 	 * Edit position categories from compte
 	 */
@@ -611,8 +664,6 @@ class CompteController extends AbstractController
 			$sign,
 			$year
 		);
-
-		dump($allPosAfterCatPos);
 
 		// Change positions
 		$i = 0;

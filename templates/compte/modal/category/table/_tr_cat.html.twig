@@ -10,11 +10,19 @@
 		/>
 	</td>
 	<td class="row minWitdh20 m-2">
-		<div class="col-3">
+		<div class="col-3 p-1">
 			<i id='td_chevron_cat_up' class="pointeur opacity_low fas fa-chevron-circle-up"></i>
 		</div>
-		<div class="col-2">
+		<div class="col-2 p-1">
 			<i id='td_chevron_cat_down' class="pointeur opacity_low fas fa-chevron-circle-down"></i>
 		</div>
 	</td>
+	{% if delete %}
+		<td colspan="3"></td>
+		<td class="row minWitdh50 m-2">
+			<button class='opacity_low btn btn-danger delete_cat' title="Supprimer cette catégorie">
+				Supprimer cette catégorie
+			</button>
+		</td>
+	{% endif %}
 </tr>

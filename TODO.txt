@@ -4,6 +4,7 @@ User
 	Preference
 		Affichage total (total / mois)
 		Affichage % du total
+		Autoriser la suppr de catégory si opérations ?
 
 Compte
 	Gestion (show)
@@ -21,6 +22,7 @@ Compte
 			Si ajout ope fait, suggerer date du jour et ne pas proposer > date du jour
 			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
 			Afficher 3 dernières opérations avec pop-up historique
+			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -31,6 +33,9 @@ Compte
 			Fermer sans sauvegarder
 			Sauvegarder et fermer (vert clair)
 			Bouton Autres actions
+				-> Dupliquer cette entrée
+					-> Proposer les autres mois et années
+				-> Associer cette entrée à une personne si multi-compte
 			Bouton supprimer en rouge avec croix
 			Alerte input vide en orange lors d'un ajout
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
@@ -40,9 +45,10 @@ Compte
 			bouton switch en gras si survol sans impacter les autres div
 
 		Modal Category / Sub-cat
-			Supprimer catégorie
-			Ne pas supprimer dernier sc
 			Faire move sc avec une transition
+			Passer d'une catégorie à une autre
+				-> Fleche pres du nom
+				-> Clic sur before/after
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

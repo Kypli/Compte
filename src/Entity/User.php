@@ -191,16 +191,6 @@ class User implements UserInterface
         return $this;
     }
 
-    public function hasSubCategory(User $user, SubCategory $sc): Bool
-    {
-        $compte = $sc->getCategory()->getCompte();
-        if ($compte->getUsers()->contains($user)){
-            return true;
-        }
-
-        return false;
-    }
-
     public function getProfil(): ?UserProfil
     {
         return $this->profil;
@@ -232,5 +222,26 @@ class User implements UserInterface
         $this->preferences = $preferences;
 
         return $this;
+    }
+
+    /* Function perso */
+    public function hasCategory(User $user, Category $cat): Bool
+    {
+        $compte = $cat->getCompte();
+        if ($compte->getUsers()->contains($user)){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function hasSubCategory(User $user, SubCategory $sc): Bool
+    {
+        $compte = $sc->getCategory()->getCompte();
+        if ($compte->getUsers()->contains($user)){
+            return true;
+        }
+
+        return false;
     }
 }

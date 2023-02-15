@@ -44,8 +44,8 @@ security:
             entry_point: form_login
 
             logout:
-                path: logout
-                target: login
+                path: /logout
+                target: /login
 
             login_throttling:
                 max_attempts: 5

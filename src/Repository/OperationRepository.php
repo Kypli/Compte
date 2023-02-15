@@ -133,4 +133,24 @@ class OperationRepository extends ServiceEntityRepository
 			->getArrayResult()
 		;
 	}
+
+	/**
+	 * Renvoie nb d'opérations par catégorie
+	 */
+	public function countOpeByCat($cat_id)
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.subcategory', 'sc')
+			->leftjoin('sc.category', 'cat')
+
+			->select('COUNT(x)')
+
+			->where('cat.id = :cat_id')
+
+			->setParameter('cat_id', $cat_id)
+
+			->getQuery()
+			->getSingleScalarResult()
+		;
+	}
 }
