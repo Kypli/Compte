@@ -705,6 +705,9 @@ $(document).ready(function(){
 
 		let	datas = []
 
+		// Compte_id, Year
+		datas.push({compte_id: $('#datas').data('compteid'), year: $('#datas').data('year')})
+
 		// Retire les add vides
 		$('#cat_tab .tr_subcategories_add').each(function(index, tr){
 			if ($(this).find('input').val() == ''){
@@ -736,14 +739,14 @@ $(document).ready(function(){
 			datas.push({
 				id: id,
 				libelle: $(this).find('input').val(),
-				type: 'sc',
+				type: 'sc',				
 				position: index + 1,
 			})
 		})
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_save', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
+			url: Routing.generate('compte_category_save'),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,

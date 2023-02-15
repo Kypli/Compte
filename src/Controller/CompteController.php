@@ -468,7 +468,7 @@ class CompteController extends AbstractController
 
 	/**
 	 * @Route("/category/{id}/{sign}", name="_category_add")
-	 * Récupère datas d'une catégorie
+	 * Renvoie le render d'une nouvelle catégorie
 	 * Ajax only
 	 */
 	public function category_add(Compte $compte, $sign, Request $request): Response
@@ -491,19 +491,24 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/category/save/{id}/{year}", name="_category_save")
+	 * @Route("/category/save", name="_category_save")
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * Ajax only
 	 */
-	public function category_save(Compte $compte, $year, Request $request): Response
+	public function category_save(Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$datas = $request->request->get('datas');
 
+		// Compte & year
+		$year = $datas[0]['year'];
+		$compte = $this->cr->find($datas[0]['compte_id']);
+		unset($datas[0]);
+
 		// Categorie
-		$datas_cat = $datas[0];
+		$datas_cat = $datas[1];
 		if ($datas_cat['type'] == 'cat'){
 
 			// Edit
@@ -535,7 +540,7 @@ class CompteController extends AbstractController
 			$this->orderCatPosition($compte->getId(), $cat->getId(), $datas_cat['sign'], $year,  $datas_cat['position']);
 
 		}
-		unset($datas[0]);
+		unset($datas[1]);
 
 		// Sub-catégories
 		foreach ($datas as $key => $datas_sc){
@@ -561,7 +566,7 @@ class CompteController extends AbstractController
 
 		// Delete SubCategories
 		foreach($scs as $key => $osef){
-			$this->scr->remove($this->scr->find($key));
+			$this->scr->remove($this->scr->find($key), true);
 		}
 
 		return new JsonResponse([
