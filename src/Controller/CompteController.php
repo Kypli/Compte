@@ -53,6 +53,10 @@ class CompteController extends AbstractController
 		$this->scr = $scr;
 	}
 
+	// ****************
+	// COMPTE
+	// ****************
+
 	/**
 	 * @Route("/", name="")
 	 */
@@ -86,6 +90,7 @@ class CompteController extends AbstractController
 
 	/**
 	 * @Route("/{id}", name="_show", methods={"GET"})
+	 * Montre un compte
 	 */
 	public function show(Compte $compte, Request $request): Response
 	{
@@ -148,6 +153,80 @@ class CompteController extends AbstractController
 
 			'solde' => $solde, // Solde du compte
 			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
+		]);
+	}
+
+	/**
+	 * @Route("/{id}/tables", name="_tables", methods={"POST"})
+	 * Renvoie le render des tables
+	 * Ajax only
+	 */
+	public function tables(Compte $compte, Request $request): Response
+	{
+		// Control request
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+
+		// Current Month
+		$date = new \Datetime('now');
+		$current_year = $date->format('Y');
+		$current_month = $date->format('n');
+
+		// Year
+		$year = (int) $request->query->get('year');
+		$year =
+			0 != $year &&
+			$year >= $this->navigation_min_year &&
+			$year <= $this->navigation_max_year
+				? $year
+				: date('Y')
+		;
+
+		// Solde
+		$solde = round(
+			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
+			2
+		);
+
+		// Opérations
+		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
+		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+
+		// Month
+		$months = [
+			1 => 'janvier',
+			2 => 'février',
+			3 => 'mars',
+			4 => 'avril',
+			5 => 'mai',
+			6 => 'juin',
+			7 => 'juillet',
+			8 => 'aout',
+			9 => 'septembre',
+			10 => 'octobre',
+			11 => 'novembre',
+			12 => 'décembre',
+		];
+
+		$render = $this->render('compte/table/_tables.html.twig', [
+			'compte' => $compte,
+
+			'year' => $year,
+			'months' => $months,
+
+			'user' => $this->getUser(),
+			'current_year' => $current_year,
+			'current_month' => $current_month,
+
+			'operations_pos' => $this->operations($operations_pos),
+			'operations_neg' => $this->operations($operations_neg, false),
+
+
+			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
+		])->getContent();
+
+		return new JsonResponse([
+			'render' => $render,
+			'solde' => $solde,
 		]);
 	}
 
@@ -267,7 +346,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
 	 */
-	public function edit(Request $request, Compte $compte): Response
+	public function edit(Compte $compte, Request $request): Response
 	{
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
@@ -287,7 +366,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}", name="_delete", methods={"POST"})
 	 */
-	public function delete(Request $request, Compte $compte): Response
+	public function delete(Compte $compte, Request $request): Response
 	{
 		if ($this->isCsrfTokenValid('delete'.$compte->getId(), $request->request->get('_token'))) {
 			$this->cr->remove($compte, true);
@@ -297,11 +376,11 @@ class CompteController extends AbstractController
 	}
 
 	// ****************
-	// MODAL GESTION OPERATIONS
+	// MODAL OPERATIONS
 	// ****************
 
 	/**
-	 * @Route("/gestion/{sc}/{year}/{month}/{sign}", name="_gestion")
+	 * @Route("/gestion/ope/{sc}/{year}/{month}/{sign}", name="_gestion", methods={"POST"})
 	 * Ajax only
 	 */
 	public function gestion(SubCategory $sc, $year, $month, $sign, Request $request): Response
@@ -320,7 +399,8 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/save/{sc}/{year}/{month}/{sign}", name="_gestion_save", methods={"GET", "POST"}, options={"expose"=true})
+	 * @Route("/gestion/ope/save/{sc}/{year}/{month}/{sign}", name="_gestion_save", methods={"POST"})
+	 * Sauvegarde les opérations d'une sc
 	 * Ajax only
 	 */
 	public function gestion_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
@@ -413,7 +493,8 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/add/{month}/{year}/{daysInMonth}/{sign}", name="_gestion_add")
+	 * @Route("/gestion/ope/add/{month}/{year}/{daysInMonth}/{sign}", name="_gestion_add", methods={"POST"})
+	 * Renvoie le render d'une nouvelle opération
 	 * Ajax only
 	 */
 	public function gestion_add($month, $year, $daysInMonth, $sign, Request $request): Response
@@ -421,7 +502,7 @@ class CompteController extends AbstractController
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/gestion/_add.html.twig', [
+		$render = $this->render('compte/modal/gestion/table/_add.html.twig', [
 			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
@@ -438,18 +519,16 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/category/{id}/{cat_id}/{sign}", name="_category")
+	 * @Route("/{id}/gestion/cat/{cat}/{sign}", name="_category", methods={"POST"})
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	public function category(Compte $compte, $cat_id, $sign, Request $request): Response
+	public function category(Compte $compte, Category $cat, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$cat = $this->catr->find($cat_id);
-
-		$delete = $this->or->countOpeByCat($cat_id) == 0
+		$delete = $this->or->countOpeByCat($cat->getId()) == 0
 			? true
 			: false
 		;
@@ -467,8 +546,9 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/category/{id}/{sign}", name="_category_add")
+	 * @Route("/{id}/gestion/caty/add/{sign}", name="_category_add", methods={"POST"})
 	 * Renvoie le render d'une nouvelle catégorie
+	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
 	public function category_add(Compte $compte, $sign, Request $request): Response
@@ -491,24 +571,21 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/category/save", name="_category_save")
+	 * @Route("/{id}/gestion/caty/save/{year}", name="_category_save", methods={"POST"})
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
+	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
-	public function category_save(Request $request): Response
+	public function category_save(Compte $compte, $year, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$datas = $request->request->get('datas');
 
-		// Compte & year
-		$year = $datas[0]['year'];
-		$compte = $this->cr->find($datas[0]['compte_id']);
-		unset($datas[0]);
-
 		// Categorie
-		$datas_cat = $datas[1];
+		$scs = [];
+		$datas_cat = $datas[0];
 		if ($datas_cat['type'] == 'cat'){
 
 			// Edit
@@ -524,7 +601,6 @@ class CompteController extends AbstractController
 					->setSign($datas_cat['sign'])
 					->setYear($year)
 				;
-				$scs = [];
 			}
 
 			// Commun Edit
@@ -540,7 +616,7 @@ class CompteController extends AbstractController
 			$this->orderCatPosition($compte->getId(), $cat->getId(), $datas_cat['sign'], $year,  $datas_cat['position']);
 
 		}
-		unset($datas[1]);
+		unset($datas[0]);
 
 		// Sub-catégories
 		foreach ($datas as $key => $datas_sc){
@@ -557,7 +633,7 @@ class CompteController extends AbstractController
 			}
 
 			$sc
-				->setPosition($key - 1)
+				->setPosition($key)
 				->setLibelle($datas_sc['libelle'])
 			;
 
@@ -575,20 +651,15 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/category/delete", name="_category_delete")
+	 * @Route("/{id}/gestion/caty/delete/{cat}", name="_category_delete", methods={"POST"})
 	 * Delete category
+	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
-	public function category_delete(Request $request): Response
+	public function category_delete(Compte $compte, Category $cat, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		// Datas
-		$compte = $this->cr->find($request->request->get('datas')['compte_id']);
-		$cat = $this->catr->find($request->request->get('datas')['cat_id']);
-		$sign = $cat->isSign();
-		$year = $request->request->get('datas')['year'];
 
 		// Control Cat owner
 		$user = $this->getUser();
@@ -613,7 +684,7 @@ class CompteController extends AbstractController
 		$this->catr->remove($cat, true);
 
 		// Corrige les autres positions
-		$this->orderCatPosition($compte->getId(), $cat->getId(), $sign, $year, 0);
+		$this->orderCatPosition($compte->getId(), $cat->getId(), $cat->isSign(), $cat->getYear(), 0);
 
 		return new JsonResponse([
 			'save' => true,
@@ -621,8 +692,8 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/subcategory/{id}", name="_subcategory")
-	 * Récupère tr_subcategorie_back
+	 * @Route("/gestion/cat/sc/{id}", name="_subcategory", methods={"POST"})
+	 * Récupère render de tr_subcategorie_back
 	 * Ajax only
 	 */
 	public function subcategory(SubCategory $sc, Request $request): Response
@@ -640,8 +711,8 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/subcategory/add/{addMod}", name="_subcategory_add")
-	 * Récupère tr_subcategories_add
+	 * @Route("/gestion/cat/sc/add/{addMod}", name="_subcategory_add", methods={"POST"})
+	 * Récupère render de tr_subcategories_add
 	 * Ajax only
 	 */
 	public function subCategory_add($addMod, Request $request): Response
@@ -657,7 +728,6 @@ class CompteController extends AbstractController
 	}
 
 	/**
-
 	 * Edit position categories from compte
 	 */
 	public function orderCatPosition($compte_id, $cat_id, $sign, $year, $pos)

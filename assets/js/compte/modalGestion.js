@@ -1,5 +1,6 @@
 // JS IMPORT
 import { ucFirst } from '../service/service.js';
+import { updateTable } from './compte.js';
 
 // CSS
 import '../../styles/compte/modalGestion.css';
@@ -234,7 +235,7 @@ $(document).ready(function(){
 		// addMod ON
 		if (etat){
 			$('.modal-footer').show()
-			$('#saveAdd, .retrait, #deleteAllAdd').prop('disabled', false).show()
+			$('#saveAdd, #deleteAllAdd').prop('disabled', false).show()
 			$('#edit, #saveEdit').prop('disabled', true).hide()
 			$('#close, #edit').prop('disabled', true).prop('title', 'Veuillez valider les changements avant de fermer la fenêtre.')
 
@@ -607,6 +608,7 @@ $(document).ready(function(){
 				if (response.save == true){
 					save_operations = response.operations
 				}
+				updateTable()
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)

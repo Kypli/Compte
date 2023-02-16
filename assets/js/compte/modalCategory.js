@@ -1,3 +1,6 @@
+// JS IMPORT
+import { updateTable } from './compte.js';
+
 // CSS
 import '../../styles/compte/modalCategory.css';
 
@@ -190,7 +193,8 @@ $(document).ready(function(){
 				spinner(false)
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 				addMod(false)
 				spinner(false)
 			}
@@ -202,7 +206,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category', { id: $('#datas').data('compteid'), cat_id: cat_id, sign: sign }),
+			url: Routing.generate('compte_category', { id: $('#datas').data('compteid'), cat: cat_id, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
 				$('#cat_name').text('')
@@ -216,7 +220,8 @@ $(document).ready(function(){
 				getInputDatas()
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 				spinner(false)
 			}
 		})
@@ -235,7 +240,8 @@ $(document).ready(function(){
 					: _addSc_disabled = response.render
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 			}
 		})
 	}
@@ -260,7 +266,8 @@ $(document).ready(function(){
 				div.remove()
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 			}
 		})
 	}
@@ -543,7 +550,6 @@ $(document).ready(function(){
 
 		let checkEditMod = false
 
-
 		/** Cat **/
 		let cat_input = $('.tr_category input')
 
@@ -556,7 +562,6 @@ $(document).ready(function(){
 		input_datas['pos_' + cat_input.prop('id')] == cat_input.data('pos')
 			? cat_input.removeClass('input_edit')
 			: checkEditMod = true && cat_input.addClass('input_edit')
-
 
 		/** Sc **/
 
@@ -614,19 +619,13 @@ $(document).ready(function(){
 		let
 			tr = button_del.parent().parent(),
 			input = tr.find('input'),
-			datas = {
-				compte_id: $('#datas').data('compteid'),
-				cat_id: input.prop('id').substr(4),
-				year: $('#datas').data('year'),
-			}
+			cat_id = input.prop('id').substr(4)
 		;
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_delete'),
+			url: Routing.generate('compte_category_delete', { id: $('#datas').data('compteid'), cat: cat_id }),
 			timeout: 15000,
-			dataType: 'JSON',
-			data: { datas: datas },
 			// beforeSend: function(){
 
 			// },
@@ -634,9 +633,11 @@ $(document).ready(function(){
 				if (response.save == true){
 					console.log('ok')
 				}
+				updateTable()
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 			}
 		})
 
@@ -715,9 +716,6 @@ $(document).ready(function(){
 
 		let	datas = []
 
-		// Compte_id, Year
-		datas.push({compte_id: $('#datas').data('compteid'), year: $('#datas').data('year')})
-
 		// Retire les add vides
 		$('#cat_tab .tr_subcategories_add').each(function(index, tr){
 			if ($(this).find('input').val() == ''){
@@ -756,7 +754,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_save'),
+			url: Routing.generate('compte_category_save', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,
@@ -767,9 +765,11 @@ $(document).ready(function(){
 				if (response.save == true){
 					console.log('ok')
 				}
+				updateTable()
 			},
 			error: function(error){
-				console.log('Erreur ajax: ' + error)
+				console.log('Erreur ajax:')
+				console.log(error)
 			}
 		})
 	}

@@ -1,0 +1,17 @@
+<div class='row m-1'>
+
+	{# TABLE + #}
+	<div class="col-12 mb-4">
+		{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true } %}
+	</div>
+
+	{# TABLE - #}
+	<div class="col-12 mb-5">
+		{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
+	</div>
+
+	{# SOLDE #}
+	<div class="col-12">
+		{{ include('compte/table/_soldes_mensuel_total.html.twig') }}
+	</div>
+</div>

@@ -1,4 +1,5 @@
-<table id="gestion_tab" class="m-1 p-1 mt-2">
+<div class="modal-body">
+	<table id="gestion_tab" class="m-1 p-1 mt-2">
 	<thead>
 		<tr>
 			<th colspan="6" class="th_actions">
@@ -24,21 +25,22 @@
 		data-scid="0"
 		data-type=""
 	>
-	<tr id='solde_tr_collabo' class="">
-		<td colspan="6"></td>
-	</tr>
-	<tr id='solde_tr' class="hide">
-		<td id="soldeReel" class="totalReel">0</td>
-		<td></td>
-		<td id="soldeAnticipe" class="totalAnticipe">0</td>
-		<td colspan="3"></td>
-	</tr>
-	</tbody>
-</table>
+		<tr id='solde_tr_collabo' class="">
+			<td colspan="6"></td>
+		</tr>
+		<tr id='solde_tr' class="hide">
+			<td id="soldeReel" class="totalReel">0</td>
+			<td></td>
+			<td id="soldeAnticipe" class="totalAnticipe">0</td>
+			<td colspan="3"></td>
+		</tr>
+		</tbody>
+	</table>
 
-<div class="spinner spinner-border text-primary mt-4 ml-2" role="status">
-	<span class="sr-only">Chargement...</span>
+	<div class="spinner spinner-border text-primary mt-4 ml-2" role="status">
+		<span class="sr-only">Chargement...</span>
+	</div>
+
+	{# SOLDE #}
+	<div id="solde" class="mt-4 col-1">0</div>
 </div>
-
-{# SOLDE #}
-<div id="solde" class="mt-4 col-1">0</div>
