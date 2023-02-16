@@ -55,7 +55,7 @@ $(document).ready(function(){
 	})
 
 	// Save edit
-	$("body").on("click", "#saveEdit", function(e){
+	$("body").on("click", "#modalGestionSaveClose", function(e){
 		editMod(false, true)
 	})
 
