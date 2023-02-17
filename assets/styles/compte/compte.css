@@ -115,8 +115,9 @@ table {
 	border-top: 3px #575756 solid!important;
 }
 
-.compteTable .edit td:hover:not(.counterEdit),
-.compteTable .edit td:hover:not(.counterEdit, .anticipe, .td_category_libelle, .td_subcategory_libelle) + td,
+.compteTable .edit td:hover:not(.counterEdit), /* tout les TD edit */
+.compteTable .edit .anticipe:hover:has(+ td), /* TD avant .anticipe */
+.compteTable .edit td:hover:not(.counterEdit, .anticipe, .td_category_libelle, .td_subcategory_libelle) + td, /* TD après edit */
 .jauni{
 	cursor: pointer;
 	text-decoration: underline;

@@ -23,26 +23,22 @@ Compte
 			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
 			Afficher 3 dernières opérations avec pop-up historique
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
+			Debug couleur jaune si edit table
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
-			Mettre à jour le tableau si sauvegarde
 			Colorier les changements avant sauvegarde (bleu)
 			Raccourci fleche gauche droite pour changer de mois
 			Raccourci select on click pour cat et subcat
-			Fermer sans sauvegarder
-			Sauvegarder et fermer (vert clair)
 			Bouton Autres actions
 				-> Dupliquer cette entrée
 					-> Proposer les autres mois et années
 				-> Associer cette entrée à une personne si multi-compte
-			Bouton supprimer en rouge avec croix
+			Supprimer en rouge avec croix
 			Alerte input vide en orange lors d'un ajout
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
-			Retirer bouton Ajouter et rajouter un symbole '+' au dessus des sous-total
-			Si téléphone, garder bouton d'édition global
+			Si foormat téléphone, garder bouton d'édition global
 			Si pc, retirer bouton d'édition global et dition au détail au survol de la souris
-			bouton switch en gras si survol sans impacter les autres div
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?

@@ -16,9 +16,9 @@
 		{% set anticipe = '' %}
 		{% set done =
 				current_year > year or (current_year == year and month < current_month)
-					? 'done'
+					? 'done '
 					: current_year == year and month == current_month
-						? 'current'
+						? 'current '
 						: ''
 		%}
 
@@ -29,13 +29,13 @@
 
 			{% if data['anticipe'] is defined and data['anticipe'] != 0 %}
 				{% set anticipe = data['anticipe'] %}
-				{% set blink = month < current_month ? 'blink_me' : '' %}
+				{% set blink = month < current_month ? 'blink_me ' : '' %}
 			{% endif %}
 		{% endif %}
 
 		{# REEL #}
 		<td
-			class="{{ done }}"
+			class="{{ done|trim }}"
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
 			data-anticipe="0"
@@ -47,7 +47,7 @@
 
 		{# ANTICIPE #}
 		<td
-			class='{{ done }} {{ blink }} anticipe'
+			class='{{ done }}{{ blink }}anticipe'
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
 			data-anticipe="1"

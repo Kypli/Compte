@@ -448,18 +448,32 @@ class CompteController extends AbstractController
 				}
 			}
 
+			dump($ope['number']);
+			dump($ope['number_anticipe']);
+
 			// Save ?
 			if (
-				// Add
-				$id == null ||
-
-				// Edit
+				// Nombre valide
 				(
-					$ope_ent->hasSubCategory($ope_ent, $sc) &&
 					(
-						($ope['number'] != null && $ope['number'] != 0 && $ope['number'] != '0') ||
-						($ope['number_anticipe'] != null && $ope['number_anticipe'] != 0 && $ope['number_anticipe'] != '0')
+						$ope['number'] != null &&
+						$ope['number'] != 0 &&
+						$ope['number'] != '0' &&
+						$ope['number'] != 'NaN'
+					) ||
+					(
+						$ope['number_anticipe'] != null &&
+						$ope['number_anticipe'] != 0 &&
+						$ope['number_anticipe'] != '0' &&
+						$ope['number_anticipe'] != 'NaN'
 					)
+				) &&
+				(
+					// Add
+					$id == null ||
+
+					// Edit
+					$ope_ent->hasSubCategory($ope_ent, $sc)
 				)
 			){
 				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);

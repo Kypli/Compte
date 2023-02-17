@@ -40,9 +40,8 @@ $(document).ready(function(){
 	// ON EVENTS
 	////////////
 
-	// Table edit
-	$(".anticipe").hover(
-		function(){ $(this).prev().addClass('jauni')},
+	$("body #tables .anticipe").hover(
+		function(){ $(this).prev().addClass('jauni') },
 		function(){	$(this).prev().removeClass('jauni')	}
 	)
 })

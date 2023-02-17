@@ -1,7 +1,8 @@
 
+/* TH */
 #gestion_tab th:not(.th_switch, .th_date, .th_comment, .th_actions){
-	width: 85px!important;
-	min-width: 85px!important;
+	width: 90px!important;
+	min-width: 90px!important;
 }
 #gestion_tab .th_switch {
 	width: 30px!important;
@@ -9,8 +10,8 @@
 }
 #gestion_tab .th_date {
 	padding-left: 20px!important;
-	width: 160px!important;
-	min-width: 160px!important;
+	width: 130px!important;
+	min-width: 130px!important;
 	padding-left: 20px!important;
 }
 #gestion_tab .th_comment {
@@ -22,12 +23,14 @@
 	min-width: 140px!important;
 }
 
+/* TD COLLABO */
 #solde_tr_collabo td {
 	height: 25px;
 	max-height: 35px;
 }
 
-#gestion_tab .inputNumber, .inputAnticipe {
+/* INPUT */
+#gestion_tab .inputNumber, #gestion_tab .inputAnticipe {
 	width: 85px!important;
 	max-width: 85px!important;
 }
@@ -48,9 +51,10 @@
 .switch {
 	cursor: pointer;
 	max-width: 25px!important;
-	margin-right: 10px!important;
+	margin-right: 8px!important;
 }
 
+/* ALERTE */
 .alerte {
 	border: 2px red solid!important;
 }
@@ -62,6 +66,23 @@
 	border-color: blue;
 }
 
+/* OPTIONS */
+.options {
+	border: 2px grey solid!important;
+	background-color: #E8E8E8;
+}
+.options .todo {
+	color: grey;
+	font-style: italic; 
+}
+.options li:not(.options_disabled){
+	cursor: pointer;
+}
+.options li:not(.options_disabled):hover {
+	text-decoration: underline;
+}
+
+/* SOLDES */
 .totalReel {
 	background-color: #E6E6E6;
 	padding-left: 5px;
