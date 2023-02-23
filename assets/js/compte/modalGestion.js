@@ -86,14 +86,14 @@ $(document).ready(function(){
 		toggleInputNumberAnticipe($(this).parent('td').parent('tr'))
 	})
 
-	// divToInput
+	// Toggle divToInput
 	$("body").on("click", ".td_number, .td_anticipe, .td_switch, .td_date, .td_comment", function(e){
-		tr_toggleInputDiv($(this).parent())
+		toggleInputDiv($(this).parent())
 	})
 
-	// inputToDiv
+	// Toggle inputToDiv
 	$("body").on("click", ".noForm", function(e){
-		tr_toggleInputDiv($(this).parent().parent().parent().parent(), false)
+		toggleInputDiv($(this).parent().parent().parent().parent(), false)
 	})
 
 
@@ -379,7 +379,7 @@ $(document).ready(function(){
 		calculSolde()
 	}
 
-	function tr_toggleInputDiv(tr, divToInput = true){
+	function toggleInputDiv(tr, divToInput = true){
 
 		// Show
 		if (divToInput){
@@ -628,10 +628,10 @@ $(document).ready(function(){
 			let
 				id_array = value.id.split('_'),
 				id = id_array[2] ? id_array[2] : null,
-				number = $(this).find('.inputNumber').val() == undefined ? null : parseFloat($(this).find('.inputNumber').val()).toFixed(2),
-				number_anticipe = $(this).find('.inputAnticipe').val() == undefined ? null : parseFloat($(this).find('.inputAnticipe').val()).toFixed(2),
-				day = $(this).find('.inputDay').val() == undefined ? null : $(this).find('.inputDay').val(),
-				comment = $(this).find('.inputComment').val() == undefined ? null : $(this).find('.inputComment').val()
+				number = $(this).find('.inputNumber').val() == undefined ? $(this).find('.td_number').text() : parseFloat($(this).find('.inputNumber').val()).toFixed(2),
+				number_anticipe = $(this).find('.inputAnticipe').val() == undefined ? $(this).find('.td_anticipe').text() : parseFloat($(this).find('.inputAnticipe').val()).toFixed(2),
+				day = $(this).find('.inputDay').val() == undefined ? $(this).find('.td_date').text().substring(0, 2) : $(this).find('.inputDay').val(),
+				comment = $(this).find('.inputComment').val() == undefined ? $(this).find('.td_comment').text() : $(this).find('.inputComment').val()
 			;
 
 			if (number != null || number_anticipe != null){

@@ -13,6 +13,10 @@ Compte
 			Propose de fusionner les tableaux +/-
 			Proposer de retirer les sub-catégorie
 			Tout les élements peuvent être caché dans les préférences
+			A venir en plus clair
+			Tableau mois en cours plus distingué des autres
+			Solde mensuel + cumulé possible de le mettre en haut
+			Rajout solde restant à la fin du mois pour le mois en cours
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
@@ -43,10 +47,9 @@ Compte
 			Supprimer en rouge avec croix
 			Alerte input vide en orange lors d'un ajout
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
-			Si foormat téléphone, garder bouton d'édition global
-			Si pc, retirer bouton d'édition global et dition au détail au survol de la souris
-			Bug click input comment sans focus
-			Ajout catégorie focus libelle
+			Case Total final, rajout texte total + centrer la case
+			Si aucune opérations, add-ope automatique
+
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?

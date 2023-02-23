@@ -448,9 +448,6 @@ class CompteController extends AbstractController
 				}
 			}
 
-			dump($ope['number']);
-			dump($ope['number_anticipe']);
-
 			// Save ?
 			if (
 				// Nombre valide
@@ -459,12 +456,14 @@ class CompteController extends AbstractController
 						$ope['number'] != null &&
 						$ope['number'] != 0 &&
 						$ope['number'] != '0' &&
+						$ope['number'] != '' &&
 						$ope['number'] != 'NaN'
 					) ||
 					(
 						$ope['number_anticipe'] != null &&
 						$ope['number_anticipe'] != 0 &&
 						$ope['number_anticipe'] != '0' &&
+						$ope['number_anticipe'] != '' &&
 						$ope['number_anticipe'] != 'NaN'
 					)
 				) &&
@@ -477,13 +476,23 @@ class CompteController extends AbstractController
 				)
 			){
 				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
-				$number = $ope['number'] == null || $ope['number'] == 0 || $ope['number'] == '0'
-					? (float) $ope['number_anticipe']
-					: (float) $ope['number']
+				$number = 
+					$ope['number'] == null ||
+					$ope['number'] == 0 ||
+					$ope['number'] == '0' ||
+					$ope['number'] == '' ||
+					$ope['number'] == 'Nan'
+						? (float) $ope['number_anticipe']
+						: (float) $ope['number']
 				;
-				$anticipe = $ope['number'] == null || $ope['number'] == 0 || $ope['number'] == '0'
-					? true
-					: false
+				$anticipe =
+					$ope['number'] == null ||
+					$ope['number'] == 0 ||
+					$ope['number'] == '0' ||
+					$ope['number'] == '' ||
+					$ope['number'] == 'Nan'
+						? true
+						: false
 				;
 				$ope_ent
 					->setNumber($number)

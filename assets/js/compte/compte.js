@@ -40,8 +40,19 @@ $(document).ready(function(){
 	// ON EVENTS
 	////////////
 
-	$("body #tables .anticipe").hover(
+	// Td anticipe jauni
+	$("body .anticipe").hover(
 		function(){ $(this).prev().addClass('jauni') },
 		function(){	$(this).prev().removeClass('jauni')	}
 	)
+
+	// Td anticipe jauni après reload tbody
+	$("body").on("mouseover", ".anticipe", function(e){
+
+		$(this).prev().addClass('jauni')
+		$(this).hover(
+			null,
+			function(){	$(this).prev().removeClass('jauni')	}
+		)
+	})
 })
