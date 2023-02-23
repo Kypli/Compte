@@ -9,6 +9,11 @@ User
 Compte
 	Gestion (show)
 
+		Interface
+			Propose de fusionner les tableaux +/-
+			Proposer de retirer les sub-catégorie
+			Tout les élements peuvent être caché dans les préférences
+
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Colorier bordure en jaune de la zone éditable
@@ -24,6 +29,7 @@ Compte
 			Afficher 3 dernières opérations avec pop-up historique
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
 			Debug couleur jaune si edit table
+			(+)/(-) Rajouter revenue/dépense
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -39,9 +45,12 @@ Compte
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
 			Si foormat téléphone, garder bouton d'édition global
 			Si pc, retirer bouton d'édition global et dition au détail au survol de la souris
+			Bug click input comment sans focus
+			Ajout catégorie focus libelle
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?
+			Si pas de sous catégorie, en créer une avec le nom de la catégorie
 
 Tableau de bord
 	- Afficher Résumé de tout les comptes avec lien

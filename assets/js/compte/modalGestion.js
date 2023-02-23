@@ -55,7 +55,7 @@ $(document).ready(function(){
 
 	// Retrait (delete add)
 	$("body").on("click", ".inputRetrait", function(e){
-		$(this).parent().parent().parent().parent('.listeAdd').remove()
+		$(this).parent().parent().parent().parent('.tr_add').remove()
 		calculSolde()
 	})
 
@@ -69,12 +69,13 @@ $(document).ready(function(){
 
 	// Cancel edit
 	$("body").on("click", "#cancel_gestion", function(e){
+		editMod(false)
 		show(
 			save_operations,
 			$('#gestion_tab tbody').data('month'),
 			$('#gestion_tab tbody').data('year'),
 			$('#gestion_tab tbody').data('daysinmonth')
-		)		
+		)
 	})
 
 
@@ -82,7 +83,17 @@ $(document).ready(function(){
 
 	// Switch
 	$("body").on("click", ".switch", function(e){
-		toSwitch($(this).parent('td').parent('tr'))
+		toggleInputNumberAnticipe($(this).parent('td').parent('tr'))
+	})
+
+	// divToInput
+	$("body").on("click", ".td_number, .td_anticipe, .td_switch, .td_date, .td_comment", function(e){
+		tr_toggleInputDiv($(this).parent())
+	})
+
+	// inputToDiv
+	$("body").on("click", ".noForm", function(e){
+		tr_toggleInputDiv($(this).parent().parent().parent().parent(), false)
 	})
 
 
@@ -117,6 +128,7 @@ $(document).ready(function(){
 			url: Routing.generate('compte_gestion', { sc: sc_id, year: year, month: month, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
+				editMod(false)
 				meta1(year, months[month])
 				spinner(true)
 			},
@@ -133,6 +145,7 @@ $(document).ready(function(){
 			}
 		})
 	}
+
 	function getInputAdd(month, year, daysInMonth, sign){
 
 		$.ajax({
@@ -188,8 +201,6 @@ $(document).ready(function(){
 
 	function show(operations, month, year, daysInMonth, sc_id, sign){
 
-		editMod(false)
-
 		save_operations = operations
 
 		// UPDATE TBODY
@@ -216,7 +227,7 @@ $(document).ready(function(){
 			month = item.month < 10 ? '0' + item.month : item.month
 
 			tr =
-				"<tr id='ope_id_" + item.id + "'>" +
+				"<tr id='ope_id_" + item.id + "' class='tr_ope'>" +
 					"<td class='td_number'>" + (item.anticipe ? '' : item.number) + "</td>" +
 					"<td class='td_switch'>" +
 						"<span class='switch hide'><i class='fa-solid fa-repeat'></i></span>" +
@@ -226,7 +237,7 @@ $(document).ready(function(){
 					"</td>" +
 					"<td class='td_date p-1'>" + day + '/' + month + '/' + item.year + "</td>" +
 					"<td class='td_comment p-1'>" + ucFirst(item.comment) + "</td>" +
-					"<td class='th_actions'>" +
+					"<td class='hide th_actions'>" +
 						"<div class='btn-group'>" +
 							"<button " +
 								"type='button'" +
@@ -239,9 +250,10 @@ $(document).ready(function(){
 								"<span class='caret'></span>" +
 							"</button>" +
 							"<ul class='dropdown-menu options p-1'>" +
-								"<li class='options_disabled todo' title='Fonctionnalité à venir'>Dupliquer</li>" +
-								"<li class='options_disabled todo' title='Fonctionnalité à venir'>Attribuer</li>" +
-								"<li class='options_disabled'>...</li>" +
+								"<li class='invalid' title='Fonctionnalité à venir'>Dupliquer</li>" +
+								"<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>" +
+								"<li class='noForm'>Retire mode édition</li>" +
+								"<li class='invalid'>...</li>" +
 								"<li><hr></li>" +
 								"<li class='delete' data-opeid='" + item.id + "'>Supprimer</li>" +
 							"</ul>" +
@@ -279,11 +291,11 @@ $(document).ready(function(){
 		
 			// Édition de toutes les opérations
 			if (fullEditMod){
-				$('.delete, .switch').not('.listeAdd .switch').prop('disabled', false).show()
+				$('.delete, .switch, .th_actions').not('.tr_add .switch').prop('disabled', false).show()
 				$(".td_number").each(function(index, value){
 
 					// Ne pas modifier les input issue d'un ajout
-					if (!$(this).parent().hasClass('listeAdd')){
+					if (!$(this).parent().hasClass('tr_add')){
 
 						let number = $(this).text()
 						if (number != ''){
@@ -297,7 +309,7 @@ $(document).ready(function(){
 
 
 					// Ne pas modifier les input issue d'un ajout
-					if (!$(this).parent().hasClass('listeAdd')){
+					if (!$(this).parent().hasClass('tr_add')){
 						let number = $(this).text()
 						if (number != ''){
 							$(this).empty()
@@ -325,53 +337,28 @@ $(document).ready(function(){
 					$(this).append(input)
 				})
 				$(".td_comment").each(function(index, value){
-				let text = $(this).text()
-				$(this).empty()
-				let input = "<input class='inputComment' type='text' value='" + text + "' />"
-				$(this).append(input)
-			})
+					let text = $(this).text()
+					$(this).empty()
+					let input = "<input class='inputComment' type='text' value='" + text + "' />"
+					$(this).append(input)
+				})
 			}
 
 		// editMod OFF
 		} else {
 
-			$('.listeAdd').remove()
+			$('.tr_add').remove()
 			$('#modalGestionEdit').prop('disabled', false)
 			$('#modalGestionSaveClose, .delete').prop('disabled', true).hide()
 			$('#saveAdd, .delete, #cancel_gestion, .inputRetrait').prop('disabled', true).hide()
 			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
 			$('.modal-footer').hide()
 			calculSolde()
-
-			// $('.switch').hide()
-			// $(".listeAdd").each(function(index, value){
-
-			// 	let
-			// 		inputNumber = $(this).find('.inputNumber'),
-			// 		inputAnticipe = $(this).find('.inputAnticipe'),
-			// 		inputNumberVal = inputNumber.val() == 0 ? '' : correctNumber(inputNumber.val()),
-			// 		inputAnticipeVal = inputAnticipe.val() == 0 ? '' : correctNumber(inputAnticipe.val()),
-			// 		inputDay = $(this).find('.inputDay'),
-			// 		inputComment = $(this).find('.inputComment'),
-			// 		day = inputDay.val()
-			// 	;
-
-			// 	inputNumber.after(inputNumberVal).remove()
-			// 	inputAnticipe.after(inputAnticipeVal).remove()
-			// 	inputDay.after(day < 10 ? '0'+ day : day).remove()
-			// 	inputComment.after(inputComment.val()).remove()
-			// })
-
-			// show(
-			// 	save_operations,
-			// 	$('#gestion_tab tbody').data('month'),
-			// 	$('#gestion_tab tbody').data('year'),
-			// 	$('#gestion_tab tbody').data('daysinmonth')
-			// )
 		}
 	}
 
-	function toSwitch(tr){
+	// Toggle input Number <-> Anticipe
+	function toggleInputNumberAnticipe(tr){
 		let
 			input = tr.find('input'),
 			val = input.val(),
@@ -392,6 +379,93 @@ $(document).ready(function(){
 		calculSolde()
 	}
 
+	function tr_toggleInputDiv(tr, divToInput = true){
+
+		// Show
+		if (divToInput){
+
+			// Ne pas modifier si issue d'un ajout
+			if ($(this).parent().hasClass('tr_add')){ return false }
+
+			// Déja visible $(this).parent()
+			if (tr.find('.inputComment').length > 0){ return false }
+
+			editMod(true)
+
+			let 
+				daysInMonth = $('#gestion_tab tbody').data('daysinmonth'),
+
+				td_number = tr.find('.td_number'),
+				td_anticipe = tr.find('.td_anticipe'),
+				td_date = tr.find('.td_date'),
+				td_comment = tr.find('.td_comment'),
+				td_action_noForm = tr.find('.noForm'),
+
+				number = td_number.text(),
+				anticipe = td_anticipe.text(),
+				date = td_date.text().split('/'),
+				comment = td_comment.text(),
+
+				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
+				input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />",
+				input_date = "<select class='inputDay'/>",
+				input_comment = "<input class='inputComment' type='text' value='" + comment + "' />"
+			;
+
+
+			// Switch + Actions
+			tr.find('.switch, .th_actions').prop('disabled', false).show()
+
+			// Number
+			if (number != ''){ td_number.empty().append(input_number) }
+
+			// Anticipe
+			if (anticipe != ''){ td_anticipe.empty().append(input_anticipe) }
+
+			// Date
+			for (var i = 1; i <= daysInMonth; i++){
+
+				let loopFirst = i == date[0]
+					? 'selected'
+					: ''
+
+				input_date = input_date + "<option value='" + i + "' " + loopFirst + ">" + i + "</option>"
+			}
+			input_date = input_date + "</select>/"+ date[1] + "/" + date[2]
+			td_date.empty().append(input_date)
+
+			// Comment
+			td_comment.empty().append(input_comment)
+
+		// Hide
+		} else {
+
+			// Déja invisible
+			if ($(this).hasClass('inputComment')){ return false }
+
+			tr.find('.switch, .th_actions').prop('disabled', true).hide()
+
+			let
+				inputNumber = tr.find('.inputNumber'),
+				inputAnticipe = tr.find('.inputAnticipe'),
+				inputNumberVal = inputNumber.val() == 0 ? '' : correctNumber(inputNumber.val()),
+				inputAnticipeVal = inputAnticipe.val() == 0 ? '' : correctNumber(inputAnticipe.val()),
+				inputDay = tr.find('.inputDay'),
+				inputComment = tr.find('.inputComment'),
+				day = inputDay.val(),
+				td_action_noForm = tr.find('.noForm')
+			;
+
+			inputNumber.after(inputNumberVal).remove()
+			inputAnticipe.after(inputAnticipeVal).remove()
+			inputDay.after(day < 10 ? '0'+ day : day).remove()
+			inputComment.after(inputComment.val()).remove()
+
+			// Plus d'édition
+			if ($('#gestion_tab').find('.inputComment').length == 0){ editMod(false) }
+		}
+	}
+
 
 	/** Control **/
 
@@ -409,7 +483,7 @@ $(document).ready(function(){
 				input_anticipe_val = input_anticipe.val()
 			;
 
-			// Input existant
+			// 2 Input existants
 			if (input_number_val != undefined && input_anticipe_val != undefined){
 
 				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
@@ -540,34 +614,6 @@ $(document).ready(function(){
 	/** Sauvegarde **/
 
 	function sauvegarde(){
-
-		// Save
-		// if (save){
-
-		// 	if (controlGestion()){
-
-		// 		sauvegarde()
-		// 		editModOff()
-
-		// 		$('.switch').hide()
-		// 		$(".inputNumber").each(function(index, value){
-		// 			$(this).parent('.td_number').append(correctNumber($(this).val()))
-		// 			$(this).remove()
-		// 		})
-		// 		$(".inputAnticipe").each(function(index, value){
-		// 			$(this).parent('.td_anticipe').append(correctNumber($(this).val()))
-		// 			$(this).remove()
-		// 		})
-		// 		$(".inputDay").each(function(index, value){
-		// 			let day = $(this).val()
-		// 			$(this).after(day < 10 ? '0'+ day : day)
-		// 			$(this).remove()
-		// 		})
-		// 		$(".inputComment").each(function(index, value){
-		// 			$(this).parent('.td_comment').append($(this).val())
-		// 			$(this).remove()
-		// 		})
-		// }
 
 		let
 			datas = [],

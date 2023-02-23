@@ -71,14 +71,14 @@
 	border: 2px grey solid!important;
 	background-color: #E8E8E8;
 }
-.options .todo {
+.options .invalid {
 	color: grey;
 	font-style: italic; 
 }
-.options li:not(.options_disabled){
+.options li:not(.invalid){
 	cursor: pointer;
 }
-.options li:not(.options_disabled):hover {
+.options li:not(.invalid):hover {
 	text-decoration: underline;
 }
 
