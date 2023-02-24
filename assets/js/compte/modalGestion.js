@@ -41,7 +41,8 @@ $(document).ready(function(){
 
 	// EditMod
 	$("body").on("click", "#modalGestionEdit", function(e){
-		editMod(true, true)
+		editMod(true)
+		fullEditMod()
 		$(this).prop('disabled', true).hide()
 	})
 
@@ -57,6 +58,11 @@ $(document).ready(function(){
 	$("body").on("click", ".inputRetrait", function(e){
 		$(this).parent().parent().parent().parent('.tr_add').remove()
 		calculSolde()
+
+		// Plus d'édition
+		if ($('#gestion_tab').find('.inputComment').length == 0 && $('#gestion_tab').find('.tr_add').length == 0){
+			editMod(false)
+		}
 	})
 
 	// Delete
@@ -93,7 +99,9 @@ $(document).ready(function(){
 
 	// Toggle inputToDiv
 	$("body").on("click", ".noForm", function(e){
-		toggleInputDiv($(this).parent().parent().parent().parent(), false)
+		if (!$(this).hasClass('invalid')){
+			toggleInputDiv($(this).parent().parent().parent().parent(), false)
+		}
 	})
 
 
@@ -170,7 +178,7 @@ $(document).ready(function(){
 		}
 	}
 
-	// Text header + Clean body
+	// Clean Text header + body
 	function meta1(year, month){
 
 		// HEAD DATE
@@ -237,8 +245,8 @@ $(document).ready(function(){
 					"</td>" +
 					"<td class='td_date p-1'>" + day + '/' + month + '/' + item.year + "</td>" +
 					"<td class='td_comment p-1'>" + ucFirst(item.comment) + "</td>" +
-					"<td class='hide th_actions'>" +
-						"<div class='btn-group'>" +
+					"<td class='td_actions'>" +
+						"<div class='hide btn-group'>" +
 							"<button " +
 								"type='button'" +
 								"class='btn btn-default dropdown-toggle'" +
@@ -252,7 +260,7 @@ $(document).ready(function(){
 							"<ul class='dropdown-menu options p-1'>" +
 								"<li class='invalid' title='Fonctionnalité à venir'>Dupliquer</li>" +
 								"<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>" +
-								"<li class='noForm'>Retire mode édition</li>" +
+								"<li class='invalid noForm'>Retire mode édition</li>" +
 								"<li class='invalid'>...</li>" +
 								"<li><hr></li>" +
 								"<li class='delete' data-opeid='" + item.id + "'>Supprimer</li>" +
@@ -275,7 +283,7 @@ $(document).ready(function(){
 	/** Édition **/
 
 	// Mode édition
-	function editMod(etat, fullEditMod = false){
+	function editMod(etat){
 
 		let
 			daysInMonth = $('#gestion_tab tbody').data('daysinmonth'),
@@ -288,61 +296,6 @@ $(document).ready(function(){
 
 			$('.modal-footer').show()
 			$('#modalGestionSaveClose, #cancel_gestion').prop('disabled', false).show()
-		
-			// Édition de toutes les opérations
-			if (fullEditMod){
-				$('.delete, .switch, .th_actions').not('.tr_add .switch').prop('disabled', false).show()
-				$(".td_number").each(function(index, value){
-
-					// Ne pas modifier les input issue d'un ajout
-					if (!$(this).parent().hasClass('tr_add')){
-
-						let number = $(this).text()
-						if (number != ''){
-							$(this).empty()
-							let input = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />"
-							$(this).append(input)
-						}
-					}
-				})
-				$(".td_anticipe").each(function(index, value){
-
-
-					// Ne pas modifier les input issue d'un ajout
-					if (!$(this).parent().hasClass('tr_add')){
-						let number = $(this).text()
-						if (number != ''){
-							$(this).empty()
-							let input = "<input class='inputAnticipe' type='number' step='0.01' value='" + number + "' min='0' />"
-							$(this).append(input)
-						}
-					}
-				})
-				$(".td_date").each(function(index, value){
-					let date = $(this).text().split('/')
-					$(this).empty()
-					let input = "<select class='inputDay'/>"
-
-						for (var i = 1; i <= daysInMonth; i++) {
-
-							let loopFirst = i == date[0]
-								? 'selected'
-								: ''
-
-							input = input + "<option value='" + i + "' " + loopFirst + ">" + i + "</option>"
-						}
-
-					input = input + "</select>/"+ date[1] + "/" + date[2]
-
-					$(this).append(input)
-				})
-				$(".td_comment").each(function(index, value){
-					let text = $(this).text()
-					$(this).empty()
-					let input = "<input class='inputComment' type='text' value='" + text + "' />"
-					$(this).append(input)
-				})
-			}
 
 		// editMod OFF
 		} else {
@@ -379,6 +332,7 @@ $(document).ready(function(){
 		calculSolde()
 	}
 
+	// Toggle form <-> noForm
 	function toggleInputDiv(tr, divToInput = true){
 
 		// Show
@@ -387,7 +341,7 @@ $(document).ready(function(){
 			// Ne pas modifier si issue d'un ajout
 			if ($(this).parent().hasClass('tr_add')){ return false }
 
-			// Déja visible $(this).parent()
+			// Déja visible
 			if (tr.find('.inputComment').length > 0){ return false }
 
 			editMod(true)
@@ -399,12 +353,11 @@ $(document).ready(function(){
 				td_anticipe = tr.find('.td_anticipe'),
 				td_date = tr.find('.td_date'),
 				td_comment = tr.find('.td_comment'),
-				td_action_noForm = tr.find('.noForm'),
 
-				number = td_number.text(),
-				anticipe = td_anticipe.text(),
+				number = td_number.text().trim(),
+				anticipe = td_anticipe.text().trim(),
 				date = td_date.text().split('/'),
-				comment = td_comment.text(),
+				comment = td_comment.text().trim(),
 
 				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
 				input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />",
@@ -412,9 +365,11 @@ $(document).ready(function(){
 				input_comment = "<input class='inputComment' type='text' value='" + comment + "' />"
 			;
 
-
 			// Switch + Actions
-			tr.find('.switch, .th_actions').prop('disabled', false).show()
+			tr.find('.switch, .btn-group').prop('disabled', false).show()
+
+			// Noform
+			tr.find('.btn-group .noForm').removeClass('invalid')
 
 			// Number
 			if (number != ''){ td_number.empty().append(input_number) }
@@ -443,7 +398,7 @@ $(document).ready(function(){
 			// Déja invisible
 			if ($(this).hasClass('inputComment')){ return false }
 
-			tr.find('.switch, .th_actions').prop('disabled', true).hide()
+			tr.find('.switch, .btn-group').prop('disabled', true).hide()
 
 			let
 				inputNumber = tr.find('.inputNumber'),
@@ -452,8 +407,7 @@ $(document).ready(function(){
 				inputAnticipeVal = inputAnticipe.val() == 0 ? '' : correctNumber(inputAnticipe.val()),
 				inputDay = tr.find('.inputDay'),
 				inputComment = tr.find('.inputComment'),
-				day = inputDay.val(),
-				td_action_noForm = tr.find('.noForm')
+				day = inputDay.val()
 			;
 
 			inputNumber.after(inputNumberVal).remove()
@@ -461,9 +415,18 @@ $(document).ready(function(){
 			inputDay.after(day < 10 ? '0'+ day : day).remove()
 			inputComment.after(inputComment.val()).remove()
 
-			// Plus d'édition
-			if ($('#gestion_tab').find('.inputComment').length == 0){ editMod(false) }
+			// Plus d'édition si plus de formulaire et pas de tr_add
+			if ($('#gestion_tab').find('.inputComment').length == 0 && !tr.hasClass('tr_add')){
+				editMod(false)
+			}
 		}
+	}
+
+	// Form for all
+	function fullEditMod(){
+		$(".tr_ope, .tr_add").each(function(index, value){
+			toggleInputDiv($(this))
+		})
 	}
 
 
@@ -509,6 +472,7 @@ $(document).ready(function(){
 				// 1 rempli et 1 vide
 				} else {
 					switch_icon.show()
+					$(this).find('.noForm').removeClass('invalid')
 					input_number_valid
 						? input_anticipe.remove() && input_number.removeClass('alerte').removeClass('alerte-doublon')
 						: input_number.remove() && input_anticipe.removeClass('alerte').removeClass('alerte-doublon')
@@ -553,6 +517,7 @@ $(document).ready(function(){
 		return control
 	}
 	
+	// Mise à jour du solde
 	function calculSolde(){
 
 		let
@@ -604,6 +569,7 @@ $(document).ready(function(){
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
+	// Renvoie un nombre avec 2 chiffres après la virgule
 	function correctNumber(number){
 		return parseFloat(number) % 1 == 0
 			? parseFloat(number)
