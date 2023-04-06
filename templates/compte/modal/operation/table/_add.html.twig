@@ -3,7 +3,7 @@
 		<input
 			class='inputNumber'
 			type='number'
-			step="0.01"
+			step="1"
 			pattern="^\d*(\.\d{0,2})?$"
 			value=''
 			placeholder='0'
@@ -17,7 +17,7 @@
 		<input
 			class='inputAnticipe'
 			type='number'
-			step='0.01'
+			step='1'
 			pattern='^\d*(\.\d{0,2})?$'
 			value=''
 			placeholder='0'
@@ -27,7 +27,7 @@
 	<td class='td_date p-1'>
 		<select class='inputDay'>
 			{% for i in 1..daysInMonth %}
-				<option value='{{ i }}' {{ loop.first ? 'selected' }}>{{ i }}</option>
+				<option value='{{ i }}' {{ loop.index == day ? 'selected' }}>{{ i }}</option>
 			{% endfor %}
 		</select>/<span>{{ month < 10 ? '0' ~ month : month }}</span>/<span>{{ year }}</span>
 	</td>

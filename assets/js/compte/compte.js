@@ -1,5 +1,5 @@
 // JS
-import './modalGestion.js';
+import './modalOperation.js';
 import './modalCategory.js';
 
 // CSS

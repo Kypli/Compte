@@ -53,7 +53,7 @@ table {
 .col_end_top_solde {
 	width: 210px!important;
 	min-width: 210px!important;
-	min-width: 210px!important;
+	border-radius: 60% 60% 0% 0%;
 }
 
 /* TR */
@@ -62,6 +62,9 @@ table {
 }
 .tr_operation_first td:nth-child(2) {
 	display: none;
+}
+.tr_operation_first:not(first){
+	border-top: 2px #787878 solid;
 }
 
 /* TD */
@@ -154,6 +157,7 @@ table {
 .revenuAnnuel {
 	font-weight: bold;
 	font-size: 16px!important;
+	border-radius: 0% 0% 60% 60%;
 }
 
 /* BCK COLOR */

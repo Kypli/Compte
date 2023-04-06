@@ -21,9 +21,8 @@ Compte
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Colorier bordure en jaune de la zone éditable
-			Bordure entre catégorie + grosse
 			Année visible sur le titre
-			Revenu annuel -> Faire un border-radius
+			Reste sur le compte (sauf mois à venir)
 			Alerte si dépassement opération à venir avec la date d'opération
 			Alerte si anticipation opération fait avec la date d'opération
 			Pop-up de suggestion de correction d'erreur
@@ -32,8 +31,7 @@ Compte
 			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
 			Afficher 3 dernières opérations avec pop-up historique
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
-			Debug couleur jaune si edit table
-			(+)/(-) Rajouter revenue/dépense
+			(+)/(-) Rajouter texte "Revenue/Dépense"
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -49,6 +47,10 @@ Compte
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
 			Case Total final, rajout texte total + centrer la case
 			Si aucune opérations, add-ope automatique
+			Cacher fullModEdit si pas d'opé
+			Garder mod edit si delete
+			Si delete, garder ligne + la rayé en rouge + action annule delete
+			Repérage des modifications avec code couleur bleue et garder modeEdit si changement
 
 
 		Modal Category / Sub-cat

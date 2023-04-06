@@ -1,9 +1,19 @@
 <div class="modal-body">
-	<table id="gestion_tab" class="m-1 p-1 mt-2">
+	<table id="operation_tab" class="m-1 p-1 mt-2">
 	<thead>
-		<tr>
+		<tr class="mb-2">
 			<th colspan="6" class="th_actions">
-				<button id="modalGestionAdd" class="m-1 p-1" value="0">Ajouter</button>
+				<div class="row">
+					<button id="modalOperationAdd" class="col-2 m-1" value="0">Ajouter</button>
+					<button
+						value="0"
+						type="button"
+						class="col-2 m-1"
+						id="modalOperationFullEdit"
+					>
+						Édition
+					</button>
+				</div>
 			</th>
 		</tr>
 		<tr>
@@ -24,7 +34,10 @@
 		data-type=""
 	>
 		<tr id='solde_tr_collabo' class="">
-			<td colspan="6"></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td colspan="3"></td>
 		</tr>
 		<tr id='tr_solde' class="hide">
 			<td id="soldeReel" class="totalReel">0</td>
@@ -40,5 +53,5 @@
 	</div>
 
 	{# SOLDE #}
-	<div id="solde" class="mt-4 col-1">0</div>
+	<div id="solde" class="mt-3 col-3">0</div>
 </div>

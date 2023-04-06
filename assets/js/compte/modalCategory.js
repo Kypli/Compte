@@ -13,10 +13,9 @@ $(document).ready(function(){
 	var
 		_addSc = '',
 		_addSc_disabled = '',
-		sc_back_nb = 0,
-		input_datas = {},
-		reset_render = '',
-		cat_add_render = ''
+		_sc_back_nb = 0,
+		_input_datas = {},
+		_reset_render = ''
 	;
 
 	getAddSc()
@@ -37,7 +36,7 @@ $(document).ready(function(){
 
 	$("body").on("click", ".other_actif", function(e){
 		let id = $(this).data('id')
-		getCategory(id, $(this).data('sign'), 'cat_' + id)
+		getCategory(id, $('#cat_tab').data('sign'), 'cat_' + id)
 	})
 
 
@@ -113,7 +112,7 @@ $(document).ready(function(){
 	})
 
 	// Add Sc
-	$("body").on("click", ".add_sub", function(e){
+	$("body").on("click", "#modalCategorieAdd", function(e){
 		addSc()
 	})
 
@@ -185,7 +184,7 @@ $(document).ready(function(){
 				spinner(true)
 			},
 			success: function(response){
-				reset_render = response.render
+				_reset_render = response.render
 				show(response.render, 'tr_category_add input')
 				$('.tr_category input').addClass('input_add')
 				addSc(true)
@@ -214,7 +213,7 @@ $(document).ready(function(){
 				spinner(true)
 			},
 			success: function(response){
-				reset_render = response.render
+				_reset_render = response.render
 				show(response.render, focus)
 				spinner(false)
 				getInputDatas()
@@ -285,13 +284,13 @@ $(document).ready(function(){
 	function getInputDatas(){
 
 		// Cat
-		input_datas[$('.tr_category input').prop('id')] = $('.tr_category input').val()
-		input_datas['pos_' + $('.tr_category input').prop('id')] = $('.tr_category input').data('pos')
+		_input_datas[$('.tr_category input').prop('id')] = $('.tr_category input').val()
+		_input_datas['pos_' + $('.tr_category input').prop('id')] = $('.tr_category input').data('pos')
 
 		// Sc
 		$('#modalCategory input').not('.tr_category input').each(function(index, input){
-			input_datas[input.id] = $(this).val()
-			input_datas['pos_' + input.id] = $(this).data('pos')
+			_input_datas[input.id] = $(this).val()
+			_input_datas['pos_' + input.id] = $(this).data('pos')
 		})
 	}
 
@@ -479,7 +478,7 @@ $(document).ready(function(){
 			editAlert()
 		}
 
-		$('.tr_add').insertAfter('#cat_tab tbody tr:last')
+		$('#cat_tab tbody .tr_add').insertAfter('#cat_tab tbody tr:last')
 		sc_chevronToggle()
 		controlForm()
 	}
@@ -513,7 +512,7 @@ $(document).ready(function(){
 			$('.tr_add').before(tr_back)
 		}
 
-		sc_back_nb -= 1
+		_sc_back_nb -= 1
 
 		sc_chevronToggle()
 		editAlert()
@@ -554,12 +553,12 @@ $(document).ready(function(){
 		let cat_input = $('.tr_category input')
 
 		// Val
-		input_datas[cat_input.prop('id')] == cat_input.val()
+		_input_datas[cat_input.prop('id')] == cat_input.val()
 			? cat_input.removeClass('input_edit_val')
 			: checkEditMod = true && cat_input.addClass('input_edit_val')
 
 		// Pos
-		input_datas['pos_' + cat_input.prop('id')] == cat_input.data('pos')
+		_input_datas['pos_' + cat_input.prop('id')] == cat_input.data('pos')
 			? cat_input.removeClass('input_edit')
 			: checkEditMod = true && cat_input.addClass('input_edit')
 
@@ -574,12 +573,12 @@ $(document).ready(function(){
 		$('#modalCategory .tr_subcategories input').each(function(index, inputText){
 
 			// Val
-			input_datas[inputText.id] == $(this).val()
+			_input_datas[inputText.id] == $(this).val()
 				? $(this).removeClass('input_edit_val')
 				: checkEditMod = true && $(this).addClass('input_edit_val')
 
 			// Pos
-			if (input_datas['pos_' + inputText.id] == $(this).data('pos')){
+			if (_input_datas['pos_' + inputText.id] == $(this).data('pos')){
 				$(this).removeClass('input_edit')
 			} else {
 				$(this).addClass('input_edit')
@@ -592,7 +591,7 @@ $(document).ready(function(){
 		if(nb_sc_add > 0){ checkEditMod = true }
 
 		// Delete sc ?
-		sc_back_nb > 0
+		_sc_back_nb > 0
 			? checkEditMod = true
 			: $('.delete_zone').hide()
 
@@ -604,8 +603,8 @@ $(document).ready(function(){
 	function editReset(){
 		$('#cat_tab tbody').empty()
 		$('.delete_zone').empty().hide()
-		sc_back_nb = 0
-		show(reset_render, 'tr_category input')
+		_sc_back_nb = 0
+		show(_reset_render, 'tr_category input')
 		editAlert()
 		controlForm()
 	}
@@ -663,7 +662,7 @@ $(document).ready(function(){
 		// Add input_delete to delete_zone
 		if (!tr.hasClass('tr_subcategories_add')){
 			$('.delete_zone').append(div).show()
-			sc_back_nb += 1
+			_sc_back_nb += 1
 		}
 
 		tr.remove()

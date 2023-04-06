@@ -380,10 +380,10 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/gestion/ope/{sc}/{year}/{month}/{sign}", name="_gestion", methods={"POST"})
+	 * @Route("/operation/ope/{sc}/{year}/{month}/{sign}", name="_operation", methods={"POST"})
 	 * Ajax only
 	 */
-	public function gestion(SubCategory $sc, $year, $month, $sign, Request $request): Response
+	public function operation(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -399,11 +399,11 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/ope/save/{sc}/{year}/{month}/{sign}", name="_gestion_save", methods={"POST"})
+	 * @Route("/operation/ope/save/{sc}/{year}/{month}/{sign}", name="_operation_save", methods={"POST"})
 	 * Sauvegarde les opérations d'une sc
 	 * Ajax only
 	 */
-	public function gestion_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
+	public function operation_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -516,20 +516,21 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/ope/add/{month}/{year}/{daysInMonth}/{sign}", name="_gestion_add", methods={"POST"})
+	 * @Route("/operation/ope/add/{month}/{year}/{daysInMonth}/{sign}", name="_operation_add", methods={"POST"})
 	 * Renvoie le render d'une nouvelle opération
 	 * Ajax only
 	 */
-	public function gestion_add($month, $year, $daysInMonth, $sign, Request $request): Response
+	public function operation_add($month, $year, $daysInMonth, $sign, Request $request): Response
 	{
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		$render = $this->render('compte/modal/gestion/table/_add.html.twig', [
+		$render = $this->render('compte/modal/operation/table/_add.html.twig', [
 			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
 			'daysInMonth' => $daysInMonth,
+			'day' => date('n') == $month ? date('d') : 1,
 		])->getContent();
 
 		return new JsonResponse([
@@ -542,7 +543,7 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/{id}/gestion/cat/{cat}/{sign}", name="_category", methods={"POST"})
+	 * @Route("/{id}/operation/cat/{cat}/{sign}", name="_category", methods={"POST"})
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
@@ -569,7 +570,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/gestion/caty/add/{sign}", name="_category_add", methods={"POST"})
+	 * @Route("/{id}/operation/caty/add/{sign}", name="_category_add", methods={"POST"})
 	 * Renvoie le render d'une nouvelle catégorie
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -594,7 +595,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/gestion/caty/save/{year}", name="_category_save", methods={"POST"})
+	 * @Route("/{id}/operation/caty/save/{year}", name="_category_save", methods={"POST"})
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -674,7 +675,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/gestion/caty/delete/{cat}", name="_category_delete", methods={"POST"})
+	 * @Route("/{id}/operation/caty/delete/{cat}", name="_category_delete", methods={"POST"})
 	 * Delete category
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -715,7 +716,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/cat/sc/{id}", name="_subcategory", methods={"POST"})
+	 * @Route("/operation/cat/sc/{id}", name="_subcategory", methods={"POST"})
 	 * Récupère render de tr_subcategorie_back
 	 * Ajax only
 	 */
@@ -734,7 +735,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/gestion/cat/sc/add/{addMod}", name="_subcategory_add", methods={"POST"})
+	 * @Route("/operation/cat/sc/add/{addMod}", name="_subcategory_add", methods={"POST"})
 	 * Récupère render de tr_subcategories_add
 	 * Ajax only
 	 */

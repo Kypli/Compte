@@ -1,45 +1,39 @@
 
 /* TH */
-#gestion_tab th:not(.th_switch, .th_date, .th_comment, .th_actions){
+#operation_tab th:not(.th_switch, .th_date, .th_comment, .th_actions){
 	width: 90px!important;
 	min-width: 90px!important;
 }
-#gestion_tab .th_switch {
+#operation_tab .th_switch {
 	width: 30px!important;
 	max-width: 30px!important;
 }
-#gestion_tab .th_date {
+#operation_tab .th_date {
 	padding-left: 20px!important;
 	width: 130px!important;
 	min-width: 130px!important;
 	padding-left: 20px!important;
 }
-#gestion_tab .th_comment {
+#operation_tab .th_comment {
 	width: 235px!important;
 	min-width: 235px!important;
 }
-#gestion_tab .th_actions {
+#operation_tab .th_actions {
 	width: 140px!important;
 	min-width: 140px!important;
 }
 
-/* TD COLLABO */
-#solde_tr_collabo td {
-	height: 25px;
-	max-height: 35px;
-}
-
 /* INPUT */
-#gestion_tab .inputNumber, #gestion_tab .inputAnticipe {
+#operation_tab .inputNumber, #operation_tab .inputAnticipe {
 	width: 85px!important;
 	max-width: 85px!important;
 }
-#gestion_tab .inputDay {
+#operation_tab .inputDay {
 	width: 45px!important;
 	max-width: 45px!important;
 	margin-right: 3px!important;
 }
-#gestion_tab .inputComment {
+#operation_tab .inputComment {
 	width: 215px!important;
 	max-width: 215px!important;
 }
@@ -82,24 +76,40 @@
 	text-decoration: underline;
 }
 
+/* AJOUT */
+#operation_tab .tr_add {
+	background-color: #E0FAE5;
+}
+
+/* TD COLLABO */
+#solde_tr_collabo td {
+	height: 20px;
+	max-height: 30px;
+}
+#solde_tr_collabo td:first-child, #solde_tr_collabo td:nth-child(3){
+	border-bottom: 1px black solid;
+}
+
 /* SOLDES */
 .totalReel {
 	background-color: #E6E6E6;
 	padding-left: 5px;
 	font-style : italic;
-	text-decoration: underline;
+/*	text-decoration: underline;*/
+	border-left: 1px black solid;
 }
 .totalAnticipe {
 	color: purple;
 	background-color: #E6E6E6;
 	padding-left: 5px;
 	font-style : italic;
-	text-decoration: underline; 
+/*	text-decoration: underline;*/
+	border-left: 1px black solid;
 }
 #solde {
 	border: 1px black solid;
 	padding: 12px;
-	margin-left: 5px;
+	margin-left: 13px;
 	font-weight: bold;
 	text-align: center;
 	background-color: #E6E6E6;
