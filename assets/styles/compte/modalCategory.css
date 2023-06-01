@@ -77,10 +77,10 @@
 }
 
 /* ALERTE */
-.alerte {
+.alerteCat {
 	border: 2px red solid!important;
 }
-.alerte:focus, .alerte:hover {
+.alerteCat:focus, .alerteCat:hover {
 	border: 2px red solid!important;
 	box-shadow: 5px 2px 2px salmon;
 }

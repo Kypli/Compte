@@ -89,6 +89,7 @@ table {
 	background-color: #C1C1C1!important;
 }
 .current, .current td {
+	padding-bottom: 5px!important;
 	background-color: lightgrey!important;
 }
 

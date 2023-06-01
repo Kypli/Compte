@@ -17,6 +17,10 @@ Compte
 			Tableau mois en cours plus distingué des autres
 			Solde mensuel + cumulé possible de le mettre en haut
 			Rajout solde restant à la fin du mois pour le mois en cours
+			Solde actuel plus a droite
+			Changement d'année plus droite et retour a l'année en cours sur sa gauche
+			Liste des anomalies (A venir dépassé et montant fait dans le futur)
+			Historique des 10/20 dernières actions
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
@@ -51,7 +55,12 @@ Compte
 			Garder mod edit si delete
 			Si delete, garder ligne + la rayé en rouge + action annule delete
 			Repérage des modifications avec code couleur bleue et garder modeEdit si changement
-
+			Ajouter/Edition/Fin d'édition -> remplacer par logo
+			Bouton Edition indisponible si pas d'opérations (ne pas prendre en compte les ajout en cours)
+			Possibilité de supprimer une opé déja existante
+			Roue cranté
+				-> changer la date (mois/année)
+				-> Possibilité de faire montant + a venir
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?

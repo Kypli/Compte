@@ -47,6 +47,8 @@
 			{% if category.sign == signBool and category.year == year %}
 				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
 					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
+
+						{# CAT #}
 						{% if loop.first %}
 							<td
 								data-target="#modalCategory"
@@ -60,6 +62,7 @@
 							<td/>
 						{% endif %}
 
+						{# SC #}
 						<td
 							data-target="#modalCategory"
 							data-toggle="modal"
@@ -69,6 +72,8 @@
 						>
 							{{ subcategory.libelle|capitalize }}
 						</td>
+
+						{# OPE #}
 						{{ include('compte/table/_sc_operations.html.twig') }}
 					</tr>
 				{% endfor %}

@@ -381,6 +381,7 @@ class CompteController extends AbstractController
 
 	/**
 	 * @Route("/operation/ope/{sc}/{year}/{month}/{sign}", name="_operation", methods={"POST"})
+	 * Renvoie les opérations selon la sc, l'année, le mois et le signe
 	 * Ajax only
 	 */
 	public function operation(SubCategory $sc, $year, $month, $sign, Request $request): Response

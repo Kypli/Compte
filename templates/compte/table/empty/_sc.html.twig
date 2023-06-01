@@ -7,15 +7,14 @@
 					: ''
 	%}
 
-
 	{# REEL #}
 	<td
-		class='{{ done }}'
+		class='{{ done|trim }}'
 		data-month="{{ month }}"
 		data-scid="{{ subcategory.id }}"
 		data-sign="{{ sign }}"
 		data-anticipe="0"
-		data-target="#modalGestion"
+		data-target="#modalOperation"
 		data-toggle="modal"
 	>
 		0
@@ -23,12 +22,12 @@
 
 	{# ANTICIPE #}
 	<td
-		class='{{ done }} anticipe'
+		class='{{ done|trim }} anticipe'
 		data-month="{{ month }}"
 		data-scid="{{ subcategory.id }}"
 		data-sign="{{ sign }}"
 		data-anticipe="1"
-		data-target="#modalGestion"
+		data-target="#modalOperation"
 		data-toggle="modal"
 	></td>
 {% endfor %}

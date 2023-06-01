@@ -49,11 +49,11 @@
 }
 
 /* ALERTE */
-.alerte {
-	border: 2px red solid!important;
+.alerteOpe {
+	border: 2px #FFD700 solid!important;
 }
-.alerte:focus, .alerte:hover {
-	border: 2px red solid!important;
+.alerteOpe:focus, .alerteOpe:hover {
+	border: 2px #FFD700 solid!important;
 	box-shadow: 5px 2px 2px salmon;
 }
 .alerte-doublon {

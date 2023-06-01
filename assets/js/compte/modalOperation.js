@@ -13,7 +13,8 @@ $(document).ready(function(){
 
 	var
 		_add = '',
-		_save_operations = []
+		_save_operations = [],
+		_input_datas = {}
 	;
 
 	////////////
@@ -51,7 +52,7 @@ $(document).ready(function(){
 
 		// Plus d'édition
 		if ($('#operation_tab').find('.inputComment').length == 0 && $('#operation_tab').find('.tr_add').length == 0){
-			changeMod(false)
+			editMod(false)
 		}
 	})
 
@@ -60,12 +61,12 @@ $(document).ready(function(){
 		let ope_id = $(this).data('opeid')
 		$('#ope_id_' + ope_id).remove()
 		calculSolde()
-		changeMod(true)
+		editMod(true)
 	})
 
 	// Cancel edit
 	$("body").on("click", "#cancel_operation", function(e){
-		changeMod(false)
+		editMod(false)
 		show(
 			_save_operations,
 			$('#operation_tab tbody').data('month'),
@@ -135,7 +136,7 @@ $(document).ready(function(){
 			url: Routing.generate('compte_operation', { sc: sc_id, year: year, month: month, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
-				changeMod(false)
+				editMod(false)
 				meta1(year, months[month])
 				spinner(true)
 			},
@@ -145,6 +146,7 @@ $(document).ready(function(){
 				meta2(response.category_libelle, response.subcategory_libelle, sign)
 				show(operations, month, year, response.days_in_month, sc_id, sign)
 				spinner(false)
+				getInputDatas()
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)
@@ -165,7 +167,7 @@ $(document).ready(function(){
 				// Add 1 ope if none
 				if (operations.length == 0){
 					addOpe()
-					changeMod(true)
+					editMod(true)
 					controlOperation()
 				}
 
@@ -237,8 +239,6 @@ $(document).ready(function(){
 			day = ''
 		;
 
-		// console.log(operations)
-
 		operations.forEach(function(item, index){
 
 			day = item.day < 10 ? '0' + item.day : item.day
@@ -289,109 +289,40 @@ $(document).ready(function(){
 		calculSolde()
 	}
 
+	// Récupère les datas des input pour control édition
+	function getInputDatas(){
 
-	/** Édition **/
+		// Reset
+		_input_datas = {}
 
-	// Mode édition (affichage des formulaire)
-	function editMod(etat){
-
-		let
-			daysInMonth = $('#operation_tab tbody').data('daysinmonth'),
-			month = $('#operation_tab tbody').data('month'),
-			year = $('#operation_tab tbody').data('year')
-		;
-
-		// editMod ON
-		if (etat){
-
-			$('.modal-footer').show()
-			$('#modalOperationSaveClose, #cancel_operation').prop('disabled', false).show()
-
-		// editMod OFF
-		} else {
-
-			$('.tr_add').remove()
-			$('#modalOperationFullEdit').prop('disabled', false)
-			$('#modalOperationSaveClose, .delete').prop('disabled', true).hide()
-			$('#saveAdd, .delete, #cancel_operation, .inputRetrait').prop('disabled', true).hide()
-			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
-			$('.modal-footer').hide()
-			calculSolde()
-		}
+		// Number + Anticipe
+		$('#operation_tab .tr_ope').each(function(index, div){
+			let id = div.id
+			_input_datas[id+'_number'] = $('#' + id + ' .td_number').text().trim()
+			_input_datas[id+'_anticipe'] = $('#' + id + ' .td_anticipe').text().trim()
+		})
 	}
 
-	// Check si editMod doit être activé
-	function checkEditMod(){
-	}
+
+	/** Add **/
 
 	// Add 1 operation
 	function addOpe(){
-		changeMod(true)
 		$('#operation_tab tbody').append(_add)
 		$('#solde_tr_collabo').insertAfter('#operation_tab tbody tr:last')
 		$('#tr_solde').insertAfter('#operation_tab tbody tr:last')
-
+		editMod(true)
 	}
 
 
 	/** Change **/
 
-	// Mode changement (Si changement d'opération)
-	function changeMod(etat){
-
-		let
-			daysInMonth = $('#operation_tab tbody').data('daysinmonth'),
-			month = $('#operation_tab tbody').data('month'),
-			year = $('#operation_tab tbody').data('year')
-		;
-
-		// editMod ON
-		if (etat){
-
-			$('.modal-footer').show()
-			$('#modalOperationSaveClose, #cancel_operation').prop('disabled', false).show()
-
-		// editMod OFF
-		} else {
-
-			$('.tr_add').remove()
-			$('#modalOperationFullEdit').prop('disabled', false)
-			$('#modalOperationSaveClose, .delete').prop('disabled', true).hide()
-			$('#saveAdd, .delete, #cancel_operation, .inputRetrait').prop('disabled', true).hide()
-			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
-			$('.modal-footer').hide()
-			calculSolde()
-		}
-	}
-
-	// Form for all
+	// Mode change for all 
 	function changeModFull(etat = true){
 		$(".tr_ope, .tr_add").each(function(index, value){
 			toggleInputDiv($(this), etat)
 		})
 		controlOperation()
-	}
-
-	// Toggle input Number <-> Anticipe
-	function toggleInputNumberAnticipe(tr){
-		let
-			input = tr.find('input'),
-			val = input.val(),
-			clas = input.attr('class')
-		;
-
-		// Add anticipe
-		if (clas == 'inputNumber'){
-			tr.find('.td_anticipe').append("<input class='inputAnticipe' type='number' step='0.01' value='"+val+"' min='0' />")
-			tr.find('.td_number').empty()
-
-		// Add number
-		} else if(clas == 'inputAnticipe'){
-			tr.find('.td_number').append("<input class='inputNumber' type='number' step='0.01' value='"+val+"' min='0' />")
-			tr.find('.td_anticipe').empty()
-		}
-		controlOperation()
-		calculSolde()
 	}
 
 	// Toggle form <-> noForm
@@ -478,104 +409,29 @@ $(document).ready(function(){
 		}
 	}
 
-
-	/** Control **/
-
-	function controlOperation(){
-
+	// Toggle input Number <-> Anticipe
+	function toggleInputNumberAnticipe(tr){
 		let
-			control = true,
-			checkChange = false
+			input = tr.find('input'),
+			val = input.val(),
+			clas = input.attr('class')
 		;
 
-		$("#operation_tab tbody tr").not('#solde_tr_collabo, #tr_solde').each(function(index, value){
+		// Add anticipe
+		if (clas == 'inputNumber'){
+			tr.find('.td_anticipe').append("<input class='inputAnticipe' type='number' step='0.01' value='"+val+"' min='0' />")
+			tr.find('.td_number').empty()
 
-			let
-				switch_icon = $(this).find('.switch'),
-				input_number = $(this).find('.inputNumber'),
-				input_anticipe = $(this).find('.inputAnticipe'),
-				input_number_val = input_number.val(),
-				input_anticipe_val = input_anticipe.val()
-			;
-
-			// 2 Input existants
-			if (input_number_val != undefined && input_anticipe_val != undefined){
-
-				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
-					? false
-					: true
-
-				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
-					? false
-					: true
-
-				// 2 vides
-				if (!input_number_valid && !input_anticipe_valid){
-					input_number.addClass('alerte').removeClass('alerte-doublon')
-					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
-					control = false
-
-				// 2 remplis (ne doit plus apparaitre)
-				} else if(input_number_valid && input_anticipe_valid){
-					input_number.addClass('alerte-doublon').removeClass('alerte')
-					input_anticipe.addClass('alerte-doublon').removeClass('alerte')
-					control = false
-
-				// 1 rempli et 1 vide
-				} else {
-					switch_icon.show()
-					$(this).find('.noForm').removeClass('invalid')
-					input_number_valid
-						? input_anticipe.remove() && input_number.removeClass('alerte').removeClass('alerte-doublon')
-						: input_number.remove() && input_anticipe.removeClass('alerte').removeClass('alerte-doublon')
-				}
-
-			// Only Number valid
-			} else if(input_number_val != undefined && input_anticipe_val == undefined){
-
-				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
-					? false
-					: true
-
-				if (input_number_valid){
-					input_number.removeClass('alerte').removeClass('alerte-doublon')
-					switch_icon.show()
-				} else {
-					input_number.addClass('alerte').removeClass('alerte-doublon')
-					switch_icon.hide()
-					$("#operation_tab tbody .alerte:first").focus()
-					control = false
-				}
-				checkChange = true
-
-			// Only Anticipe valid
-			} else if(input_number_val == undefined && input_anticipe_val != undefined){
-
-				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
-					? false
-					: true
-
-				if (input_anticipe_valid){
-					input_anticipe.removeClass('alerte').removeClass('alerte-doublon')
-					switch_icon.show()
-				} else {
-					input_anticipe.addClass('alerte').removeClass('alerte-doublon')
-					switch_icon.hide()
-					$("#operation_tab tbody .alerte:first").focus()
-					control = false
-				}
-				checkChange = true
-			}
-		})
-
-		// Button Statut
-		checkChange
-			? $('#modalOperationFullEdit').val(1).text("Fin d'édition")
-			: $('#modalOperationFullEdit').val(0).text("Édition")
-
-		return control
+		// Add number
+		} else if(clas == 'inputAnticipe'){
+			tr.find('.td_number').append("<input class='inputNumber' type='number' step='0.01' value='"+val+"' min='0' />")
+			tr.find('.td_anticipe').empty()
+		}
+		controlOperation()
+		calculSolde()
+		checkEditMod()
 	}
-	
+
 	// Mise à jour du solde
 	function calculSolde(){
 
@@ -628,6 +484,86 @@ $(document).ready(function(){
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
+
+	/** Édition **/
+
+	// Mode édition
+	function editMod(etat){
+
+		// ON
+		if (etat){
+			$('.modal-footer').show()
+			$('#modalOperationSaveClose, #cancel_operation').prop('disabled', false).show()
+
+		// OFF
+		} else {
+			$('.tr_add').remove()
+			$('#modalOperationFullEdit').prop('disabled', false)
+			$('#modalOperationSaveClose, .delete').prop('disabled', true).hide()
+			$('#saveAdd, .delete, #cancel_operation, .inputRetrait').prop('disabled', true).hide()
+			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
+			$('.modal-footer').hide()
+			calculSolde()
+		}
+	}
+
+	// Check Si Édition en cours (Alerte visuelle + editMod)
+	function checkEditMod(isEditMod = false){
+
+		// Pas d'alerte si addMod
+		if ($('#operation_tab .tr_add').length == 1){
+			isEditMod = true
+		}
+
+		// Check Number + Anticipe
+		$('#operation_tab .tr_ope').each(function(index, div){
+
+			let id = div.id
+
+			// Correct Number
+			if (
+				(
+					$('#' + id + ' .inputNumber').length == 1 &&
+					_input_datas[id + '_number'] != $('#' + id + ' .inputNumber').val()
+				) ||
+				(
+					$('#' + id + ' .inputNumber').length == 0 &&
+					_input_datas[id + '_number'] != $('#' + id + ' .td_number').text().trim()
+				)
+			){
+				isEditMod = true
+			}
+
+			// Correct Anticipe
+			if (
+				(
+					$('#' + id + ' .inputAnticipe').length == 1 &&
+					_input_datas[id + '_number'] != $('#' + id + ' .inputAnticipe').val()
+				) ||
+				(
+					$('#' + id + ' .inputAnticipe').length == 0 &&
+					_input_datas[id + '_anticipe'] != $('#' + id + ' ._anticipe').text().trim()
+				)
+			){
+				isEditMod = true
+			}
+
+			// Date
+
+			// Comment
+
+
+		})
+
+		// Toutes les rows sont présentes ?
+
+		// Check EditMod
+		editMod(isEditMod)
+	}
+
+
+	/** Utilitaire **/
+
 	// Renvoie un nombre avec 2 chiffres après la virgule
 	function correctNumber(number){
 		return parseFloat(number) % 1 == 0
@@ -637,6 +573,101 @@ $(document).ready(function(){
 
 
 	/** Sauvegarde **/
+
+	function controlOperation(){
+
+		let
+			control = true,
+			checkChange = false
+		;
+
+		$("#operation_tab tbody tr").not('#solde_tr_collabo, #tr_solde').each(function(index, value){
+
+			let
+				switch_icon = $(this).find('.switch'),
+				input_number = $(this).find('.inputNumber'),
+				input_anticipe = $(this).find('.inputAnticipe'),
+				input_number_val = input_number.val(),
+				input_anticipe_val = input_anticipe.val()
+			;
+
+			// 2 Input existants
+			if (input_number_val != undefined && input_anticipe_val != undefined){
+
+				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
+					? false
+					: true
+
+				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
+					? false
+					: true
+
+				// 2 vides
+				if (!input_number_valid && !input_anticipe_valid){
+					input_number.addClass('alerteOpe').removeClass('alerte-doublon')
+					input_anticipe.addClass('alerteOpe').removeClass('alerte-doublon')
+					control = false
+
+				// 2 remplis (ne doit plus apparaitre)
+				} else if(input_number_valid && input_anticipe_valid){
+					input_number.addClass('alerte-doublon').removeClass('alerteOpe')
+					input_anticipe.addClass('alerte-doublon').removeClass('alerteOpe')
+					control = false
+
+				// 1 rempli et 1 vide
+				} else {
+					switch_icon.show()
+					$(this).find('.noForm').removeClass('invalid')
+					input_number_valid
+						? input_anticipe.remove() && input_number.removeClass('alerteOpe').removeClass('alerte-doublon')
+						: input_number.remove() && input_anticipe.removeClass('alerteOpe').removeClass('alerte-doublon')
+				}
+
+			// Only Number valid
+			} else if(input_number_val != undefined && input_anticipe_val == undefined){
+
+				let input_number_valid = input_number_val == '' || input_number_val == '0' || input_number_val == 0
+					? false
+					: true
+
+				if (input_number_valid){
+					input_number.removeClass('alerteOpe').removeClass('alerte-doublon')
+					switch_icon.show()
+				} else {
+					input_number.addClass('alerteOpe').removeClass('alerte-doublon')
+					switch_icon.hide()
+					$("#operation_tab tbody .alerteOpe:first").focus()
+					control = false
+				}
+				checkChange = true
+
+			// Only Anticipe valid
+			} else if(input_number_val == undefined && input_anticipe_val != undefined){
+
+				let input_anticipe_valid = input_anticipe_val == '' || input_anticipe_val == '0' || input_anticipe_val == 0
+					? false
+					: true
+
+				if (input_anticipe_valid){
+					input_anticipe.removeClass('alerteOpe').removeClass('alerte-doublon')
+					switch_icon.show()
+				} else {
+					input_anticipe.addClass('alerteOpe').removeClass('alerte-doublon')
+					switch_icon.hide()
+					$("#operation_tab tbody .alerteOpe:first").focus()
+					control = false
+				}
+				checkChange = true
+			}
+		})
+
+		// Button Statut
+		checkChange
+			? $('#modalOperationFullEdit').val(1).text("Fin d'édition")
+			: $('#modalOperationFullEdit').val(0).text("Édition")
+
+		return control
+	}
 
 	function sauvegarde(){
 
