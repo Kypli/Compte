@@ -39,63 +39,49 @@ $(document).ready(function(){
 	})
 
 
-	/** Édition **/
-
-	// Add 1 input
-	$("body").on("click", "#butOpeAdd", function(e){
-		addOpe()
-	})
-
-	// Delete add row (cog)
-	$("body").on("click", ".deleteAdd", function(e){
-		$(this).parent().parent().parent().parent('.tr_add').remove()
-		calculSolde()
-		checkFormEdit()
-
-		$('#operation_tab').find('tbody .tr_add').length == 0
-			? $('#butFullDelAdd').hide()
-			: null
-	})
-
-	// Delete add row (short button)
-	$("body").on("click", ".trButDelAdd", function(e){
-		$(this).parent().parent().parent('.tr_add').remove()
-		calculSolde()
-		checkFormEdit()
-
-		$('#operation_tab').find('.tr_add').length == 0
-			? $('#butFullDelAdd').hide()
-			: null
-	})
-
-	// Delete full add row (Big button)
-	$("body").on("click", "#butFullDelAdd", function(e){
-		$('.tr_add').remove()
-		$('#butFullDelAdd').hide()
-		calculSolde()
-		checkFormEdit()
-	})
-
-	// Delete row
-	$("body").on("click", ".delete", function(e){
-		let ope_id = $(this).data('opeid')
-		$('#ope_id_' + ope_id).remove()
-		calculSolde()
-		saveMod(true)
-	})
-
-	// Reset 1 operation edit
-	$("body").on("click", ".trButCancelEdit", function(e){
-		resetEdit('ope_id_' + $(this).data('opeid'))
-	})
-
-	// Reset all operations edit
-	$("body").on("click", "#butFullCancelEdit", function(e){
-		resetAllEdit()
-	})
-
-
 	/** Change **/
+
+	// Switch
+	$("body").on("click", ".switch", function(e){
+		toggleInputNumberAnticipe($(this).parent('td').parent('tr'))
+		calculSolde()
+	})
+
+	// Input monnaie Style inputToDiv
+	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
+		$(this).val(monnaieStyle($(this).val()))
+	})
+
+	// Date + Comment
+	$("body").on("input", ".inputDay, .inputComment", function(e){
+		checkFormEditDel()
+	})
+
+	// Toggle divToInput
+	$("body").on("click", ".td_number, .td_anticipe, .td_switch, .td_date, .td_comment", function(e){
+
+		if (!$(this).parent().hasClass('tr_del')){
+			toggleFormMod($(this).parent())
+			controlOperation()
+			checkFormEditDel()
+		}
+	})
+
+	// Toggle inputToDiv (cog)
+	$("body").on("click", ".noForm", function(e){
+		if (!$(this).hasClass('invalid')){
+			toggleFormMod($(this).parent().parent().parent().parent(), false)
+		}
+		controlOperation()
+		checkFormEditDel()
+	})
+
+	// Toggle inputToDiv (short button)
+	$("body").on("click", ".trButStopFormMod", function(e){
+		toggleFormMod($(this).parent().parent().parent(), false)
+		controlOperation()
+		checkFormEditDel()
+	})
 
 	// formModFull (Big button)
 	$("body").on("click", "#butFullToggleFormMod", function(e){
@@ -104,43 +90,54 @@ $(document).ready(function(){
 			: formModFull(false)
 	})
 
-	// Switch
-	$("body").on("click", ".switch", function(e){
-		toggleInputNumberAnticipe($(this).parent('td').parent('tr'))
+
+	/** Crud **/
+
+	// Add 1 input
+	$("body").on("click", "#butOpeAdd", function(e){
+		addOpe()
+	})
+
+	// Delete add row (cog)
+	$("body").on("click", ".deleteAdd", function(e){
+		deleteAddOpe($(this).parent().parent().parent().parent('.tr_add'))
+	})
+
+	// Delete add ope (short button)
+	$("body").on("click", ".trButDelAdd", function(e){
+		deleteAddOpe($(this).parent().parent().parent('.tr_add'))
+	})
+
+	// Delete full add ope (Big button)
+	$("body").on("click", "#butFullDelAdd", function(e){
+		$('.tr_add').remove()
 		calculSolde()
+		checkFormEditDel()
 	})
 
-	// Date + Comment
-	$("body").on("input", ".inputDay, .inputComment", function(e){
-		checkFormEdit()
+	// Reset 1 ope edit
+	$("body").on("click", ".trButCancelEdit", function(e){
+		resetEdit('ope_id_' + $(this).data('opeid'))
 	})
 
-	// Toggle divToInput
-	$("body").on("click", ".td_number, .td_anticipe, .td_switch, .td_date, .td_comment", function(e){
-		toggleInputDiv($(this).parent())
-		controlOperation()
-		checkFormEdit()
+	// Reset all ope edit
+	$("body").on("click", "#butFullCancelEdit", function(e){
+		resetAllEdit()
 	})
 
-	// Toggle inputToDiv (cog)
-	$("body").on("click", ".noForm", function(e){
-		if (!$(this).hasClass('invalid')){
-			toggleInputDiv($(this).parent().parent().parent().parent(), false)
-		}
-		controlOperation()
-		checkFormEdit()
+	// Delete ope
+	$("body").on("click", ".delete", function(e){
+		deleteRow($(this).data('opeid'))
 	})
 
-	// Toggle inputToDiv (short button)
-	$("body").on("click", ".trButStopFormMod", function(e){
-		toggleInputDiv($(this).parent().parent().parent(), false)
-		controlOperation()
-		checkFormEdit()
+	// Revive ope
+	$("body").on("click", ".trButRevive", function(e){
+		reviveOpe($(this).data('opeid'))
 	})
 
-	// Input monnaie Style inputToDiv
-	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
-		$(this).val(monnaieStyle($(this).val()))
+	// Revive all ope
+	$("body").on("click", "#butFullRevive", function(e){
+		reviveAllOpe()
 	})
 
 
@@ -155,7 +152,7 @@ $(document).ready(function(){
 	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
 		controlOperation()
 		calculSolde()
-		checkFormEdit()
+		checkFormEditDel()
 	})
 	$("body").on("click", ".deleteAdd, #butOpeAdd, .delete", function(e){
 		controlOperation()
@@ -284,18 +281,6 @@ $(document).ready(function(){
 	}
 
 
-	/** Add **/
-
-	// Add 1 operation
-	function addOpe(){
-		$('#operation_tab tbody').append(_add)
-		$('#solde_tr_collabo').insertAfter('#operation_tab tbody tr:last')
-		$('#tr_solde').insertAfter('#operation_tab tbody tr:last')
-		saveMod(true)
-		$('#butFullDelAdd').show()
-	}
-
-
 	/** Change **/
 
 	// Toggle input Number <-> Anticipe
@@ -318,100 +303,6 @@ $(document).ready(function(){
 		}
 	}
 
-	// Reset 1 operation
-	function resetEdit(id){
-
-		let 
-			number = _input_datas[id + '_number'],
-			anticipe = _input_datas[id + '_anticipe'],
-			date_text = _input_datas[id + '_date'],
-			date = date_text < 10 ? date_text.substring(1) : date_text,
-			input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
-			input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />"
-		;
-
-		// Number
-		if (number != ''){
-			$('#' + id + ' .inputNumber').length == 1
-				? $('#' + id + ' .inputNumber').val(number)
-				: $('#' + id + ' .td_number').append(input_number) && $('#' + id + ' .td_anticipe').empty()
-
-		// Anticipe
-		} else {
-			$('#' + id + ' .inputAnticipe').length == 1
-				? $('#' + id + ' .inputAnticipe').val(anticipe)
-				: $('#' + id + ' .td_anticipe').append(input_anticipe) && $('#' + id + ' .td_number').empty()
-		}
-
-		// Date
-		$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
-
-		// Comment
-		$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
-
-		checkFormEdit()
-	}
-
-	// Reset all Edit operations
-	function resetAllEdit(){
-
-		$('#butFullCancelEdit').hide().prop('disabled', true)
-
-		$('#operation_tab .tr_edit').each(function(index, div){
-
-			let 
-				id = div.id,
-				date = _input_datas[id + '_date'],
-				number = _input_datas[id + '_number'],
-				anticipe = _input_datas[id + '_anticipe'],
-				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
-				input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />",
-				tr_formMod = $('#' + id + ' .td_date').find('.inputDay').length == 1 ? true : false
-			;
-
-			// FormMod
-			if (tr_formMod){
-
-				// Number
-				if (number != ''){
-					$('#' + id + ' .inputNumber').length == 1
-						? $('#' + id + ' .inputNumber').val(number)
-						: $('#' + id + ' .td_number').append(input_number) && $('#' + id + ' .td_anticipe').empty()
-
-				// Anticipe
-				} else {
-					$('#' + id + ' .inputAnticipe').length == 1
-						? $('#' + id + ' .inputAnticipe').val(anticipe)
-						: $('#' + id + ' .td_anticipe').append(input_anticipe) && $('#' + id + ' .td_number').empty()
-				}
-
-				// Date
-				date = date < 10 ? date.substring(1) : date,
-				$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
-
-				// Comment
-				$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
-
-			// No FormMod
-			} else {
-
-				// Number + Anticipe
-				$('#' + id + ' .td_number, #' + id + ' .td_anticipe').empty()
-				number != ''
-					? $('#' + id + ' .td_number').append(number)
-					: $('#' + id + ' .td_anticipe').append(anticipe)
-
-				// Date
-				$('#' + id + ' .td_date .day').text(date)
-
-				// Comment
-				$('#' + id + ' .td_comment').text(_input_datas[id + '_comment'])
-			}
-		})
-
-		checkFormEdit()
-	}
-
 	// Mise à jour du solde
 	function calculSolde(){
 
@@ -423,7 +314,7 @@ $(document).ready(function(){
 		;
 
 		// Sous-total
-		$(".td_number").each(function(index, value){
+		$(".td_number").not('#operation_tab .tr_del .td_number').each(function(index, value){
 			if ($(this).is(":visible")){
 
 				let val = $(this).find('.inputNumber').val()
@@ -436,7 +327,7 @@ $(document).ready(function(){
 			}
 		})
 
-		$(".td_anticipe").each(function(index, value){
+		$(".td_anticipe").not('#operation_tab .tr_del .td_anticipe').each(function(index, value){
 			if ($(this).is(":visible")){
 
 				let val = $(this).find('.inputAnticipe').val()
@@ -464,28 +355,26 @@ $(document).ready(function(){
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
-
-	/** Form mod **/
-
-	// All FormMode
-	function formModFull(etat = true){
-		$(".tr_ope, .tr_add").each(function(index, value){
-			toggleInputDiv($(this), etat)
-		})
-		controlOperation()
-		checkFormEdit()		
-	}
-
 	// Check Si formMod + Edit + SaveMod (Alerte visuelle)
-	function checkFormEdit(isSaveMod = false){
+	function checkFormEditDel(isSaveMod = false){
 
-		// isSaveMod true si addMod
-		if ($('body #operation_tab .tr_add').length > 0){
+		// isSaveMod true si addMod/tr_del
+		if ($('body #operation_tab .tr_add, body #operation_tab .tr_del').length > 0){
 			isSaveMod = true
 		}
 
 		// Hide butFullCancelEdit
 		$('#butFullCancelEdit').hide().prop('disabled', true)
+
+		// Hide butFullDelAdd ?
+		$('#operation_tab').find('tbody .tr_add').length == 0
+			? $('#butFullDelAdd').hide()
+			: null
+
+		// Hide butFullRevive ?
+		$('#operation_tab').find('tbody .tr_del').length == 0
+			? $('#butFullRevive').hide()
+			: null
 
 		// Check Number + Anticipe
 		$('#operation_tab .tr_ope').each(function(index, div){
@@ -599,8 +488,20 @@ $(document).ready(function(){
 		saveMod(isSaveMod)
 	}
 
+
+	/** Form mod **/
+
+	// All FormMode
+	function formModFull(etat = true){
+		$(".tr_ope, .tr_add").not('.tr_del').each(function(index, value){
+			toggleFormMod($(this), etat)
+		})
+		controlOperation()
+		checkFormEditDel()		
+	}
+
 	// Toggle form <-> noForm
-	function toggleInputDiv(tr, divToInput = true){
+	function toggleFormMod(tr, divToInput = true){
 
 		// Stop si ajout non défini
 		if (tr.hasClass('tr_add') && tr.find('.inputNumber').length > 0 && tr.find('.inputAnticipe').length > 0){ return false }
@@ -610,6 +511,7 @@ $(document).ready(function(){
 
 			// Stop si déja visible
 			if (tr.find('.inputComment').length > 0){ return false }
+
 
 			let 
 				daysInMonth = $('#operation_tab tbody').data('daysinmonth'),
@@ -686,6 +588,160 @@ $(document).ready(function(){
 			inputDay.after(day < 10 ? '0'+ day : day).remove()
 			inputComment.after(inputComment.val()).remove()
 		}
+	}
+
+
+	/** Crud **/
+
+	// Add 1 operation
+	function addOpe(){
+		$('#butFullDelAdd').show()
+		$('#operation_tab tbody').append(_add)
+		$('#solde_tr_collabo').insertAfter('#operation_tab tbody tr:last')
+		$('#tr_solde').insertAfter('#operation_tab tbody tr:last')
+		saveMod(true)
+	}
+
+	// Add 1 operation
+	function deleteAddOpe(tr){
+		tr.remove()
+		calculSolde()
+		checkFormEditDel()
+	}
+
+	// Reset 1 operation
+	function resetEdit(id){
+
+		let 
+			number = _input_datas[id + '_number'],
+			anticipe = _input_datas[id + '_anticipe'],
+			date_text = _input_datas[id + '_date'],
+			date = date_text < 10 ? date_text.substring(1) : date_text,
+			input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
+			input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />"
+		;
+
+		// Number
+		if (number != ''){
+			$('#' + id + ' .inputNumber').length == 1
+				? $('#' + id + ' .inputNumber').val(number)
+				: $('#' + id + ' .td_number').append(input_number) && $('#' + id + ' .td_anticipe').empty()
+
+		// Anticipe
+		} else {
+			$('#' + id + ' .inputAnticipe').length == 1
+				? $('#' + id + ' .inputAnticipe').val(anticipe)
+				: $('#' + id + ' .td_anticipe').append(input_anticipe) && $('#' + id + ' .td_number').empty()
+		}
+
+		// Date
+		$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
+
+		// Comment
+		$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
+
+		checkFormEditDel()
+	}
+
+	// Reset all Edit operations
+	function resetAllEdit(){
+
+		$('#butFullCancelEdit').hide().prop('disabled', true)
+
+		$('#operation_tab .tr_edit').each(function(index, div){
+
+			let 
+				id = div.id,
+				date = _input_datas[id + '_date'],
+				number = _input_datas[id + '_number'],
+				anticipe = _input_datas[id + '_anticipe'],
+				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
+				input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />",
+				tr_formMod = $('#' + id + ' .td_date').find('.inputDay').length == 1 ? true : false
+			;
+
+			// FormMod
+			if (tr_formMod){
+
+				// Number
+				if (number != ''){
+					$('#' + id + ' .inputNumber').length == 1
+						? $('#' + id + ' .inputNumber').val(number)
+						: $('#' + id + ' .td_number').append(input_number) && $('#' + id + ' .td_anticipe').empty()
+
+				// Anticipe
+				} else {
+					$('#' + id + ' .inputAnticipe').length == 1
+						? $('#' + id + ' .inputAnticipe').val(anticipe)
+						: $('#' + id + ' .td_anticipe').append(input_anticipe) && $('#' + id + ' .td_number').empty()
+				}
+
+				// Date
+				date = date < 10 ? date.substring(1) : date,
+				$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
+
+				// Comment
+				$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
+
+			// No FormMod
+			} else {
+
+				// Number + Anticipe
+				$('#' + id + ' .td_number, #' + id + ' .td_anticipe').empty()
+				number != ''
+					? $('#' + id + ' .td_number').append(number)
+					: $('#' + id + ' .td_anticipe').append(anticipe)
+
+				// Date
+				$('#' + id + ' .td_date .day').text(date)
+
+				// Comment
+				$('#' + id + ' .td_comment').text(_input_datas[id + '_comment'])
+			}
+		})
+
+		checkFormEditDel()
+	}
+
+	// Delete 1 ope
+	function deleteRow(id){
+
+		let tr = $('#ope_id_' + id)
+
+		$('#butFullRevive').show()
+		tr.addClass('tr_del')
+		toggleFormMod(tr, false)
+
+		$('#ope_id_' + id + ' .trButStopFormMod').hide()
+		$('#ope_id_' + id + ' .trButRevive').show()
+
+		calculSolde()
+		saveMod(true)
+	}
+
+	// Revive 1 ope
+	function reviveOpe(id){
+
+		let tr = $('#ope_id_' + id)
+
+		tr.removeClass('tr_del')
+		toggleFormMod(tr, false)
+		$('#ope_id_' + id + ' .trButRevive').hide()
+
+		calculSolde()
+		checkFormEditDel()
+	}
+
+	// Revive all ope
+	function reviveAllOpe(){
+
+		$('#operation_tab .tr_del').each(function(index, tr){
+			$(this).removeClass('tr_del')
+			$('#' + tr.id + ' .trButRevive').hide()
+			toggleFormMod($(this), false)
+		})
+		calculSolde()
+		checkFormEditDel()
 	}
 
 

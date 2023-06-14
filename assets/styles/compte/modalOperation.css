@@ -84,6 +84,12 @@
 	background-color: #E0EFFA;
 }
 
+/* DELETE */
+#operation_tab .tr_del {
+	background-color: #FAE0E3;
+	text-decoration:line-through 1px #A90719;
+}
+
 /* TD COLLABO */
 #solde_tr_collabo td {
 	height: 20px;
@@ -98,7 +104,7 @@
 	background-color: #E6E6E6;
 	padding-left: 5px;
 	font-style : italic;
-/*	text-decoration: underline;*/
+/*	text-decoration: underline; */
 	border-left: 1px black solid;
 }
 .totalAnticipe {

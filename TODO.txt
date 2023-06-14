@@ -49,7 +49,6 @@ Compte
 			Case Total final, rajout texte total + centrer la case
 			Possibilité de faire montant + a venir a la fois
 			Si opération reste à 0 -> passer en delete
-			Si delete, garder ligne + la rayé en rouge + fond rouge + tr_btn_orange annule delete + garder SaveMod
 			Hover switch a faire apparaitre
 			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
 
