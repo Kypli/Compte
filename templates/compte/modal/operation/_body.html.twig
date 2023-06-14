@@ -1,20 +1,73 @@
-<div class="modal-body">
+<div class="modal-body pt-1">
 	<table id="operation_tab" class="m-1 p-1 mt-2">
 	<thead>
 		<tr class="mb-2">
 			<th colspan="6" class="th_actions">
 				<div class="row">
-					<button id="modalOperationAdd" class="col-2 m-1" value="0">
-						Ajouter
-					</button>
-					<button
-						value="0"
-						type="button"
-						class="col-2 m-1"
-						id="modalOperationFullEdit"
-					>
-						Édition
-					</button>
+
+					{# ADD (GREEN) #}
+					<div class="col-2">
+						<button
+							id="butOpeAdd"
+							class="btn btn-outline-success col-12 m-1 mr-4"
+							value="0"
+							title='Ajouter une ligne'
+						>
+							<i class="fas fa-plus"></i>
+						</button>
+					</div>
+
+					{# STOP EDIT MOD (GREY) #}
+					<div class="col-2">
+						<button
+							value="0"
+							type="button"
+							class="btn btn-outline-secondary col-12 m-1"
+							id="butFullToggleFormMod"
+							title="Afficher les formulaires des lignes"
+						>
+							<i class="fas fa-edit"></i>
+						</button>
+					</div>
+
+					{# RESET EDIT (BLUE) #}
+					<div class="col-2">
+						<button
+							value="0"
+							type="button"
+							class="btn btn-outline-primary col-12 m-1 hide"
+							id="butFullCancelEdit"
+							title="Annuler les modifications des lignes"
+						>
+							<i class='fas fa-times'></i>
+						</button>
+					</div>
+
+					{# STOP ADD (GREEN) #}
+					<div class="col-2">
+						<button
+							value="0"
+							type="button"
+							class="btn btn-outline-success col-12 m-1 hide"
+							id="butFullDelAdd"
+							title="Annuler les ajouts de lignes"
+						>
+							<i class='fas fa-times'></i>
+						</button>
+					</div>
+
+					{# STOP DELETE (ORANGE) #}
+					<div class="col-2">
+						<button
+							value="0"
+							type="button"
+							class="btn btn-outline-warning col-12 m-1 hide"
+							id="butFullRevive"
+							title="Annuler les suppression de lignes"
+						>
+							<i class='fas fa-times'></i>
+						</button>
+					</div>
 				</div>
 			</th>
 		</tr>

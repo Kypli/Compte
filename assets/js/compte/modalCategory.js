@@ -767,7 +767,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_save', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
+			url: Routing.generate('compte_category_save', { compte: $('#datas').data('compteid'), year: $('#datas').data('year') }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,

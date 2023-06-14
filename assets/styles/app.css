@@ -53,6 +53,8 @@ body {
 .minHeight40		{	min-height: 40px;				}
 .minHeight50		{	min-height: 50px;				}
 
+.ecart-left-5		{   margin-left: 5px;				}
+
 .barre              {   text-decoration: line-through;  }
 .souligne           {   text-decoration: underline;     }
 .gras               {   font-weight: bold;              }

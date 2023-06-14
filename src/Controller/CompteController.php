@@ -89,7 +89,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}", name="_show", methods={"GET"})
+	 * @Route("/{id}", name="_show", methods={"GET", "POST"})
 	 * Montre un compte
 	 */
 	public function show(Compte $compte, Request $request): Response
@@ -157,7 +157,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/tables", name="_tables", methods={"POST"})
+	 * @Route("/{id}/tables", name="_tables", methods={"GET", "POST"})
 	 * Renvoie le render des tables
 	 * Ajax only
 	 */
@@ -364,7 +364,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}", name="_delete", methods={"POST"})
+	 * @Route("/{id}", name="_delete", methods={"GET", "POST"})
 	 */
 	public function delete(Compte $compte, Request $request): Response
 	{
@@ -380,27 +380,28 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/operation/ope/{sc}/{year}/{month}/{sign}", name="_operation", methods={"POST"})
+	 * @Route("/operation/{sc}/{year}/{month}/{sign}", name="_operation", methods={"GET", "POST"})
 	 * Renvoie les opérations selon la sc, l'année, le mois et le signe
 	 * Ajax only
 	 */
-	public function operation(SubCategory $sc, $year, $month, $sign, Request $request): Response
+	public function operationDatas(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+		// if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-
 		$datas['days_in_month'] = $daysInMonth;
 		$datas['subcategory_libelle'] = $sc->getLibelle();
 		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
 		$datas['operations'] = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
+		$datas['addRender'] = $this->operation_add($month, $year, $daysInMonth, $sign);
+		$datas['tBodyRender'] = $this->operation_tbody($datas['operations'], $month, $year, $daysInMonth, $sign);
 
 		return new JsonResponse($datas);
 	}
 
 	/**
-	 * @Route("/operation/ope/save/{sc}/{year}/{month}/{sign}", name="_operation_save", methods={"POST"})
+	 * @Route("/operation/save/{sc}/{year}/{month}/{sign}", name="_operation_save")
 	 * Sauvegarde les opérations d'une sc
 	 * Ajax only
 	 */
@@ -511,32 +512,36 @@ class CompteController extends AbstractController
 			$this->or->remove($del, true);
 		}
 
-		$operations = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
-
-		return new JsonResponse(['save' => true, 'operations' => $operations]);
+		return new JsonResponse(['save' => true]);
 	}
 
 	/**
-	 * @Route("/operation/ope/add/{month}/{year}/{daysInMonth}/{sign}", name="_operation_add", methods={"POST"})
 	 * Renvoie le render d'une nouvelle opération
-	 * Ajax only
 	 */
-	public function operation_add($month, $year, $daysInMonth, $sign, Request $request): Response
+	public function operation_add($month, $year, $daysInMonth, $sign)
 	{
-		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		$render = $this->render('compte/modal/operation/table/_add.html.twig', [
+		return $this->render('compte/modal/operation/table/_add.html.twig', [
 			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
 			'daysInMonth' => $daysInMonth,
 			'day' => date('n') == $month ? date('d') : 1,
 		])->getContent();
+	}
 
-		return new JsonResponse([
-			'render' => $render,
-		]);
+	/**
+	 * Renvoie le render du tbody
+	 */
+	public function operation_tbody($operations, $month, $year, $daysInMonth, $sign)
+	{
+		return $this->render('compte/modal/operation/table/_tbody.html.twig', [
+			'operations' => $operations,
+			'sign' => $sign,
+			'year' => $year,
+			'month' => (int) $month,
+			'daysInMonth' => $daysInMonth,
+			'day' => date('n') == $month ? date('d') : 1,
+		])->getContent();
 	}
 
 	// ****************
@@ -544,7 +549,7 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/{id}/operation/cat/{cat}/{sign}", name="_category", methods={"POST"})
+	 * @Route("/cat/{id}/{cat}/{sign}", name="_category", methods={"GET", "POST"})
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
@@ -571,7 +576,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/operation/caty/add/{sign}", name="_category_add", methods={"POST"})
+	 * @Route("/cat/add/{id}/{sign}", name="_category_add", methods={"GET", "POST"})
 	 * Renvoie le render d'une nouvelle catégorie
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -596,7 +601,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/operation/caty/save/{year}", name="_category_save", methods={"POST"})
+	 * @Route("/{compte}/cat/save/{year}", name="_category_save", methods={"GET", "POST"})
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -676,7 +681,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/operation/caty/delete/{cat}", name="_category_delete", methods={"POST"})
+	 * @Route("/cat/delete/{id}/{cat}", name="_category_delete", methods={"GET", "POST"})
 	 * Delete category
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
@@ -717,7 +722,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/operation/cat/sc/{id}", name="_subcategory", methods={"POST"})
+	 * @Route("/sc/{id}", name="_subcategory", methods={"GET", "POST"})
 	 * Récupère render de tr_subcategorie_back
 	 * Ajax only
 	 */
@@ -736,7 +741,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/operation/cat/sc/add/{addMod}", name="_subcategory_add", methods={"POST"})
+	 * @Route("/sc/add/{addMod}", name="_subcategory_add", methods={"GET", "POST"})
 	 * Récupère render de tr_subcategories_add
 	 * Ajax only
 	 */

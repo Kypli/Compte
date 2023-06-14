@@ -3,8 +3,12 @@
 		<tr class="tr_head">
 			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat col_start_top bck_{{ sign }}'>
 				<button data-target="#modalCategory" data-toggle="modal">Ajout catégorie</button>
-				{{ sign == 'pos' ? "<span class='green'>(+)</span>" : "<span class='red'>(-)</span>" }}
-				<span class="">(€)</span>
+				{{ 
+					sign == 'pos'
+						? "<span class='green pointeur_help' title='Tableau des revenus'>(+)</span>"
+						: "<span class='red pointeur_help' title='Tableau des dépenses'>(-)</span>"
+				}}
+				<span class="pointeur_help" title='Euros'>(€)</span>
 			</th>
 
 			{# MONTHS #}

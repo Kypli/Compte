@@ -34,3 +34,20 @@ export function lcFirst(str){
 
 	return (str + '').charAt(0).toLowerCase() + str.substr(1)
 }
+
+// Convertit chiffre en style monnaie (xx.xx ou xx)
+export function monnaieStyle(monnaie){
+
+	monnaie = monnaie.toString()
+
+	if (monnaie.indexOf(".") > -1){
+
+		let cts = monnaie.split('.')
+
+		return cts[1].length == 1
+			? monnaie + '0'
+			: monnaie
+	}
+
+	return monnaie
+}

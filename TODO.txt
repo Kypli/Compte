@@ -35,32 +35,23 @@ Compte
 			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
 			Afficher 3 dernières opérations avec pop-up historique
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
-			(+)/(-) Rajouter texte "Revenue/Dépense"
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
-			Colorier les changements avant sauvegarde (bleu)
 			Raccourci fleche gauche droite pour changer de mois
 			Raccourci select on click pour cat et subcat
 			Bouton Autres actions
 				-> Dupliquer cette entrée
-					-> Proposer les autres mois et années
+				-> Déplacer cette entrée
 				-> Associer cette entrée à une personne si multi-compte
-			Supprimer en rouge avec croix
-			Alerte input vide en orange lors d'un ajout
+			Fin d'édition si click en dehors du tableau
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
 			Case Total final, rajout texte total + centrer la case
-			Si aucune opérations, add-ope automatique
-			Cacher fullModEdit si pas d'opé
-			Garder mod edit si delete
-			Si delete, garder ligne + la rayé en rouge + action annule delete
-			Repérage des modifications avec code couleur bleue et garder modeEdit si changement
-			Ajouter/Edition/Fin d'édition -> remplacer par logo
-			Bouton Edition indisponible si pas d'opérations (ne pas prendre en compte les ajout en cours)
-			Possibilité de supprimer une opé déja existante
-			Roue cranté
-				-> changer la date (mois/année)
-				-> Possibilité de faire montant + a venir
+			Possibilité de faire montant + a venir a la fois
+			Si opération reste à 0 -> passer en delete
+			Si delete, garder ligne + la rayé en rouge + fond rouge + tr_btn_orange annule delete + garder SaveMod
+			Hover switch a faire apparaitre
+			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?

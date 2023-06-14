@@ -1,9 +1,9 @@
 <tr class='tr_add'>
 	<td class='td_number'>
 		<input
-			class='inputNumber'
+			class='inputNumber alerteOpe'
 			type='number'
-			step="1"
+			step="0.01"
 			pattern="^\d*(\.\d{0,2})?$"
 			value=''
 			placeholder='0'
@@ -15,9 +15,9 @@
 	</td>
 	<td class='td_anticipe'>
 		<input
-			class='inputAnticipe'
+			class='inputAnticipe alerteOpe'
 			type='number'
-			step='1'
+			step='0.01'
 			pattern='^\d*(\.\d{0,2})?$'
 			value=''
 			placeholder='0'
@@ -34,8 +34,8 @@
 	<td class='td_comment p-1'>
 		<input class='inputComment' type='text' />
 	</td>
-	<td class='td_actions'>
-		<div class="btn-group">
+	<td class='td_actions row'>
+		<div class="btn-group col-4" role="group">
 			<button 
 				type="button"
 				class="btn btn-default dropdown-toggle"
@@ -51,8 +51,15 @@
 				<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>
 				<li class='invalid noForm'>Retire mode édition</li>
 				<li><hr></li>
-				<li class="inputRetrait">Supprimer</li>
+				<li class="deleteAdd">Supprimer</li>
 			</ul>
+		</div>
+
+		{# SHORT BUTTON DELETE #}
+		<div class='offset-2 col-4'>
+			<button type="button" class="btn btn-outline-success mt-2 mb-2 pt-0 pb-0 trButDelAdd" title='Retirer cette ligne'>
+				<i class="fas fa-times"></i>
+			</button>
 		</div>
 	</td>
 </tr>

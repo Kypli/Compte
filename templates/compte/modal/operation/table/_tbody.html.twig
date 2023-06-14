@@ -1,0 +1,90 @@
+{% for ope in operations %}
+
+	{# DATE #}
+	{% set day = ope.day < 10 ? '0' ~ ope.day  : ope.day  %}
+	{% set month = ope.month < 10 ? '0' ~ ope.month : ope.month %}
+
+	{# DEAL WITH 0 #}
+	{% set number = ope.number|number_format(2) %}
+	{% set number_l = number|length %}
+	{% set cts = number|slice(number_l - 2, 2) %}
+	{% set number = cts == '00' ? number|slice(0, number_l - 3) : number %}
+
+	{# TBODY - TR #}
+	<tr id='ope_id_{{ ope.id }}' class='tr_ope'>
+		<td class='td_number'>{{ ope.anticipe ? '' : number }}</td>
+		<td class='td_switch'>
+			<span class='switch hide'>
+				<i class='fa-solid fa-repeat'></i>
+			</span>
+		</td>
+		<td class='td_anticipe'>{{ ope.anticipe ? number : '' }}</td>
+		<td class='td_date p-1'><span class='day'>{{ day }}</span>/{{ month }}/{{ ope.year }}</td>
+		<td class='td_comment p-1'>{{ ope.comment|capitalize }}</td>
+		<td class='td_actions row'>
+			<div class='hide btn-group col-4 ecart-left-5' role='group'>
+				<button
+					type='button'
+					class='btn btn-default dropdown-toggle'
+					data-toggle='dropdown'
+					aria-haspopup='true'
+					aria-expanded='false'
+				>
+					<i class='fas fa-cog'></i>
+					<span class='caret'></span>
+				</button>
+				<ul class='dropdown-menu options p-1'>
+					<li class='invalid' title='Fonctionnalité à venir'>Dupliquer</li>
+					<li class='invalid' title='Fonctionnalité à venir'>Déplacer</li>
+					<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>
+					<li class='invalid noForm'>Retire mode édition</li>
+					<li class='invalid'>...</li>
+					<li><hr></li>
+					<li class='delete' data-opeid='{{ ope.id }}'>Supprimer</li>
+				</ul>
+			</div>
+			<div class='offset-2 col-4'>
+
+				{# STOP FORM MOD (GREY) #}
+				<button
+					type='button'
+					class='btn btn-outline-secondary mt-2 mb-2 pt-0 pb-0 hide trButStopFormMod'
+					title='Fermer le mode édition'
+					data-opeid='{{ ope.id }}'
+				>
+					<i class='fas fa-times'></i>
+				</button>
+
+				{# RESET EDIT (BLUE) #}
+				<button
+					type='button'
+					class='btn btn-outline-primary mt-2 mb-2 pt-0 pb-0 hide trButCancelEdit'
+					title='Annuler les modifications'
+					data-opeid='{{ ope.id }}'
+				>
+					<i class='fas fa-times'></i>
+				</button>
+
+				{# STOP ADD (GREEN) #}
+				<button
+					type='button'
+					class='btn btn-outline-succes mt-2 mb-2 pt-0 pb-0 hide trButDelAdd'
+					title='Retirer cet ajout de ligne'
+					data-opeid='{{ ope.id }}'
+				>
+					<i class='fas fa-times'></i>
+				</button>
+
+				{# STOP DELETE (RED) #}
+				<button
+					type='button'
+					class='btn btn-outline-danger mt-2 mb-2 pt-0 pb-0 hide trButRevive'
+					title='Annuler cette suppression de ligne'
+					data-opeid='{{ ope.id }}'
+				>
+					<i class='fas fa-times'></i>
+				</button>
+			</div>
+		</td>
+	</tr>
+{% endfor %}

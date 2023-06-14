@@ -80,6 +80,9 @@
 #operation_tab .tr_add {
 	background-color: #E0FAE5;
 }
+#operation_tab .tr_edit {
+	background-color: #E0EFFA;
+}
 
 /* TD COLLABO */
 #solde_tr_collabo td {
