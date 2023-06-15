@@ -421,14 +421,6 @@ $(document).ready(function(){
 					: $('#' + id + ' .td_comment').text().trim()
 			;
 
-			// Delete ?
-			if ( (number == '' || number == '0') && (anticipe == '' || anticipe == '0') ){
-				$(this).addClass('tr_del')
-				input_number.removeClass('input_edit')
-				input_number.removeClass('input_edit_val')
-				td_number.removeClass('input_edit_val')
-			}
-
 			if (_input_datas[id + '_number'] != number && number != '0' && number != ''){
 				tr_edit = true
 
@@ -496,6 +488,15 @@ $(document).ready(function(){
 			tr_edit
 				? isSaveMod = true && $(this).addClass('tr_edit') && $(this).removeClass('tr_del') && $('#butFullCancelEdit').show().prop('disabled', false)
 				: $(this).removeClass('tr_edit')
+
+			// Delete ?
+			if ( (number == '' || number == '0') && (anticipe == '' || anticipe == '0') ){
+				$(this).removeClass('tr_edit').addClass('tr_del')
+				$('#' + id + ' .trButCancelEdit').hide()
+				input_number.removeClass('input_edit')
+				input_number.removeClass('input_edit_val')
+				td_number.removeClass('input_edit_val')
+			}
 		})
 
 		// Check EditMod
@@ -720,54 +721,25 @@ $(document).ready(function(){
 	// Delete 1 ope
 	function deleteOpe(id){
 
-		let tr = $('#ope_id_' + id)
+		// Reset Ope
+		resetEdit('ope_id_' + id)
+		toggleFormMod($('#ope_id_' + id), false)
+		$('#ope_id_' + id).addClass('tr_del')
 
-		$('#butFullRevive').show()
-		tr.addClass('tr_del')
-		toggleFormMod(tr, false)
-
-		$('#ope_id_' + id + ' .trButRevive').show()
+		// Buttons
 		$('#ope_id_' + id + ' .trButStopFormMod, #ope_id_' + id + ' .trButCancelEdit').hide()
+		$('#ope_id_' + id + ' .trButRevive').show()
+		$('#butFullRevive').show()
 
 		calculSolde()
-		saveMod(true)
 	}
 
 	// Delete 1 ope on focusOut
 	function focusOutDelete(input){
 
-		let
-			id = input.parent().parent().get(0).id.split('_')[2],
-			numAnt = input.attr("class").indexOf("inputNumber") >= 0 ? 'number' : 'anticipe'
-		;
-
 		if (input.val() == '0' || input.val() == 0 || input.val() == null){
-
-			// Bon input
-			if (
-				(numAnt == 'number' && _input_datas['ope_id_' + id + '_number'] != '') ||
-				(numAnt == 'anticipe' && _input_datas['ope_id_' + id + '_anticipe'] != '')
-			){
-				input.val(_input_datas['ope_id_' + id + '_' + numAnt])
-
-			// Mauvais input
-			} else {
-
-				// Swap
-				let tr = input.parent('td').parent('tr')
-				numAnt = numAnt == 'anticipe' ? 'number' : 'anticipe'
-
-				toggleInputNumberAnticipe(tr)
-				let inputNumAnt =
-					tr
-						.children('.td_'+numAnt)
-						.find('input')
-						.val(_input_datas['ope_id_' + id + '_' + numAnt])
-			}
-
-			deleteOpe(id)
+			deleteOpe(input.parent().parent().get(0).id.split('_')[2])
 			controlOperation()
-			checkFormEditDel()
 		}
 	}
 
