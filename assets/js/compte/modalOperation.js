@@ -47,14 +47,32 @@ $(document).ready(function(){
 		calculSolde()
 	})
 
+	// FocusOut delete
+	$("body").on("focusout", ".inputNumber, .inputAnticipe", function(e){
+		focusOutDelete($(this))
+	})
+
+	// Input number + Anticipe -> Calcul/Check/Control
+	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
+		calculSolde()
+		controlOperation()
+		checkFormEditDel()
+	})
+
+	// Input Date + Comment -> Calcul/Check/Control
+	$("body").on("input", ".inputDay, .inputComment", function(e){
+		checkFormEditDel()
+	})
+
+	// add/delete -> Calcul/Check/Control
+	$("body").on("click", ".deleteAdd, #butOpeAdd, .delete", function(e){
+		calculSolde()
+		controlOperation()
+	})
+
 	// Input monnaie Style inputToDiv
 	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
 		$(this).val(monnaieStyle($(this).val()))
-	})
-
-	// Date + Comment
-	$("body").on("input", ".inputDay, .inputComment", function(e){
-		checkFormEditDel()
 	})
 
 	// Toggle divToInput
@@ -127,7 +145,7 @@ $(document).ready(function(){
 
 	// Delete ope
 	$("body").on("click", ".delete", function(e){
-		deleteRow($(this).data('opeid'))
+		deleteOpe($(this).data('opeid'))
 	})
 
 	// Revive ope
@@ -146,17 +164,6 @@ $(document).ready(function(){
 	// Save
 	$("body").on("click", "#modalOperationSaveClose", function(e){
 		sauvegarde()
-	})
-
-	// Control + calcul
-	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
-		controlOperation()
-		calculSolde()
-		checkFormEditDel()
-	})
-	$("body").on("click", ".deleteAdd, #butOpeAdd, .delete", function(e){
-		controlOperation()
-		calculSolde()
 	})
 
 
@@ -377,10 +384,10 @@ $(document).ready(function(){
 			: null
 
 		// Check Number + Anticipe
-		$('#operation_tab .tr_ope').each(function(index, div){
+		$('#operation_tab .tr_ope').each(function(index, tr){
 
 			let 
-				id = div.id,
+				id = tr.id,
 
 				input_number = $('#' + id + ' .inputNumber'),
 				input_anticipe = $('#' + id + ' .inputAnticipe'),
@@ -414,8 +421,15 @@ $(document).ready(function(){
 					: $('#' + id + ' .td_comment').text().trim()
 			;
 
-			// Correct Number
-			if (_input_datas[id + '_number'] != number){
+			// Delete ?
+			if ( (number == '' || number == '0') && (anticipe == '' || anticipe == '0') ){
+				$(this).addClass('tr_del')
+				input_number.removeClass('input_edit')
+				input_number.removeClass('input_edit_val')
+				td_number.removeClass('input_edit_val')
+			}
+
+			if (_input_datas[id + '_number'] != number && number != '0' && number != ''){
 				tr_edit = true
 
 				_input_datas[id + '_number'] == ''
@@ -432,7 +446,7 @@ $(document).ready(function(){
 			}
 
 			// Correct Anticipe
-			if (_input_datas[id + '_anticipe'] != anticipe){
+			if (_input_datas[id + '_anticipe'] != anticipe && anticipe != '0' && anticipe != ''){
 				tr_edit = true
 
 				_input_datas[id + '_anticipe'] == ''
@@ -480,7 +494,7 @@ $(document).ready(function(){
 
 			// tr_edit + butFullCancelEdit ?
 			tr_edit
-				? isSaveMod = true && $(this).addClass('tr_edit') && $('#butFullCancelEdit').show().prop('disabled', false)
+				? isSaveMod = true && $(this).addClass('tr_edit') && $(this).removeClass('tr_del') && $('#butFullCancelEdit').show().prop('disabled', false)
 				: $(this).removeClass('tr_edit')
 		})
 
@@ -704,7 +718,7 @@ $(document).ready(function(){
 	}
 
 	// Delete 1 ope
-	function deleteRow(id){
+	function deleteOpe(id){
 
 		let tr = $('#ope_id_' + id)
 
@@ -712,11 +726,49 @@ $(document).ready(function(){
 		tr.addClass('tr_del')
 		toggleFormMod(tr, false)
 
-		$('#ope_id_' + id + ' .trButStopFormMod').hide()
 		$('#ope_id_' + id + ' .trButRevive').show()
+		$('#ope_id_' + id + ' .trButStopFormMod, #ope_id_' + id + ' .trButCancelEdit').hide()
 
 		calculSolde()
 		saveMod(true)
+	}
+
+	// Delete 1 ope on focusOut
+	function focusOutDelete(input){
+
+		let
+			id = input.parent().parent().get(0).id.split('_')[2],
+			numAnt = input.attr("class").indexOf("inputNumber") >= 0 ? 'number' : 'anticipe'
+		;
+
+		if (input.val() == '0' || input.val() == 0 || input.val() == null){
+
+			// Bon input
+			if (
+				(numAnt == 'number' && _input_datas['ope_id_' + id + '_number'] != '') ||
+				(numAnt == 'anticipe' && _input_datas['ope_id_' + id + '_anticipe'] != '')
+			){
+				input.val(_input_datas['ope_id_' + id + '_' + numAnt])
+
+			// Mauvais input
+			} else {
+
+				// Swap
+				let tr = input.parent('td').parent('tr')
+				numAnt = numAnt == 'anticipe' ? 'number' : 'anticipe'
+
+				toggleInputNumberAnticipe(tr)
+				let inputNumAnt =
+					tr
+						.children('.td_'+numAnt)
+						.find('input')
+						.val(_input_datas['ope_id_' + id + '_' + numAnt])
+			}
+
+			deleteOpe(id)
+			controlOperation()
+			checkFormEditDel()
+		}
 	}
 
 	// Revive 1 ope
