@@ -14,42 +14,73 @@
 		<div class='row mb-3'>
 
 			{# LOGO #}
-			<div id="logo" class="offset-4 col-4 center">
+			<div id="logo" class="offset-4 col-4 mt-2 center">
 				<img src="https://placehold.co/500x250" class=" m-3" />
 			</div>
 
 			{# TITRE #}
 			<h2 class="radius-short offset-4 col-4">A vos comptes</h2>
 
-			{# MESSAGE D'ACCUEIL #}
-			<section class='section'>
-				<p>
-					Bonjour et bienvenue sur cette application de gestion de comptes.
-					<br />
-					Plus d'informations à venir.
-				</p>
-			</section>
+			{# SLOGAN #}
+			<h3 class="offset-2 col-8 center taille30 gras">
+				Gérez votre argent en toute simplicité
+				<br/>
+				pour une meilleur vision de votre budget !
+			</h3>
 
-			{# CONNEXION #}
 			<section class='section'>
 				<div class='row'>
 
-					{# ESPACE MEMBRE - FORM LOGIN #}
-					<div class="offset-1 col-5">
-						{% include 'home/connexion/_index.html.twig' %}
+					{# MESSAGE D'ACCUEIL #}
+					<div class="offset-2 col-8 taille22">
+						<p>
+							Bonjour et bienvenue sur cette application de gestion de comptes.
+							<br />
+							Plus d'informations à venir.
+						</p>
 					</div>
 
 					{# ESPACE MEMBRE - FORM LOGIN #}
-					<div class="offset-1 col-4 p-4">
+					<div class="offset-1 col-4 mt-3">
+						{% include 'home/connexion/_index.html.twig' %}
+					</div>
+
+					{# TEST + INSCRIPTION #}
+					<div class="offset-1 col-5 p-4">
 						<div class='row'>
-							<div class='col-12 '>
-								<button class="p-4 radius-button">
-									Tester sans contraintes et gratuitement l'application
-								</button>
-							</div>
-							<div class='offset-3 col-6 floatcenter'>
+
+							{# TESTER #}
+							<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
 								<a href="{{ path('user_add')}}" class='p-1'>
-									<button class="p-3 radius-button-bis">&nbsp;&nbsp;S'inscrire&nbsp;&nbsp;</button>
+									<nav>
+										<ul>
+											<li class="pointeur taille20">
+												Tester l'application
+												<span></span><span></span><span></span><span></span>
+											</li>
+										</ul>
+									</nav>
+								</a>
+							</div>
+							<div class='col-12 mt-0 mb-4'>
+								<small class="taille15">
+									Gratuitement et sans engagements avec un profil temporaire
+								</small>
+							</div>
+
+							<hr>
+
+							{# S'INSCRIRE #}
+							<div class='offset-1 col-10 d-flex justify-content-center'>
+								<a href="{{ path('user_add')}}" class='p-1'>
+									<nav>
+										<ul>
+											<li class="pointeur taille20">
+												Créer un nouveau compte
+												<span></span><span></span><span></span><span></span>
+											</li>
+										</ul>
+									</nav>
 								</a>
 							</div>
 						</div>

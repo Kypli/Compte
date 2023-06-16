@@ -1,20 +1,29 @@
 <form action="{{ path('login') }}" method="post">
 	<div class="row form_login">
 
-		{# Mail #}
-		<div class="offset-lg-0 col-lg-4 offset-md-3 col-md-2 alignLeft">
-			<label for="username">Pseudo</span></label>
-		</div>
-		<div class="col-md-4 col-lg-8 col-8">
-			<input class="col-12" type="text" id="username" name="_username" value="{{ last_username }}" required="required"/>
+		{# USERNAME #}
+		<div class="col-12 mt-2">
+			<input
+				class="p-2 taille20"
+				type="text"
+				id="username"
+				name="_username"
+        		placeholder="Login ou Pseudo"
+				value="{{ last_username }}"
+				required="required"
+			/>
 		</div>
 
 		{# MDP #}
-		<div class="offset-lg-0 col-lg-4 offset-md-3 col-md-2 mt-3 mb-3 alignLeft">
-			<label for="password" title="Mot de passe">MdP</label>
-		</div>
-		<div class="col-md-4 col-lg-8 col-8 mt-3 mb-3">
-			<input class="col-12" type="password" id="password" name="_password" required="required"/>
+		<div class="col-12 mt-3 mb-3">
+			<input
+				class="p-2 taille20 gg"
+				type="password"
+				id="password"
+				name="_password"
+        		placeholder="Mot de passe"
+				required="required"
+			/>
 		</div>
 
 		{# If you want to control the URL the user is redirected to on success #}
@@ -22,8 +31,8 @@
 		<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
 		{# VALID #}
-		<div class="offset-4 col-5 mt-1">
-			<button class='p-2 floatleft radius-button' type="submit">&nbsp;&nbsp;Se connecter&nbsp;&nbsp;</button>
+		<div class="offset-2 col-8">
+			<button class='p-2 m-2 mt-0 floatleft radius-button taille22' type="submit">&nbsp;&nbsp;Se connecter&nbsp;&nbsp;</button>
 		</div>
 	</div>
 </form>

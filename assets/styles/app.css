@@ -67,7 +67,10 @@ a:hover { color:#29843B; }
 .taille17           {   font-size: 17px;                }
 .taille18           {   font-size: 18px!important;		}
 .taille20           {   font-size: 20px;                }
+.taille21           {   font-size: 21px;                }
+.taille22           {   font-size: 22px;                }
 .taille25           {   font-size: 25px;				}
+.taille30           {   font-size: 30px;				}
 
 .minWitdh20			{	min-width: 20px;				}
 .minWitdh30			{	min-width: 30px;				}
@@ -115,6 +118,9 @@ a:hover { color:#29843B; }
 }
 
 /* Radius */
+.radius-tiny {
+	border-radius: 22% / 5%;
+}
 .radius-short {
 	border-radius: 5% / 45%;
 }

@@ -12,8 +12,80 @@ body {
 
 button {
 	display: block;
+	padding: 10px;
 	color: #30742A;
 	background-color: #e9f5db;
 	border: 3px solid black;
-	padding: 10px;
+}
+input {
+	color: #30742A;
+	background-color: #CFE9CD;
+}
+
+a:hover { 
+	color:#29843B;
+	text-decoration: none;
+}
+
+
+/* EFFET BUTTONS */
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 20px;
+}
+nav ul li {
+  padding-top: 15px;
+  --b: black;
+  --c: #295935;
+  --ct: #30742A;
+  --cb: #e9f5db;
+  color: var(--ct);
+  background-color: var(--cb);
+  width: 15em;
+  height: 5em;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: sans-serif;
+  text-align: center;
+  line-height: 3em;
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: 0.5s;
+  border: 0.2em solid var(--b);
+  border-radius: 22% / 5%;
+}
+nav ul li span {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  background-color: var(--c);
+  transform: translateY(150%);
+  border-radius: 50%;
+  left: calc((var(--n) - 1) * 25%);
+  transition: 0.5s;
+  transition-delay: calc((var(--n) - 1) * 0.1s);
+  z-index: -1;
+}
+nav ul li:hover {
+  color: black;
+  text-decoration: none;
+}
+nav ul li:hover span {
+  transform: translateY(0) scale(2);
+  text-decoration: none;
+}
+nav ul li span:nth-child(1) {
+  --n: 1;
+}
+nav ul li span:nth-child(2) {
+  --n: 2;
+}
+nav ul li span:nth-child(3) {
+  --n: 3;
+}
+nav ul li span:nth-child(4) {
+  --n: 4;
 }
