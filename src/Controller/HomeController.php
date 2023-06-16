@@ -19,6 +19,11 @@ class HomeController extends AbstractController
 	 */
 	public function index(Request $request, AuthenticationUtils $authenticationUtils){
 
+		// Redirection Dashboard if log
+		if ($this->getUser() != null){ 
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+
 		return $this->render('home/index.html.twig',[
 
 			// Authentification

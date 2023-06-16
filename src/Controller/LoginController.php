@@ -27,6 +27,6 @@ class LoginController extends AbstractController
 		// last username entered by the user
 		$lastUsername = $authenticationUtils->getLastUsername();
 
-		return $this->redirectToRoute('home');
+		return $this->redirectToRoute('tableau_bord');
 	}
 }

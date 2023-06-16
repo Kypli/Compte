@@ -19,17 +19,11 @@
 
 		{# If you want to control the URL the user is redirected to on success #}
 		<input type="hidden" name="home" value="/account"/>
-
 		<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
 		{# VALID #}
-		<div class="col-5 offset-1 mt-1">
-			<button class='p-1' type="submit">Se connecter</button>
-		</div>
-
-		{# INSCRIPTION #}
-		<div class="col-4 offset-1 mt-2">
-			<a href="{{ path('user_add')}}" class='p-1'>S'inscrire</a>
+		<div class="offset-4 col-5 mt-1">
+			<button class='p-2 floatleft radius-button' type="submit">&nbsp;&nbsp;Se connecter&nbsp;&nbsp;</button>
 		</div>
 	</div>
 </form>

@@ -1,0 +1,50 @@
+body {
+	color:white;
+	background-color:black;
+	background-image:url("../../images/fond/vert_tableauNoirSale.jpg");
+	margin:0;
+}
+
+h2 {
+	padding: 4px;
+	padding-bottom: 12px;
+	margin-top: 12px!important;
+	margin-bottom: 15px;
+	color:#295935;
+	background-color: #e9f5db;
+	text-align: center;
+	display: block;
+	text-shadow: 2px 1px grey;
+	text-underline-offset: 2px;
+	text-decoration: underline double 2px #295935;
+}
+
+section {
+	color:#e9f5db;
+	display: block;
+	background-color: #295935;
+	border: 3px solid white;
+	padding: 10px;
+}
+
+/* Section */
+.section, .form {
+	margin-top: 15px;
+	font-weight: bold;
+	text-align: center;
+	font-size: 25px;
+}
+
+/* Radius */
+.radius-short {
+	border-radius: 5% / 45%;
+}
+.radius-long {
+	border-radius: 3% / 45%;
+}
+.radius-button {
+	border-radius: 20% / 65%;
+}
+.radius-button-bis {
+	border-radius: 25% / 70%;
+}

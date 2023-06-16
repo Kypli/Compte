@@ -45,7 +45,7 @@ security:
 
             logout:
                 path: /logout
-                target: /login
+                target: /
 
             login_throttling:
                 max_attempts: 5

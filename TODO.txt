@@ -21,6 +21,7 @@ Compte
 			Changement d'année plus droite et retour a l'année en cours sur sa gauche
 			Liste des anomalies (A venir dépassé et montant fait dans le futur)
 			Historique des 10/20 dernières actions
+			Proposer un tutoriel
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
@@ -35,6 +36,7 @@ Compte
 			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
 			Afficher 3 dernières opérations avec pop-up historique
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
+			Glisser déposer les catégorie pour les changer de pos
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -50,6 +52,7 @@ Compte
 			Possibilité de faire montant + a venir a la fois
 			Hover switch a faire apparaitre
 			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
+			Sous Total ne pas confondre avec les champs
 
 		Modal Category / Sub-cat
 			Garder les bouton delete disabled ?

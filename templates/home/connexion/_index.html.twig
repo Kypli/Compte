@@ -1,9 +1,4 @@
-<div class='row mb-4'>
-
-	<h4 class="radius-short offset-2 col-8 d-none d-lg-block d-xl-block">{{ app.user != null ? 'Mon espace' : 'Connexion' }}</h4>
-	<h4 class="radius-long offset-2 col-8 d-none d-lg-none d-xl-none d-sm-block d-md-block">
-		{{ app.user != null ? 'Mon espace' : 'Connexion' }}
-	</h4>
+<div class='row mb-4 mt-4'>
 
 	{# MESSAGES FLASH SUCCESS #}
 	{% for message in app.flashes('login_success') %}
@@ -26,10 +21,6 @@
 		</div>
 	{% endfor %}
 
-	{# ESPACE MEMBRE - FORM LOGIN #}
-	{% if app.user is not null %}
-		{% include 'home/connexion/_espace_membre.html.twig' %}
-	{% else %}
-		{% include 'home/connexion/_form_login.html.twig' %}
-	{% endif %}
+	{# FORM LOGIN #}
+	{% include 'home/connexion/_form_login.html.twig' %}
 </div>

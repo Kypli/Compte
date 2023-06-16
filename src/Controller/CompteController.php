@@ -79,7 +79,7 @@ class CompteController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$this->cr->add($compte, true);
 
-			return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
 		}
 
 		return $this->renderForm('compte/new.html.twig', [
@@ -354,7 +354,7 @@ class CompteController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$this->cr->add($compte, true);
 
-			return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
 		}
 
 		return $this->renderForm('compte/edit.html.twig', [
@@ -372,7 +372,7 @@ class CompteController extends AbstractController
 			$this->cr->remove($compte, true);
 		}
 
-		return $this->redirectToRoute('compte_index', [], Response::HTTP_SEE_OTHER);
+		return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
 	}
 
 	// ****************

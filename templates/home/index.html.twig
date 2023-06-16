@@ -1,13 +1,48 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil{% endblock %}
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('home') }}
+{% endblock %}
+
+{% block title %}A vos comptes{% endblock %}
+
+{% block navbar %}{% endblock %}
 
 {% block body %}
-
 	<div class="container">
+		<div class='row mb-3'>
 
-		{# ESPACE MEMBRE - FORM LOGIN #}
-		{% include 'home/connexion/_index.html.twig' %}
+			{# TITRE #}
+			<h2 class="radius-short offset-4 col-4">A vos comptes</h2>
 
+			{# MESSAGE D'ACCUEIL #}
+			<section class='section'>
+				<p>
+					Bonjour et bienvenue sur cette application de gestion de comptes.
+					<br />
+					Plus d'informations à venir.
+				</p>
+			</section>
+
+			{# CONNEXION #}
+			<section class='section'>
+				<div class='row'>
+
+					{# ESPACE MEMBRE - FORM LOGIN #}
+					<div class="offset-1 col-5">
+						{% include 'home/connexion/_index.html.twig' %}
+					</div>
+
+					{# ESPACE MEMBRE - FORM LOGIN #}
+					<div class="offset-1 col-4 p-4">
+						<button class="p-4 radius-button">Tester sans contraintes et gratuitement l'application</button>
+						<a href="{{ path('user_add')}}" class='p-1'>
+							<button class="mt-4 p-3 radius-button-bis">&nbsp;&nbsp;S'inscrire&nbsp;&nbsp;</button>
+						</a>
+					</div>
+				</div>
+			</section>
+		</div>
 	</div>
 {% endblock %}
