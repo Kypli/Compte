@@ -20,7 +20,7 @@ class HomeController extends AbstractController
 	public function index(Request $request, AuthenticationUtils $authenticationUtils){
 
 		// Redirection Dashboard if log
-		if ($this->getUser() != null){ 
+		if (null !== $this->getUser()){ 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 

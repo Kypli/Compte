@@ -7,7 +7,6 @@ use App\Entity\UserAsso;
 use App\Entity\UserProfil;
 
 use App\Repository\UserRepository;
-use App\Repository\UserAssoRepository;
 use App\Repository\UserProfilRepository;
 use App\Repository\DiscussionRepository;
 
@@ -45,7 +44,7 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/inscription", name="_add", methods={"GET", "POST"})
 	 */
-	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr, UserAssoRepository $uar)
+	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr)
 	{
 		// Ne doit pas être membre ou être admin
 		if (null !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')){
@@ -60,12 +59,8 @@ class UserController extends AbstractController
 			->remove('admin')
 			->remove('anonyme')
 			->remove('ip')
-			->remove('accesPhoto')
-			->remove('accesPhotoLanceurAlerte')
-			->remove('newsletter')
-			->remove('commentaire')
 			->remove('profil')
-			->remove('asso')
+			->remove('preferences')
 		;
 
 		$form->handleRequest($request);
@@ -82,7 +77,6 @@ class UserController extends AbstractController
 
 				// Default datas
 				$user
-					->setNewsletter(false)
 					->setRoles(["ROLE_USER"])
 					->setPassword($this->passwordHasher->hashPassword(
 						$user,
@@ -95,18 +89,13 @@ class UserController extends AbstractController
 					->setUser($user)
 				;
 
-				$userAsso = new UserAsso();
-				$userAsso
-					->setDroitImage(false)
-					->setMembreHonneur(false)
-					->setUser($user)
-				;
-
 				$ur->add($user);
 				$upr->add($userProfil);
-				$uar->add($userAsso);
 
-				$this->addFlash('success', 'Félicitations, vous inscription est prise en compte, vous pouvez maintenant vous connecter.');
+				$this->addFlash(
+					'success',
+					'Félicitations, vous inscription est prise en compte, vous pouvez maintenant vous connecter.'
+				);
 
 				return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
 			}

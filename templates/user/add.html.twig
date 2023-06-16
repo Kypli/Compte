@@ -1,6 +1,13 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('home') }}
+{% endblock %}
+
 {% block title %}Inscription{% endblock %}
+
+{% block navbar %}{% endblock %}
 
 {% block body %}
 
@@ -11,9 +18,15 @@
 			<h2 class="radius-long offset-4 col-4">Inscription</h2>
 
 			{# INSCRIPTION #}
-			<section class='form'>
+			<section class='row form'>
 				{% set edit = {'edit': false} %}
 				{% include 'user/_form.html.twig' with edit %}
+
+
+				{# RETOUR #}
+				<a class="col-4" href="{{ path('home') }}">
+					Retour à la page d'accueil
+				</a>
 			</section>
 		</div>
 	</div>

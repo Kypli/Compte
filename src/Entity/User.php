@@ -45,6 +45,21 @@ class User implements UserInterface
     private $roles = [];
 
     /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $ip;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $anonyme = false;
+
+    /**
+     * @ORM\Column(type="string", length=150, nullable=true)
+     */
+    private $commentaire;
+
+    /**
      * @ORM\Column(type="boolean")
      */
     private $active = 1;
@@ -150,6 +165,42 @@ class User implements UserInterface
             ? true
             : false
         ;
+    }
+
+    public function getIp(): ?string
+    {
+        return $this->ip;
+    }
+
+    public function setIp(string $ip): self
+    {
+        $this->ip = $ip;
+
+        return $this;
+    }
+
+    public function getAnonyme(): ?bool
+    {
+        return $this->anonyme;
+    }
+
+    public function setAnonyme(bool $anonyme): self
+    {
+        $this->anonyme = $anonyme;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
+
+        return $this;
     }
 
     public function isActive(): ?bool
