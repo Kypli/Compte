@@ -22,6 +22,7 @@ input {
 	background-color: #CFE9CD;
 }
 
+a { color:#e9f5db; }
 a:hover { 
 	color:#29843B;
 	text-decoration: none;
