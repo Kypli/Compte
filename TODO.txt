@@ -1,5 +1,8 @@
 php bin/console make:reset-password
 
+Home
+	Trouver un logo
+
 User
 	Preference
 		Affichage total (total / mois)

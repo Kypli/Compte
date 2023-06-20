@@ -22,6 +22,7 @@ input {
 	background-color: #CFE9CD;
 }
 
+a { color:#e9f5db; }
 a:hover { 
 	color:#29843B;
 	text-decoration: none;
@@ -32,10 +33,9 @@ a:hover {
 nav ul {
   list-style-type: none;
   margin: 0;
-  padding: 20px;
+  padding: 15px;
 }
 nav ul li {
-  padding-top: 15px;
   --b: black;
   --c: #295935;
   --ct: #30742A;
@@ -44,6 +44,7 @@ nav ul li {
   background-color: var(--cb);
   width: 15em;
   height: 5em;
+  padding-top: 17px;
   font-size: 16px;
   font-weight: 100;
   font-family: sans-serif;

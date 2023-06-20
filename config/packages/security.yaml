@@ -40,6 +40,7 @@ security:
             form_login:
                 login_path: login
                 check_path: login
+                failure_path: /
             http_basic: ~
             entry_point: form_login
 
