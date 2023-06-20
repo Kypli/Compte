@@ -46,7 +46,7 @@ class UserController extends AbstractController
 	 */
 	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr)
 	{
-		// Ne doit pas être membre ou être admin
+		// Ne doit pas être membre ou alors être admin
 		if (null !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire si vous êtes déjà membre.');
 			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
