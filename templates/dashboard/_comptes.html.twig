@@ -1,0 +1,8 @@
+{% for compte in comptes %}
+	<div class='offset-4 col-4 mb-2{{ compte.main ? ' gras' }}'>
+		<a href="{{ path('compte_show', {'id': compte.id}) }}">
+			{{ compte.libelle }}
+		</a>
+	</div>
+	<div class='col-4 mb-2{{ compte.main ? ' gras' }}'>{{ comptes_solde[compte.id].solde }} €</div>
+{% endfor %}

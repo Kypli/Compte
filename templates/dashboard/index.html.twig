@@ -2,11 +2,59 @@
 
 {% block title %}Tableau de bord{% endblock %}
 
-{% block body %}
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('dashboard') }}
+{% endblock %}
 
+{% block body %}
 	<div class="container">
 
-		<h1>Tableau de bord</h1>
+		{% include('_h1.html.twig') with {'text': 'Tableau de bord'} %}
 
+		<div class="row mb-3 mlDashBoard">
+			<div class="col-5 card encard m-2">
+				<h2>Comptes</h2>
+				<div class="row">
+					{% include('dashboard/_commun_add.html.twig') with {'lien': 'compte'} %}
+				</div>
+			</div>
+			<div class="col-5 card encard m-2">
+				<h2>Crédit</h2>
+				<div class="row">
+					{% include('dashboard/_commun_add.html.twig') with {'lien': 'credit'} %}
+				</div>
+			</div>
+		</div>
+
+		<div class="row mb-3 mlDashBoard">
+			<div class="offset-1 col-5 card encard m-2">
+				<h2>Immobilier</h2>
+				<div class="row">
+					{% include('dashboard/_commun_add.html.twig') with {'lien': 'immobilier'} %}
+				</div>
+			</div>
+			<div class="offset-1 col-5 card encard m-2">
+				<h2>Mobilier</h2>
+				<div class="row">
+					{% include('dashboard/_commun_add.html.twig') with {'lien': 'mobilier'} %}
+				</div>
+			</div>
+		</div>
+
+		<div class="row mlDashBoard">
+			<div class="offset-1 col-5 card encard m-2">
+				<h2>Investissement</h2>
+				<div class="row">
+					{% include('dashboard/_commun_add.html.twig') with {'lien': 'investissement'} %}
+				</div>
+			</div>
+			<div class="offset-1 col-5 card encard-bis m-2">
+				<h2 class='no-underline ls2 pt-2 pb-2'>TOTAL</h2>
+				<div class="row">
+					{% include('dashboard/_total.html.twig') %}
+				</div>
+			</div>
+		</div>
 	</div>
 {% endblock %}

@@ -1,0 +1,29 @@
+a { color:#e9f5db; }
+a:hover { 
+	color:#29843B;
+	text-decoration: none;
+}
+
+.encard {
+	min-height: 200px;
+	border: 1px solid green;
+	background-color: #6BA864;
+	border-radius: 10px;
+}
+.encard-bis {
+	color: white;
+	min-height: 200px;
+	border: 1px solid green;
+	background-color: #536D51;
+	border-radius: 10px;
+}
+
+.mlDashBoard {
+	margin-left: 13px;
+}
+
+.div-bottom{
+    bottom:0;
+    width: 100%;
+    position:absolute;
+}

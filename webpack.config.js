@@ -28,6 +28,9 @@ Encore
     // NavBar
     .addEntry('navbar', './assets/js/navbar/navbar.js')
 
+    // Dashboard
+    .addStyleEntry('dashboard', './assets/styles/dashboard/dashboard.css')
+
     // Compte
     .addEntry('compte', './assets/js/compte/compte.js')
 

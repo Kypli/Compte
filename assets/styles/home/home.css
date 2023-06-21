@@ -20,6 +20,7 @@ button {
 input {
 	color: #30742A;
 	background-color: #CFE9CD;
+  border: 2px solid black;
 }
 
 a { color:#e9f5db; }

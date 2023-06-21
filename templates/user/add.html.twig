@@ -19,14 +19,15 @@
 
 			{# INSCRIPTION #}
 			<section class='row form'>
-				{% set edit = {'edit': false} %}
-				{% include 'user/_form.html.twig' with edit %}
-
 
 				{# RETOUR #}
 				<a class="col-4" href="{{ path('home') }}">
+					<i class="fas fa-backward" title="Retour à l'accueil"></i>
 					Retour à la page d'accueil
 				</a>
+
+				{% set edit = {'edit': false} %}
+				{% include 'user/_form.html.twig' with edit %}
 			</section>
 		</div>
 	</div>

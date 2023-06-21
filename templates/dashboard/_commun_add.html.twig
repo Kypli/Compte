@@ -1,0 +1,9 @@
+
+{% include('dashboard/_' ~ lien ~ 's.html.twig') %}
+
+{# ADD #}
+<div class='col-2 div-bottom text-defaut-invers'>
+	<a href="{{ path(lien ~ '_new') }}" title="Ajouter un {{ lien }}">
+		<i class="fas fa-plus"></i>
+	</a>
+</div>

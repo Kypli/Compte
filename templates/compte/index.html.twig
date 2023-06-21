@@ -3,10 +3,9 @@
 {% block title %}Compte index{% endblock %}
 
 {% block body %}
-
-
 <div class="container">
-	<h1>Compte index</h1>
+
+	{% include('_h1.html.twig') with {'text': 'Comptes'} %}
 
 	<table class="table">
 		<thead>

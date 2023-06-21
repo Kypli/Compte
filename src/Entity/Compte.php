@@ -25,6 +25,11 @@ class Compte
     private $libelle;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private $main;
+
+    /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="comptes")
      */
     private $users;
@@ -53,6 +58,18 @@ class Compte
     public function setLibelle(string $libelle): self
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getMain(): ?bool
+    {
+        return $this->main;
+    }
+
+    public function setMain(bool $main): self
+    {
+        $this->main = $main;
 
         return $this;
     }

@@ -7,8 +7,10 @@
 }*/
 
 /* COULEURS PRINCIPALES */
-/*Text: #e9f5db*/
-/*Bg: #295935*/
+.text-defaut { color: #295935; }
+.text-defaut-invers { color: #e9f5db; }
+.bg-defaut { background-color: #e9f5db; }
+.bg-defaut-invers { background-color: #295935; }
 
 /* Matrice */
 body {
@@ -16,15 +18,40 @@ body {
 	/* font-family: Rockwell,Courier Bold,Courier,Georgia,Times,Times New Roman,serif; */
 }
 
+h1 {
+	--c: #888;
+	color: #090;
+	font-size: 35px;
+	text-shadow: 3px -2px #295935, 1px 1px #060, -3px 0 4px grey;
+	font-family: Arial, Helvetica, sans-serif;
+	font-weight: lighter;
+	-moz-box-shadow: 2px 2px 6px var(--c);  
+	-webkit-box-shadow: 2px 2px 6px var(--c);  
+	box-shadow:2px 2px 6px var(--c);  
+
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+
+	padding: 16px;
+	margin: 16px 0 16px 0;
+	display: block;
+	text-align: center;
+
+	text-underline-offset: 8px;
+	text-decoration: underline overline 4px #627A60;
+}
+
 h2 {
+	color: #295935;
+	background-color: #e9f5db;
 	padding: 4px;
 	padding-bottom: 12px;
 	margin-top: 12px!important;
 	margin-bottom: 15px;
-	color: #295935;
-	background-color: #e9f5db;
-	text-align: center;
 	display: block;
+	text-align: center;
 	text-shadow: 2px 1px grey;
 	text-underline-offset: 2px;
 	text-decoration: underline double 2px #295935;
@@ -37,6 +64,7 @@ section {
 	border: 3px solid white;
 	padding: 10px;
 }
+
 
 /* Commun */
 .center				{	text-align: center;				}
@@ -68,6 +96,7 @@ section {
 .taille22           {   font-size: 22px;                }
 .taille25           {   font-size: 25px;				}
 .taille30           {   font-size: 30px;				}
+.taille35           {   font-size: 35px;				}
 
 .minWitdh20			{	min-width: 20px;				}
 .minWitdh30			{	min-width: 30px;				}
@@ -105,6 +134,9 @@ section {
 .grey               {   color: grey;                    }
 .black              {   color: black;                   }
 
+.no-underline 		{	text-decoration: none!important;}
+
+.ls2 				{	letter-spacing: .2rem;			}
 
 /* Section */
 .section, .form {
@@ -113,6 +145,7 @@ section {
 	text-align: center;
 	font-size: 25px;
 }
+
 
 /* Radius */
 .radius-tiny {
@@ -129,4 +162,21 @@ section {
 }
 .radius-button-bis {
 	border-radius: 25% / 70%;
+}
+
+
+/* H1 STYLE */
+.advanced__background {
+/*	background-size: cover;*/
+	background-image:url("../images/fond/billetsVerts.jpg");
+}
+.advanced__backgroundBody {
+	height: 100%;
+	width: 100%;
+	position: relative;
+	backdrop-filter: blur(4px);
+	transition: 100ms backdrop-filter linear;
+}
+.advanced__backgroundBody:hover {
+	backdrop-filter: none;
 }
