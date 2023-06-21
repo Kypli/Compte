@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Compte;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Compte>
@@ -38,4 +40,15 @@ class CompteRepository extends ServiceEntityRepository
 			$this->getEntityManager()->flush();
 		}
 	}
+
+	public function getComptesByUser(User $user)
+	{
+		return $this->createQueryBuilder("x")
+			->where(':user MEMBER OF x.users')
+			->setParameter('user', $user)
+			->getQuery()
+			->getResult()
+		;
+	}
+
 }

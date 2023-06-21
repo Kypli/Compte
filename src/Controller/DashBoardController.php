@@ -5,10 +5,8 @@ namespace App\Controller;
 use App\Entity\UserProfil;
 
 use App\Repository\UserRepository;
-use App\Repository\UserProfilRepository;
+use App\Repository\CompteRepository;
 use App\Repository\OperationRepository;
-
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
@@ -26,11 +24,22 @@ class DashBoardController extends AbstractController
 	/**
 	 * @Route("/", name="")
 	 */
-	public function index(Request $request, AuthenticationUtils $authenticationUtils, OperationRepository $or){
+	public function index(CompteRepository $cr, OperationRepository $or){
 
-		// User
-		$user = $this->getUser();
 
-		return $this->render('dashboard/index.html.twig');
+		// Comptes Datas
+		foreach($cr->getComptesByUser($this->getUser()) as $compte){
+			$comptes[$compte->getId()]['solde'] = round(
+				($or->CompteSoldeActuel($compte->getId(), true) - $or->CompteSoldeActuel($compte->getId(), false)),
+				2
+			);
+			$comptes[$compte->getId()]['label'] = $compte->getLabel();
+		}
+
+		// dd($comptes);
+
+		return $this->render('dashboard/index.html.twig', [
+			'comptes' => $comptes,
+		]);
 	}
 }

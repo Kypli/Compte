@@ -38,8 +38,11 @@
 				{# SOLDE #}
 				<div class="offset-1 col-4">
 					Solde actuel du compte :
-					<span id='soldeActuel' class="soldeActuel total_month_full_{{ solde == null or solde < 0 ? 'neg' : 'pos' }}">
-						{{ solde == null ? 0 : solde }}
+					<span
+						id='soldeActuel'
+						class="soldeActuel total_month_full_{{ current_solde == null or current_solde < 0 ? 'neg' : 'pos' }}"
+					>
+						{{ current_solde == null ? 0 : current_solde }}
 					</span>
 				</div>
 				

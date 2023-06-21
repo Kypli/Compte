@@ -17,9 +17,9 @@
 			%}
 
 			{# DATAS #}
-			{% if soldes['totaux_solde'][month] is defined %}
-				{% set number = soldes['totaux_solde'][month]['solde']|round(2, 'ceil') %}
-				{% set revenuAnnuel = soldes['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
+			{% if soldes_mensuels['totaux_solde'][month] is defined %}
+				{% set number = soldes_mensuels['totaux_solde'][month]['solde']|round(2, 'ceil') %}
+				{% set revenuAnnuel = soldes_mensuels['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
 
 				<th	colspan='2' class="{{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number }}
@@ -48,8 +48,8 @@
 			%}
 
 			{# DATAS #}
-			{% if soldes['totaux_solde'][month] is defined %}
-				{% set number = soldes['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
+			{% if soldes_mensuels['totaux_solde'][month] is defined %}
+				{% set number = soldes_mensuels['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
 
 				<th colspan='2' class="centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number }}

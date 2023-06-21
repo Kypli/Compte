@@ -110,7 +110,7 @@ class CompteController extends AbstractController
 		;
 
 		// Solde
-		$solde = round(
+		$current_solde = round(
 			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
 			2
 		);
@@ -151,8 +151,8 @@ class CompteController extends AbstractController
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
 
-			'solde' => $solde, // Solde du compte
-			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
+			'current_solde' => $current_solde, // Solde courant du compte
+			'soldes_mensuels' => $this->soldesByMonth($operations_pos, $operations_neg),
 		]);
 	}
 
@@ -219,7 +219,6 @@ class CompteController extends AbstractController
 
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
-
 
 			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
 		])->getContent();
