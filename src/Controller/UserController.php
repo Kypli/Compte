@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\UserAsso;
 use App\Entity\UserProfil;
+use App\Entity\UserPreference;
 
 use App\Repository\UserRepository;
 use App\Repository\UserProfilRepository;
-use App\Repository\DiscussionRepository;
+use App\Repository\UserPreferenceRepository;
 
 use App\Form\UserType;
 
@@ -44,7 +44,7 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/inscription", name="_add", methods={"GET", "POST"})
 	 */
-	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr)
+	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr, UserPreferenceRepository $uprer)
 	{
 		// Ne doit pas être membre ou alors être admin
 		if (null !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')){
@@ -89,12 +89,18 @@ class UserController extends AbstractController
 					->setUser($user)
 				;
 
-				$ur->add($user);
-				$upr->add($userProfil);
+				$userPreference = new UserPreference();
+				$userPreference
+					->setUser($user)
+				;
+
+				$ur->add($user, true);
+				$upr->add($userProfil, true);
+				$uprer->add($userPreference, true);
 
 				$this->addFlash(
 					'success',
-					'Félicitations, vous inscription est prise en compte, vous pouvez maintenant vous connecter.'
+					'Félicitations '.$user->getUserName().', vous inscription est prise en compte, vous pouvez maintenant vous connecter.'
 				);
 
 				return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);

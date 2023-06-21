@@ -19,23 +19,11 @@ class HomeController extends AbstractController
 	 */
 	public function index(Request $request, AuthenticationUtils $authenticationUtils){
 
-		// Redirection Dashboard if log
-		if (null !== $this->getUser()){ 
-			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
-		}
-
-		$login_error = $authenticationUtils->getLastAuthenticationError();
-
-		if ($login_error != null){
-			$mess = $login_error->getMessage();
-			$this->addFlash('login_error', $mess == 'Bad credentials.' ? 'Login ou mot de passe incorrect' : $mess);
-		}
-
 		return $this->render('home/index.html.twig',[
 
 			// Authentification
-			'error' => $login_error,									// get the login error if there is one
-			'last_username' => $authenticationUtils->getLastUsername(),	// last username entered by the user
+			'error' => $authenticationUtils->getLastAuthenticationError(),	// get the login error if there is one
+			'last_username' => $authenticationUtils->getLastUsername(),		// last username entered by the user
 		]);
 	}
 }

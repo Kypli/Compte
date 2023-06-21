@@ -50,7 +50,7 @@ class UserProfil
     /**
      * @ORM\Column(type="string", length=35, nullable=true)
      */
-    private $pays = 'France';
+    private $pays;
 
     /**
      * @ORM\Column(type="string", length=30, nullable=true)
