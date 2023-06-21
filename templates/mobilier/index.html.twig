@@ -1,9 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Invest index{% endblock %}
+{% block title %}Mobilier index{% endblock %}
 
 {% block body %}
-    <h1>Invest index</h1>
+    <h1>Mobilier index</h1>
 
     <table class="table">
         <thead>
@@ -13,12 +13,12 @@
             </tr>
         </thead>
         <tbody>
-        {% for invest in invests %}
+        {% for mobilier in mobiliers %}
             <tr>
-                <td>{{ invest.id }}</td>
+                <td>{{ mobilier.id }}</td>
                 <td>
-                    <a href="{{ path('invest_show', {'id': invest.id}) }}">show</a>
-                    <a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
+                    <a href="{{ path('mobilier_show', {'id': mobilier.id}) }}">show</a>
+                    <a href="{{ path('mobilier_edit', {'id': mobilier.id}) }}">edit</a>
                 </td>
             </tr>
         {% else %}
@@ -29,5 +29,5 @@
         </tbody>
     </table>
 
-    <a href="{{ path('investissement_new') }}">Create new</a>
+    <a href="{{ path('mobilier_new') }}">Create new</a>
 {% endblock %}

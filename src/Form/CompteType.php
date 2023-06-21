@@ -6,6 +6,8 @@ use App\Entity\User;
 use App\Entity\Compte;
 
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,6 +18,17 @@ class CompteType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
+			->add(
+				'libelle',
+				TextType::class,
+				[
+					'label' => "Libellé du compte",
+					'attr' => [
+						'class' => 'form-control',
+					],
+
+				]
+			)
 			->add(
 				'users',
 				EntityType::class,
@@ -28,7 +41,7 @@ class CompteType extends AbstractType
 					'attr' => [
 						'class' => 'form-control',
 					],
-					'label' => "Utilisateur",
+					'label' => "Ajouter d'autres gérants pour ce compte",
 					// 'query_builder' => function(UserRepository $e){
 					// 	return $e->createQueryBuilder('e')
 					// 		->orderBy('e.id', 'ASC')
@@ -36,6 +49,20 @@ class CompteType extends AbstractType
 					// 		->setParameter('role', '%ROLE_ADMIN%')
 					// 	;
 					// },
+				]
+			)
+			->add(
+				'main',
+				CheckboxType::class,
+				[
+					'label' => "S'agit-il de votre compte principal ?",
+					'attr' => [
+						'class' => 'form-check-input',
+					],
+					'label_attr' => [
+						'class' => 'form-check-label',
+					],
+
 				]
 			)
 		;

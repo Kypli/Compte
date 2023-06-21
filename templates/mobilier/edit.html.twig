@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Immobilier{% endblock %}
+
+{% block body %}
+    <h1>Edit Immobilier</h1>
+
+    {{ include('mobilier/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('mobilier') }}">back to list</a>
+
+    {{ include('mobilier/_delete_form.html.twig') }}
+{% endblock %}

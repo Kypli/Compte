@@ -1,11 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Compte{% endblock %}
+{% block title %}Créer un compte{% endblock %}
 
 {% block body %}
-	<h1>Create new Compte</h1>
+	<div class="container">
 
-	{{ include('compte/_form.html.twig') }}
+		{% include('_h1.html.twig') with {'text': 'Créer un compte'} %}
 
-	<a href="{{ path('compte') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
+
+		{{ include('compte/_form.html.twig') }}
+	</div>
 {% endblock %}

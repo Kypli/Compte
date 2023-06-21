@@ -14,7 +14,7 @@
 
 /* Matrice */
 body {
-	background-color: lightgray;
+	background-color: #D6E5C9;
 	/* font-family: Rockwell,Courier Bold,Courier,Georgia,Times,Times New Roman,serif; */
 }
 
@@ -44,7 +44,8 @@ h1 {
 }
 
 h2 {
-	color: #295935;
+	--c: #295935;
+	color: var(--c);
 	background-color: #e9f5db;
 	padding: 4px;
 	padding-bottom: 12px;
@@ -54,7 +55,7 @@ h2 {
 	text-align: center;
 	text-shadow: 2px 1px grey;
 	text-underline-offset: 2px;
-	text-decoration: underline double 2px #295935;
+	text-decoration: underline double 2px var(--c);
 }
 
 section {

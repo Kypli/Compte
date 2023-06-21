@@ -76,10 +76,12 @@ class CompteController extends AbstractController
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
 
-		if ($form->isSubmitted() && $form->isValid()) {
+		if ($form->isSubmitted() && $form->isValid()){
+
+			$compte->addUser($this->getUser());
 			$this->cr->add($compte, true);
 
-			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
 		return $this->renderForm('compte/new.html.twig', [

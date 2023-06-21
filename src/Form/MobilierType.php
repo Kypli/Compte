@@ -2,13 +2,13 @@
 
 namespace App\Form;
 
-use App\Entity\Credit;
+use App\Entity\Mobilier;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class CreditType extends AbstractType
+class MobilierType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
@@ -19,7 +19,7 @@ class CreditType extends AbstractType
 	public function configureOptions(OptionsResolver $resolver): void
 	{
 		$resolver->setDefaults([
-			'data_class' => Credit::class,
+			'data_class' => Mobilier::class,
 		]);
 	}
 }
