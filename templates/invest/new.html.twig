@@ -1,11 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Invest{% endblock %}
+{% block title %}Créer un investissement{% endblock %}
 
 {% block body %}
-    <h1>Create new Invest</h1>
+	<div class="container">
 
-    {{ include('invest/_form.html.twig') }}
+		{% include('_h1.html.twig') with {'text': 'Créer un investissement'} %}
 
-    <a href="{{ path('investissement') }}">Retour à la liste</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
+
+		{{ include('invest/_form.html.twig') }}
+	</div>
 {% endblock %}

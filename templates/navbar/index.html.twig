@@ -16,7 +16,7 @@
 				<div class="left"></div>
 				<div class="right"></div>
 			</div>
-			<li class="nav-item decaleLeftLi {{ 'home' in app.request.get('_route') ? 'active' }}">
+			<li class="nav-item decaleLeftLi {{ 'tableau_bord' in app.request.get('_route') ? 'active' }}">
 				<a class="nav-link" href="{{ app.request.get('_route') == 'tableau_bord' ? '#' : path('tableau_bord') }}">
 					<i class="fas fa-tachometer-alt"></i>
 					Tableau de bord
@@ -47,13 +47,13 @@
 				</a>
 			</li>
 			<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference') }}">
+				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">
 					<i class="fa-solid fa-star"></i></i>
 					Préférences
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'profil' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user') }}">
+			<li class="nav-item decaleLeftLi {{ 'user' in app.request.get('_route') ? 'active' }}">
+				<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user_show', {'id': app.user.id}) }}">
 					<i class="fa-solid fa-user"></i></i>
 					Profil
 				</a>

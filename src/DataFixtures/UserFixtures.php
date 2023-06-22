@@ -33,6 +33,7 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
 				'admin'
 			))
 			->setRoles(["ROLE_ADMIN"])
+			->setCode("00000000")
 		;
 		$this->addReference(self::USER_ADMIN, $entity);
 		$manager->persist($entity);
@@ -46,6 +47,7 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
 				'user'
 			))
 			->setRoles(["ROLE_USER"])
+			->setCode("11111111")
 		;
 		$this->addReference(self::USER_USER, $entity);
 		$manager->persist($entity);
@@ -55,6 +57,6 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
 
 	public static function getGroups(): array
 	{
-		return ['test'];
+		return ['dev'];
 	}
 }

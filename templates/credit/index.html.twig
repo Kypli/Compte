@@ -1,33 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Credit index{% endblock %}
+{% block title %}Liste de vos Crédits{% endblock %}
 
 {% block body %}
-    <h1>Credit index</h1>
+<div class="container">
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for credit in credits %}
-            <tr>
-                <td>{{ credit.id }}</td>
-                <td>
-                    <a href="{{ path('credit_show', {'id': credit.id}) }}">show</a>
-                    <a href="{{ path('credit_edit', {'id': credit.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="2">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+	{% include('_h1.html.twig') with {'text': 'Liste de vos Crédits'} %}
 
-    <a href="{{ path('credit_new') }}">Create new</a>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Actions</th>
+				<th>Nom</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for credit in credits %}
+			<tr>
+				<td>
+					<div class="conteneur">
+						<div class="col-1">
+							<a href="{{ path('credit_show', {'id': credit.id}) }}" title="Regarder ce credit">
+								<i class="fas fa-eye"></i>
+							</a>
+						</div>
+						<div class="col-1">
+							<a href="{{ path('credit_edit', {'id': credit.id}) }}" title="Modifier ce crédit">
+								<i class="fas fa-wrench"></i>
+							</a>
+						</div>
+					</div>
+				</td>
+				<td>{{ credit.libelle }}</td>
+			</tr>
+		{% else %}
+			<tr>
+				<td colspan="2">Aucun crédit trouvé</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="row">
+		<a href="{{ path('credit_new') }}" class="btn btn-success col-3 mt-4 mb-4">
+			<i class="fas fa-plus"></i>
+			Créer un nouveau crédit
+		</a>
+		<a href="{{ path('tableau_bord') }}" class="btn btn-warning offset-1 col-3 mt-4 mb-4">
+			<i class="fas fa-backward"></i>
+			Retour au tableau de bord
+		</a>
+	</div>
+</div>
 {% endblock %}

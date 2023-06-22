@@ -1,4 +1,18 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Sauvegarder') }}</button>
+	<div class="row center mt-4">
+		{# TYPE #}
+		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
+			En cours
+			{# {{ form_label(form.xxx) }} #}
+		</div>
+		<div class="col-4 mb-4">
+			{# {{ form_widget(form.xxx) }} #}
+		</div>
+		<div class="col-3 mb-4"></div>
+	</div>
+	<div class="row mt-3">
+		<div class="offset-4 col-2">
+			<button class="p-3 btn btn-success">{{ button_label|default('Enregistrer') }}</button>
+		</div>
+	</div>
 {{ form_end(form) }}

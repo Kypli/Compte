@@ -25,5 +25,14 @@ a:hover {
 .div-bottom{
     bottom:0;
     width: 100%;
+    font-size: 20px;
+    position:absolute;
+}
+
+.div-bottom-2{
+    bottom:0;
+    left: 40px;
+    width: 100%;
+    font-size: 20px;
     position:absolute;
 }

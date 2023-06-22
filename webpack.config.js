@@ -34,6 +34,9 @@ Encore
     // Compte
     .addEntry('compte', './assets/js/compte/compte.js')
 
+    // User
+    .addStyleEntry('user', './assets/styles/user/user.css')
+
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
     .enableStimulusBridge('./assets/controllers.json')
 

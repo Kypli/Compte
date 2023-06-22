@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Compte{% endblock %}
+{% block title %}Modifier un compte{% endblock %}
 
 {% block body %}
-	<h1>Edit Compte</h1>
+	<div class="container">
 
-	{{ include('compte/_form.html.twig', {'button_label': 'Update'}) }}
+		{% include('_h1.html.twig') with {'text': 'Modifier un compte'} %}
 
-	<a href="{{ path('compte') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
 
-	{{ include('compte/_delete_form.html.twig') }}
+		{{ include('compte/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+		{{ include('compte/_delete_form.html.twig') }}
+	</div>
 {% endblock %}

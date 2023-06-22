@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Invest{% endblock %}
+{% block title %}Modifier un investissement{% endblock %}
 
 {% block body %}
-    <h1>Edit Invest</h1>
+	<div class="container">
 
-    {{ include('invest/_form.html.twig', {'button_label': 'Update'}) }}
+		{% include('_h1.html.twig') with {'text': 'Modifier un investissement'} %}
 
-    <a href="{{ path('invest_index') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
 
-    {{ include('invest/_delete_form.html.twig') }}
+		{{ include('investissement/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+		{{ include('investissement/_delete_form.html.twig') }}
+	</div>
 {% endblock %}

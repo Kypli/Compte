@@ -1,33 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Invest index{% endblock %}
+{% block title %}Liste de vos Investissements{% endblock %}
 
 {% block body %}
-    <h1>Invest index</h1>
+<div class="container">
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for invest in invests %}
-            <tr>
-                <td>{{ invest.id }}</td>
-                <td>
-                    <a href="{{ path('invest_show', {'id': invest.id}) }}">show</a>
-                    <a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="2">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+	{% include('_h1.html.twig') with {'text': 'Liste de vos Investissements'} %}
 
-    <a href="{{ path('investissement_new') }}">Create new</a>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Actions</th>
+				<th>Nom</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for invest in invests %}
+			<tr>
+				<td>
+					<div class="conteneur">
+						<div class="col-1">
+							<a href="{{ path('investissement_show', {'id': invest.id}) }}" title="Regarder cet investissement">
+								<i class="fas fa-eye"></i>
+							</a>
+						</div>
+						<div class="col-1">
+							<a href="{{ path('investissement_edit', {'id': invest.id}) }}" title="Modifier cet investissement">
+								<i class="fas fa-wrench"></i>
+							</a>
+						</div>
+					</div>
+				</td>
+				<td>{{ invest.libelle }}</td>
+			</tr>
+		{% else %}
+			<tr>
+				<td colspan="2">Aucun investissement trouvé</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="row">
+		<a href="{{ path('investissement_new') }}" class="btn btn-success col-3 mt-4 mb-4">
+			<i class="fas fa-plus"></i>
+			Créer un nouveau investissement
+		</a>
+		<a href="{{ path('tableau_bord') }}" class="btn btn-warning offset-1 col-3 mt-4 mb-4">
+			<i class="fas fa-backward"></i>
+			Retour au tableau de bord
+		</a>
+	</div>
+</div>
 {% endblock %}

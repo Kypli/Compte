@@ -69,15 +69,21 @@ class UserController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()){
 
 			// Duplicate control
-			if (!empty($ur->findByUserName($form->getData()->getUserName()))){
+			if (!empty($ur->findOneByUserName($form->getData()->getUserName()))){
 				$this->addFlash('error', "Ce login est déjà pris. Merci d'en sélectionner un autre.");
 
 			// Save
 			} else {
 
+				// Code
+				code:
+				$code = $this->randMdp();
+				if (!empty($ur->findOneByCode($code))){ goto code; }
+
 				// Default datas
 				$user
 					->setRoles(["ROLE_USER"])
+					->setCode($code)
 					->setPassword($this->passwordHasher->hashPassword(
 						$user,
 						$request->request->get('user')['password'],
@@ -137,11 +143,12 @@ class UserController extends AbstractController
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
-			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
 		$form = $this->createForm(UserType::class, $user);
 		$req_user = $request->request->get('user');
+
 
 		// Champs exclusif à l'admin
 		if (!$this->isGranted('ROLE_ADMIN')){
@@ -267,12 +274,12 @@ class UserController extends AbstractController
 
 	/**
 	 * @IsGranted("ROLE_USER")
-	 * @Route("/preference", name="_preference", methods={"GET"})
+	 * @Route("/preference/{id}", name="_preference")
 	 */
-	public function preference(): Response
+	public function preference(User $user): Response
 	{
 		$user = $this->getUser();
-		return $this->render('user/index.html.twig', [
+		return $this->render('user/preference.html.twig', [
 			'user' => $user,
 		]);
 	}
@@ -326,13 +333,13 @@ class UserController extends AbstractController
 		return true;
 	}
 
-	public function randMdp()
+	public function randMdp($nbCharacter = 8)
 	{
 		$comb = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-		$pass = array();
+		$pass = [];
 		$combLen = strlen($comb) - 1;
 
-		for ($i = 0; $i < 8; $i++){
+		for ($i = 0; $i < $nbCharacter; $i++){
 			$n = rand(0, $combLen);
 			$pass[] = $comb[$n];
 		}

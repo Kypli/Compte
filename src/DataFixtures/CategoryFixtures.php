@@ -120,6 +120,6 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 
 	public static function getGroups(): array
 	{
-		return ['test'];
+		return ['dev'];
 	}
 }

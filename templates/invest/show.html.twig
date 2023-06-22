@@ -3,20 +3,20 @@
 {% block title %}Invest{% endblock %}
 
 {% block body %}
-    <h1>Invest</h1>
+	<h1>Invest</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ invest.id }}</td>
-            </tr>
-        </tbody>
-    </table>
+	<table class="table">
+		<tbody>
+			<tr>
+				<th>Id</th>
+				<td>{{ invest.id }}</td>
+			</tr>
+		</tbody>
+	</table>
 
-    <a href="{{ path('invest_index') }}">back to list</a>
+	<a href="{{ path('invest_index') }}">back to list</a>
 
-    <a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
+	<a href="{{ path('invest_edit', {'id': invest.id}) }}">edit</a>
 
-    {{ include('invest/_delete_form.html.twig') }}
+	{{ include('invest/_delete_form.html.twig') }}
 {% endblock %}

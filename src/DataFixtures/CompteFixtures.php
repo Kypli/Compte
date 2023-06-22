@@ -22,7 +22,9 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		$entity = new Entity();
 		$entity
 			->setLibelle('Compte admin')
+			->setMain(true)
 			->addUser($this->getReference(UserFixtures::USER_ADMIN))
+			->setType($this->getReference('compteType_0'))
 		;
 		$this->addReference(self::COMPTE_ADMIN, $entity);
 		$manager->persist($entity);
@@ -31,7 +33,9 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		$entity = new Entity();
 		$entity
 			->setLibelle('Compte user')
+			->setMain(true)
 			->addUser($this->getReference(UserFixtures::USER_USER))
+			->setType($this->getReference('compteType_0'))
 		;
 		$this->addReference(self::COMPTE_USER, $entity);
 		$manager->persist($entity);
@@ -41,13 +45,14 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
 	public static function getGroups(): array
 	{
-		return ['test'];
+		return ['dev'];
 	}
 
 	public function getDependencies()
 	{
 		return [
 			UserFixtures::class,
+			CompteTypeFixtures::class,
 		];
 	}
 }

@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Credit{% endblock %}
+{% block title %}Modifier un crédit{% endblock %}
 
 {% block body %}
-    <h1>Edit Credit</h1>
+	<div class="container">
 
-    {{ include('credit/_form.html.twig', {'button_label': 'Update'}) }}
+		{% include('_h1.html.twig') with {'text': 'Modifier un crédit'} %}
 
-    <a href="{{ path('credit_index') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
 
-    {{ include('credit/_delete_form.html.twig') }}
+		{{ include('credit/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+		{{ include('credit/_delete_form.html.twig') }}
+	</div>
 {% endblock %}

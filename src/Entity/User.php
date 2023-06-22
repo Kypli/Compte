@@ -29,6 +29,11 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=8, unique=true)
+     */
+    private $code;
+
+    /**
      * @ORM\Column(type="string", length=180, unique=true)
      */
     private $userName;
@@ -87,6 +92,23 @@ class User implements UserInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getCode(): string
+    {
+        return (string) $this->code;
+    }
+
+    public function setCode(string $code): self
+    {
+        $this->code = $code;
+
+        return $this;
     }
 
     /**

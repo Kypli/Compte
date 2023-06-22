@@ -21,11 +21,6 @@
 							<th>Nom</th>
 							<th>Prénom</th>
 							<th>Admin</th>
-							<th>Droit image</th>
-							<th>Newsletter</th>
-							<th>Date fin adhésion</th>
-							<th>Rôle CA</th>
-							<th>Date fin mandat</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -49,28 +44,13 @@
 							</td>
 							<td>{{ user.profil.nom }}</td>
 							<td>{{ user.profil.prenom }}</td>
-							<td>{{ 'ROLE_ADMIN' in user.roles|json_encode ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}</td>
-							<td>
-								{{ 
-									user.asso.droitImage is null
-										? 'Sans réponse'
-										: user.asso.droitImage
-											? '<i class="fas fa-check green"></i>'
-											: '<i class="fas fa-times red"></i>'
-								}}
-							</td>
 							<td>
 								{{
-									user.newsletter is null
-										? 'Sans réponse'
-										: user.newsletter
-											? '<i class="fas fa-check green"></i>'
-											: '<i class="fas fa-times red"></i>'
+									'ROLE_ADMIN' in user.roles|json_encode
+										? '<i class="fas fa-check green"></i>'
+										: '<i class="fas fa-times red"></i>'
 								}}
 							</td>
-							<td>{{ user.asso.dateFinAdhesion is null ? '' : user.asso.dateFinAdhesion|date('d/m/Y') }}</td>
-							<td>{{ user.asso.roleCa is null ? '' : user.asso.roleCa }}</td>
-							<td>{{ user.asso.dateFinMandat is null ? '' : user.asso.dateFinMandat|date('d/m/Y') }}</td>
 						</tr>
 					{% else %}
 						<tr>

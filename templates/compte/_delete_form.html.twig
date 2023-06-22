@@ -1,4 +1,9 @@
-<form method="post" action="{{ path('compte_delete', {'id': compte.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
+<form
+	method="post"
+	action="{{ path('compte_delete', {'id': compte.id}) }}"
+	onsubmit="return confirm('Êtes-vous sûrs de vouloir supprimer ce compte ? Cette action est définitive !!');"
+	class='alignRight'
+>
 	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compte.id) }}">
-	<button class="btn">Supprimer</button>
+	<button class="btn btn-danger p-3">Supprimer définitivement ce compte ?</button>
 </form>

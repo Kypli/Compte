@@ -41,6 +41,9 @@ class CompteRepository extends ServiceEntityRepository
 		}
 	}
 
+	/**
+	 * Récupère les comptes d'un user
+	 */
 	public function getComptesByUser(User $user)
 	{
 		return $this->createQueryBuilder("x")
@@ -50,5 +53,4 @@ class CompteRepository extends ServiceEntityRepository
 			->getResult()
 		;
 	}
-
 }

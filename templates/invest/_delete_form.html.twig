@@ -1,4 +1,9 @@
-<form method="post" action="{{ path('invest_delete', {'id': invest.id}) }}" onsubmit="return confirm('Êtes-vous sûrs de vouloir supprimer cet investissement ?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ invest.id) }}">
-    <button class="btn">Supprimer</button>
+<form
+	method="post"
+	action="{{ path('investissement_delete', {'id': investissement.id}) }}"
+	onsubmit="return confirm('Êtes-vous sûrs de vouloir supprimer cet investissement ? Cette action est définitive !!');"
+	class='alignRight'
+>
+	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ investissement.id) }}">
+	<button class="btn btn-danger p-3">Supprimer définitivement cet investissement ?</button>
 </form>

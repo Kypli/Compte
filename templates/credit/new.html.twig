@@ -1,11 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Credit{% endblock %}
+{% block title %}Créer un crédit{% endblock %}
 
 {% block body %}
-    <h1>Create new Credit</h1>
+	<div class="container">
 
-    {{ include('credit/_form.html.twig') }}
+		{% include('_h1.html.twig') with {'text': 'Créer un crédit'} %}
 
-    <a href="{{ path('credit') }}">Retour à la liste</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
+
+		{{ include('credit/_form.html.twig') }}
+	</div>
 {% endblock %}
+

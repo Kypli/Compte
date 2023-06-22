@@ -57,7 +57,7 @@ class DashBoardController extends AbstractController
 
 			'investissements' => $investissements,
 
-			'total' => number_format($solde, 2, ',', ' '),
+			'total' => number_format($total, 2, ',', ' '),
 		]);
 	}
 }

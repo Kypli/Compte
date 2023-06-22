@@ -1,5 +1,8 @@
 {% for compte in comptes %}
-	<div class='offset-4 col-4 mb-2{{ compte.main ? ' gras' }}'>
+	<div class='col-4 mb-2 center pointeur_help{{ compte.main ? ' gras' }}' title="{{ compte.type.libelle }}">
+		{{ compte.type.libelleShort }}
+	</div>
+	<div class='col-4 mb-2{{ compte.main ? ' gras' }}'>
 		<a href="{{ path('compte_show', {'id': compte.id}) }}">
 			{{ compte.libelle }}
 		</a>

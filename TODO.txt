@@ -25,6 +25,7 @@ Compte
 			Liste des anomalies (A venir dépassé et montant fait dans le futur)
 			Historique des 10/20 dernières actions
 			Proposer un tutoriel
+			MAJ aussi du dernier tableau (bleu) quand on change une opé
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
@@ -61,9 +62,14 @@ Compte
 			Garder les bouton delete disabled ?
 			Si pas de sous catégorie, en créer une avec le nom de la catégorie
 
+	Add
+		Proposer des observateurs pour un compte
+
 Tableau de bord
-	- Afficher Résumé de tout les comptes avec lien
-	- Préciser compte principal
+	- Faire Crédit
+	- Faire Immobilier
+	- Faire Mobilier
+	- Faire Investissement
 
 Service
 	Toaster

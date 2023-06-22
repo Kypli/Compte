@@ -182,6 +182,6 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 
 	public static function getGroups(): array
 	{
-		return ['test'];
+		return ['dev'];
 	}
 }

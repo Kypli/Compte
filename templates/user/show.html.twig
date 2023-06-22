@@ -4,7 +4,7 @@
 
 {% block stylesheets %}
 	{{ parent() }}
-	{{ encore_entry_link_tags('user_fiche') }}
+	{{ encore_entry_link_tags('user') }}
 {% endblock %}
 
 {% block body %}
@@ -19,26 +19,33 @@
 			<section class='row'>
 				{% if is_granted('ROLE_ADMIN') %}
 					<div class="center col-3">
-						<a href="{{ path('user', {'id': user.id}) }}" class="btn btn-info">Retour</a>
+						<a href="{{ path('user', {'id': user.id}) }}" class="btn btn-info">Retour aux utilisateurs</a>
 					</div>
 				{% endif %}
 				<div class="center offset-{{ is_granted('ROLE_ADMIN') ? '6' : '9' }} col-3">
 					<a href="{{ path('user_edit', {'id': user.id}) }}" class="btn btn-warning">Modifier mes informations</a>
 				</div>
 
-				{% if not is_granted('ROLE_ADMIN') %}
-					<h5 class="center gras offset-4 col-4">
-						{{ user.userName|capitalize }}
-					</h5>
-				{% endif %}
-
 				<div class='col-8 offset-2 mb-3'>
 					<h3 class='mt-4 mb-4'>Profil</h3>
 					<table class="table table-striped table-hover table-responsive mb-4">
 						<tbody>
 							<tr>
+								<th>Login</th>
+								<td>{{ user.userName }}</td>
+							</tr>
+							<tr>
+								<th>Mot de passe</th>
+								<td>*****</td>
+							</tr>
+							<tr>
+								<th>Code utilisateur</th>
+								<td class="gras">{{ user.code }}</td>
+							</tr>
+							<tr><th></th><td></td></tr>
+							<tr>
 								<th>Nom</th>
-								<td class="smallbox">{{ user.profil.nom }}</td>
+								<td>{{ user.profil.nom }}</td>
 							</tr>
 							<tr>
 								<th>Prénom</th>
@@ -81,14 +88,6 @@
 									<td>{{ user.id }}</td>
 								</tr>
 								<tr>
-									<th>Login</th>
-									<td>{{ user.userName }}</td>
-								</tr>
-								<tr>
-									<th>Mot de passe</th>
-									<td>*****</td>
-								</tr>
-								<tr>
 									<th>Anonyme</th>
 									<td>{{ user.anonyme ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}</td>
 								</tr>
@@ -101,73 +100,6 @@
 								<tr>
 									<th>Admin</th>
 									<td>{{ 'ROLE_ADMIN' in user.roles|json_encode ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}</td>
-								</tr>
-							{% endif %}
-							<tr>
-								<th>Inscrit à la newsletter</th>
-								<td>
-									{{ user.newsletter is null ? 'Sans réponse' : user.newsletter ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<br />
-
-					<h3 class='mt-4 mb-4'>Association Ludi-Meep'</h3>
-					<table class="table table-striped table-hover">
-						<tbody>
-							<tr>
-								<th>Adhérant ?</th>
-								<td>{{ user.asso.adherant is not null  ? 'Oui' : 'Non' }}</td>
-							</tr>
-							{% if user.asso.adherant %}
-								<tr>
-									<th>N° adhérant</th>
-									<td>{{ user.asso.adherant }}</td>
-								</tr>
-								<tr>
-									<th>Date d'inscription</th>
-									<td>{{ user.asso.dateInscription is null ? '' : user.asso.dateInscription|date('d/m/Y') }}</td>
-								</tr>
-								<tr>
-									<th>Date de fin d'adhésion</th>
-									<td>{{ user.asso.dateFinAdhesion is null ? '' : user.asso.dateFinAdhesion|date('d/m/Y') }}</td>
-								</tr>
-								<tr>
-									<th>Membre du CA ?</th>
-									<td>
-										{{ user.asso.roleCa is not null ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}
-									</td>
-								</tr>
-								{% if user.asso.roleCa is not null %}
-									<tr>
-										<th>Rôle du CA</th>
-										<td>{{ user.asso.roleCa }}</td>
-									</tr>
-									<tr>
-										<th>Date de fin de mandat</th>
-										<td>{{ user.asso.dateFinMandat is null ? '' : user.asso.dateFinMandat|date('d/m/Y') }}</td>
-									</tr>
-								{% endif %}
-								<tr>
-									<th>Membre d'honneur ?</th>
-									<td>{{ user.asso.membreHonneur ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}</td>
-								</tr>
-							{% endif %}
-							<tr>
-								<th>J'autorise l'utilisation de mon image ?</th>
-								<td>
-									{{ user.asso.droitImage is null ? 'Sans réponse' : user.asso.droitImage ? '<i class="fas fa-check green"></i>' : '<i class="fas fa-times red"></i>' }}
-								</td>
-							</tr>
-							<tr>
-								<th>Vous avez connu Ludi-Meep' gràce à</th>
-								<td>{{ user.asso.notoriete }}</td>
-							</tr>
-							{% if is_granted('ROLE_ADMIN') %}
-								<tr>
-									<th>Commentaire</th>
-									<td>{{ user.commentaire }}</td>
 								</tr>
 							{% endif %}
 						</tbody>

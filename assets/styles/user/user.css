@@ -1,0 +1,21 @@
+.table {
+	background-color: #e9f5db;
+}
+.table tbody th {
+  width: 40.00%!important;
+}
+.table tbody td {
+	width: 60.00%!important;
+}
+
+a:link {
+  text-decoration: none;
+}
+
+#td_solde a:visited {
+  text-decoration: none;
+}
+
+#td_solde a:hover {
+  color: purple;
+}

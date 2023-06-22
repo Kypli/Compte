@@ -1,8 +1,17 @@
 {{ form_start(form) }}
 	<div class="row center mt-4">
 
+		{# TYPE #}
+		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
+			{{ form_label(form.type) }}
+		</div>
+		<div class="col-4 mb-4">
+			{{ form_widget(form.type) }}
+		</div>
+		<div class="col-3 mb-4"></div>
+
 		{# LIBELLE #}
-		<div class="offset-1 col-3 mb-4 pt-2 alignRight">
+		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
 			{{ form_label(form.libelle) }}
 		</div>
 		<div class="col-4 mb-4">
@@ -11,25 +20,40 @@
 		<div class="col-3 mb-4"></div>
 
 		{# MAIN #}
-		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
+		<div class="offset-1 col-3 mb-4 alignRight">
 			{{ form_label(form.main) }}
 		</div>
-		<div class="col-1 mb-4 pt-1 alignLeft">
+		<div class="col-1 mb-4 alignLeft">
 			{{ form_widget(form.main) }}
 		</div>
 		<div class="col-6 mb-4"></div>
 
-		{# USERS #}
+		{# MAIN #}
 		<div class="offset-1 col-3 mb-4 pt-2 alignRight">
-			{{ form_label(form.users) }}
+			{{ form_label(form.decouvert) }}
+		</div>
+		<div class="col-4 mb-4 alignLeft">
+			{{ form_widget(form.decouvert) }}
+		</div>
+		<div class="col-4 mb-4"></div>
+
+		{# USERS #}
+		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
+			{{ form_label(form.users_code) }}
 		</div>
 		<div class="col-4 mb-4">
-			{{ form_widget(form.users) }}
+			{{ form_widget(form.users_code) }}
+			<span id="gerants"></span>
+		</div>
+		<div class="col-4 mb-4 pt-1 alignLeft ">
+			<small class="floatLeft">
+				* Leur code utilisateur se trouve dans leur page 'Profil'
+			</small>
 		</div>
 	</div>
 	<div class="row mt-3">
 		<div class="offset-4 col-2">
-			<div class="p-3 btn btn-success">{{ button_label|default('Sauvegarder') }}</div>
+			<button class="p-3 btn btn-success">{{ button_label|default('Enregistrer') }}</button>
 		</div>
 	</div>
 {{ form_end(form) }}

@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Immobilier{% endblock %}
+{% block title %}Modifier un bien mobilier{% endblock %}
 
 {% block body %}
-    <h1>Edit Immobilier</h1>
+	<div class="container">
 
-    {{ include('mobilier/_form.html.twig', {'button_label': 'Update'}) }}
+		{% include('_h1.html.twig') with {'text': 'Modifier un bien mobilier'} %}
 
-    <a href="{{ path('mobilier') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
 
-    {{ include('mobilier/_delete_form.html.twig') }}
+		{{ include('mobilier/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+		{{ include('mobilier/_delete_form.html.twig') }}
+	</div>
 {% endblock %}

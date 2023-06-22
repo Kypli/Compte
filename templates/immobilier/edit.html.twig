@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Immobilier{% endblock %}
+{% block title %}Modifier un bien immobilier{% endblock %}
 
 {% block body %}
-    <h1>Edit Immobilier</h1>
+	<div class="container">
 
-    {{ include('immobilier/_form.html.twig', {'button_label': 'Update'}) }}
+		{% include('_h1.html.twig') with {'text': 'Modifier un bien immobilier'} %}
 
-    <a href="{{ path('immobilier_index') }}">back to list</a>
+		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
 
-    {{ include('immobilier/_delete_form.html.twig') }}
+		{{ include('immobilier/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+		{{ include('immobilier/_delete_form.html.twig') }}
+	</div>
 {% endblock %}

@@ -1,56 +1,56 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Bienvenue{% endblock %}</title>
+	<head>
+		<meta charset="UTF-8">
+		<title>{% block title %}Bienvenue{% endblock %}</title>
 
-        {% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
-            {{ encore_entry_link_tags('navbar') }}
-        {% endblock %}
+		{% block stylesheets %}
+			{{ encore_entry_link_tags('app') }}
+			{{ encore_entry_link_tags('navbar') }}
+		{% endblock %}
 
-        {% block javascripts %}
+		{% block javascripts %}
 
-            {# JQUERY #}
-            <script type="text/javascript" src="{{ asset('/jquery/3.6.1/min.js') }}"></script>
+			{# JQUERY #}
+			<script type="text/javascript" src="{{ asset('/jquery/3.6.1/min.js') }}"></script>
 
-            {# FOSJsRouting #}
-            <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
-            <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+			{# FOSJsRouting #}
+			<script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+			<script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
 
-            {{ encore_entry_script_tags('app') }}
-            {{ encore_entry_script_tags('navbar') }}
-        {% endblock %}
-    </head>
-    <body>
+			{{ encore_entry_script_tags('app') }}
+			{{ encore_entry_script_tags('navbar') }}
+		{% endblock %}
+	</head>
+	<body>
 
-        {# HEADER #}
-        {% block header %}{% include '_header.html.twig' %}{% endblock %}
+		{# HEADER #}
+		{% block header %}{% include '_header.html.twig' %}{% endblock %}
 
-        {# NAVBAR #}
-        {% block navbar %}{% include 'navbar/index.html.twig' %}{% endblock %}
+		{# NAVBAR #}
+		{% block navbar %}{% include 'navbar/index.html.twig' %}{% endblock %}
 
-        {# MESSAGES FLASH SUCCESS #}
-        {% for message in app.flashes('success') %}
-            <div class="flash-notice mt-3 mb-3 bg-success text-center text-white">
-                Succès : {{ message|raw }}
-            </div>
-        {% endfor %}
+		{# MESSAGES FLASH SUCCESS #}
+		{% for message in app.flashes('success') %}
+			<div class="flash-notice mt-3 mb-3 bg-success text-center text-white">
+				Succès : {{ message|raw }}
+			</div>
+		{% endfor %}
 
-        {# MESSAGES FLASH ERROR #}
-        {% for message in app.flashes('error') %}
-            <div class="flash-notice mt-3 mb-3 bg-danger text-center text-white">
-                Erreur : {{ message|raw }}
-            </div>
-        {% endfor %}
+		{# MESSAGES FLASH ERROR #}
+		{% for message in app.flashes('error') %}
+			<div class="flash-notice mt-3 mb-3 bg-danger text-center text-white">
+				Erreur : {{ message|raw }}
+			</div>
+		{% endfor %}
 
-        {# BODY #}
-        {% block body %}{% endblock %}
+		{# BODY #}
+		{% block body %}{% endblock %}
 
-        {# FOOTER #}
-        {% block footer %}{% include '_footer.html.twig' %}{% endblock %}
+		{# FOOTER #}
+		{% block footer %}{% include '_footer.html.twig' %}{% endblock %}
 
-        {# TOASTER #}
-        <div id="toaster" class="pointer" data-toaster="{{ message_toaster is defined ? message_toaster : 'Action inconnue !' }}"></div>
-    </body>
+		{# TOASTER #}
+		<div id="toaster" class="pointer" data-toaster="{{ message_toaster is defined ? message_toaster : 'Action inconnue !' }}"></div>
+	</body>
 </html>

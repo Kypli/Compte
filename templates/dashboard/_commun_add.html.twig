@@ -2,8 +2,15 @@
 {% include('dashboard/_' ~ lien ~ 's.html.twig') %}
 
 {# ADD #}
-<div class='col-2 div-bottom text-defaut-invers'>
-	<a href="{{ path(lien ~ '_new') }}" title="Ajouter un {{ lien }}">
-		<i class="fas fa-plus"></i>
-	</a>
+<div class="mt-4">
+	<div class='div-bottom text-defaut-invers'>
+		<a href="{{ path(lien ~ '_new') }}" title="Ajouter un {{ lien }}">
+			<i class="fas fa-plus"></i>
+		</a>
+	</div>
+	<div class='div-bottom-2 text-defaut-invers'>
+		<a href="{{ path(lien) }}" title="Voir la liste">
+			<i class="fas fa-clipboard-list"></i>
+		</a>
+	</div>
 </div>

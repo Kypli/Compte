@@ -1,37 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Compte index{% endblock %}
+{% block title %}Liste de vos Comptes{% endblock %}
 
 {% block body %}
 <div class="container">
 
-	{% include('_h1.html.twig') with {'text': 'Comptes'} %}
+	{% include('_h1.html.twig') with {'text': 'Liste de vos Comptes'} %}
 
 	<table class="table">
 		<thead>
 			<tr>
-				<th>Id</th>
-				<th>actions</th>
+				<th>Actions</th>
+				<th>Nom</th>
 			</tr>
 		</thead>
 		<tbody>
 		{% for compte in comptes %}
 			<tr>
-				<td>{{ compte.id }}</td>
 				<td>
-					<a href="{{ path('compte_show', {'id': compte.id}) }}">show</a>
-					<a href="{{ path('compte_edit', {'id': compte.id}) }}">edit</a>
+					<div class="conteneur">
+						<div class="col-1">
+							<a href="{{ path('compte_show', {'id': compte.id}) }}" title="Regarder les opérations de ce compte">
+								<i class="fas fa-eye"></i>
+							</a>
+						</div>
+						<div class="col-1">
+							<a href="{{ path('compte_edit', {'id': compte.id}) }}" title="Modifier ce compte">
+								<i class="fas fa-wrench"></i>
+							</a>
+						</div>
+					</div>
 				</td>
+				<td {{ compte.main ? "class='gras'" }}>{{ compte.libelle }}</td>
 			</tr>
 		{% else %}
 			<tr>
-				<td colspan="2">Aucun compte trouvés</td>
+				<td colspan="2">Aucun compte trouvé</td>
 			</tr>
 		{% endfor %}
 		</tbody>
 	</table>
 
-	<a href="{{ path('compte_new') }}">Nouveau</a>
-	<a href="{{ path('home') }}">Retour</a>
+	<div class="row">
+		<a href="{{ path('compte_new') }}" class="btn btn-success col-3 mt-4 mb-4">
+			<i class="fas fa-plus"></i>
+			Créer un nouveau compte
+		</a>
+		<a href="{{ path('tableau_bord') }}" class="btn btn-warning offset-1 col-3 mt-4 mb-4">
+			<i class="fas fa-backward"></i>
+			Retour au tableau de bord
+		</a>
+	</div>
 </div>
 {% endblock %}

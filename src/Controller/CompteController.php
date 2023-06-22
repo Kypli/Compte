@@ -60,10 +60,10 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/", name="")
 	 */
-	public function index(): Response
+	public function index(CompteRepository $cr): Response
 	{
 		return $this->render('compte/index.html.twig', [
-			'comptes' => $this->cr->findAll(),
+			'comptes' => $cr->getComptesByUser($this->getUser()),
 		]);
 	}
 
@@ -79,6 +79,17 @@ class CompteController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()){
 
 			$compte->addUser($this->getUser());
+
+			// Devient unique main si true
+			if ($compte->getMain() == true){
+				$user_comptes = $this->getUser()->getComptes();
+				foreach ($user_comptes as $c){
+					$c->setMain(false);
+					$this->cr->add($c, true);
+				}
+			}
+
+			// Save
 			$this->cr->add($compte, true);
 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
@@ -352,7 +363,20 @@ class CompteController extends AbstractController
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
 
-		if ($form->isSubmitted() && $form->isValid()) {
+		if ($form->isSubmitted() && $form->isValid()){
+
+			// Devient unique main si true
+			if ($compte->getMain() == true){
+				$user_comptes = $this->getUser()->getComptes();
+				foreach ($user_comptes as $c){
+					if ($compte->getId() != $c->getId()){
+						$c->setMain(false);
+						$this->cr->add($c, true);
+					}
+				}
+			}
+
+			// Save
 			$this->cr->add($compte, true);
 
 			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
@@ -577,7 +601,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/cat/add/{id}/{sign}", name="_category_add", methods={"GET", "POST"})
+	 * @Route("/caty/add/{id}/{sign}", name="_category_add", methods={"GET", "POST"})
 	 * Renvoie le render d'une nouvelle catégorie
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only

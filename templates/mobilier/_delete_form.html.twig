@@ -1,4 +1,9 @@
-<form method="post" action="{{ path('mobilier_delete', {'id': mobilier.id}) }}" onsubmit="return confirm('Êtes-vous sûrs de vouloir supprimer ce mobilier ?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ mobilier.id) }}">
-    <button class="btn">Supprimer</button>
+<form
+	method="post"
+	action="{{ path('mobilier_delete', {'id': mobilier.id}) }}"
+	onsubmit="return confirm('Êtes-vous sûrs de vouloir supprimer ce bien mobilier ? Cette action est définitive !!');"
+	class='alignRight'
+>
+	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ mobilier.id) }}">
+	<button class="btn btn-danger p-3">Supprimer définitivement ce bien mobilier ?</button>
 </form>
