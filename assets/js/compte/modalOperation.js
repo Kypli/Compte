@@ -52,11 +52,12 @@ $(document).ready(function(){
 		focusOutDelete($(this))
 	})
 
-	// Input number + Anticipe -> Calcul/Check/Control
+	// Input number + Anticipe -> Calcul/Check/Control + monnaie Style inputToDiv
 	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
 		calculSolde()
-		controlOperation()
 		checkFormEditDel()
+		controlOperation()
+		stopDelete($(this).parent().parent())
 	})
 
 	// Input Date + Comment -> Calcul/Check/Control
@@ -68,11 +69,6 @@ $(document).ready(function(){
 	$("body").on("click", ".deleteAdd, #butOpeAdd, .delete", function(e){
 		calculSolde()
 		controlOperation()
-	})
-
-	// Input monnaie Style inputToDiv
-	$("body").on("input", ".inputNumber, .inputAnticipe", function(e){
-		$(this).val(monnaieStyle($(this).val()))
 	})
 
 	// Toggle divToInput
@@ -362,13 +358,8 @@ $(document).ready(function(){
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
-	// Check Si formMod + Edit + SaveMod (Alerte visuelle)
+	// Check Si formMod + Edit + +Del + SaveMod (Alerte visuelle)
 	function checkFormEditDel(isSaveMod = false){
-
-		// isSaveMod true si addMod/tr_del
-		if ($('body #operation_tab .tr_add, body #operation_tab .tr_del').length > 0){
-			isSaveMod = true
-		}
 
 		// Hide butFullCancelEdit
 		$('#butFullCancelEdit').hide().prop('disabled', true)
@@ -421,6 +412,7 @@ $(document).ready(function(){
 					: $('#' + id + ' .td_comment').text().trim()
 			;
 
+			// Correct Number
 			if (_input_datas[id + '_number'] != number && number != '0' && number != ''){
 				tr_edit = true
 
@@ -499,8 +491,35 @@ $(document).ready(function(){
 			}
 		})
 
+		// isSaveMod true si addMod/tr_del
+		if ($('body #operation_tab .tr_add, body #operation_tab .tr_del').length > 0){
+			isSaveMod = true
+		}
+
 		// Check EditMod
 		saveMod(isSaveMod)
+	}
+
+	// check si retire tr_del on input
+	function stopDelete(tr){
+			let 
+				id = tr.attr('id'),
+
+				input_number = $('#' + id + ' .inputNumber'),
+				input_anticipe = $('#' + id + ' .inputAnticipe'),
+
+				number = input_number.length == 1
+					? input_number.val()
+					: $('#' + id + ' .td_number').text().trim(),
+				anticipe = input_anticipe.length == 1
+					? input_anticipe.val()
+					: $('#' + id + ' .td_anticipe').text().trim()
+			;
+
+			number == '' &&
+			anticipe == ''
+				? null
+				: tr.removeClass('tr_del')
 	}
 
 
@@ -512,7 +531,7 @@ $(document).ready(function(){
 			toggleFormMod($(this), etat)
 		})
 		controlOperation()
-		checkFormEditDel()		
+		checkFormEditDel()
 	}
 
 	// Toggle form <-> noForm
@@ -617,7 +636,7 @@ $(document).ready(function(){
 		saveMod(true)
 	}
 
-	// Add 1 operation
+	// Delete 1 add
 	function deleteAddOpe(tr){
 		tr.remove()
 		calculSolde()
@@ -732,6 +751,8 @@ $(document).ready(function(){
 		$('#butFullRevive').show()
 
 		calculSolde()
+		checkFormEditDel(true)
+		controlOperation()
 	}
 
 	// Delete 1 ope on focusOut

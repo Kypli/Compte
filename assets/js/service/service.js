@@ -35,10 +35,12 @@ export function lcFirst(str){
 	return (str + '').charAt(0).toLowerCase() + str.substr(1)
 }
 
-// Convertit chiffre en style monnaie (xx.xx ou xx)
+// Rajoute un 0 a l'unité des cts si besoin
 export function monnaieStyle(monnaie){
 
 	monnaie = monnaie.toString()
+
+	if (monnaie.length == 0){ return 0 }
 
 	if (monnaie.indexOf(".") > -1){
 

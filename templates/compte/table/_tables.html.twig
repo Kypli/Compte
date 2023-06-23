@@ -1,17 +1,17 @@
 <div class='row m-1'>
 
 	{# TABLE + #}
-	<div class="col-12 mb-4">
+	<div class="col-12 pt-2 bck_pos">
 		{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true } %}
 	</div>
 
 	{# TABLE - #}
-	<div class="col-12 mb-5">
+	<div class="col-12 pt-2 bck_neg">
 		{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
 	</div>
 
 	{# SOLDE #}
-	<div class="col-12">
+	<div class="col-12 mb-5 pt-3 bck_solde">
 		{{ include('compte/table/_soldes_mensuel_total.html.twig') }}
 	</div>
 </div>
