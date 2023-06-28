@@ -927,7 +927,8 @@ $(document).ready(function(){
 					: $(this).find('.inputDay').val(),
 				comment = $(this).find('.inputComment').val() == undefined
 					? $(this).find('.td_comment').text()
-					: $(this).find('.inputComment').val()
+					: $(this).find('.inputComment').val(),
+				del = $(this).hasClass('tr_del')
 			;
 
 			if (number != null || anticipe != null){
@@ -939,6 +940,7 @@ $(document).ready(function(){
 					month: month,
 					year: year,
 					comment: comment,
+					delete: del,
 				})
 			}
 		})
