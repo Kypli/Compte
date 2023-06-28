@@ -85,6 +85,11 @@ table {
 	padding: 5px 3px 3px 3px!important;
 }
 
+/* TD SIGN */
+.sign-pos {
+	color: #F61616;
+}
+
 /* ETAT */
 .done {
 	background-color: #C1C1C1!important;
@@ -166,8 +171,14 @@ table {
 .bck_pos {
 	background-color: #96BF95!important;
 }
+.border_pos {
+	border: 5px #96BF95 solid!important;
+}
 .bck_neg {
 	background-color: #A98383!important;
+}
+.border_neg {
+	border: 5px #A98383 solid!important;
 }
 .bck_solde {
 	background-color: #8595AB!important;

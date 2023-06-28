@@ -1,7 +1,8 @@
 // JS IMPORT
 import { ucFirst } from '../service/service.js';
-import { monnaieStyle } from '../service/service.js';
 import { updateTable } from './compte.js';
+import { number_format } from '../service/service.js';
+import { number_toInput } from '../service/service.js';
 
 // CSS
 import '../../styles/compte/modalOperation.css';
@@ -34,6 +35,14 @@ $(document).ready(function(){
 			months = $('#datas').data('months'),
 			year = $('#datas').data('year')
 		;
+
+		$('.modal-header')
+			.removeClass(sign ? 'bck_neg' : 'bck_pos')
+			.addClass(sign ? 'bck_pos' : 'bck_neg')
+
+		$('.modal-content')
+			.removeClass(sign ? 'border_neg' : 'border_pos')
+			.addClass(sign ? 'border_pos' : 'border_neg')
 
 		getOperationsDatas(sc_id, sign, months, month, year)
 	})
@@ -276,8 +285,8 @@ $(document).ready(function(){
 		// Number + Anticipe
 		$('#operation_tab .tr_ope').each(function(index, div){
 			let id = div.id
-			_input_datas[id+'_number'] = $('#' + id + ' .td_number').text().trim()
-			_input_datas[id+'_anticipe'] = $('#' + id + ' .td_anticipe').text().trim()
+			_input_datas[id+'_number'] = number_toInput($('#' + id + ' .td_number').text().trim())
+			_input_datas[id+'_anticipe'] = number_toInput($('#' + id + ' .td_anticipe').text().trim())
 			_input_datas[id+'_date'] = $('#' + id + ' .td_date').text().substring(0, 2).trim()
 			_input_datas[id+'_comment'] = $('#' + id + ' .td_comment').text().trim()
 		})
@@ -288,9 +297,10 @@ $(document).ready(function(){
 
 	// Toggle input Number <-> Anticipe
 	function toggleInputNumberAnticipe(tr){
+
 		let
 			input = tr.find('input'),
-			val = monnaieStyle(input.val()),
+			val = input.val(),
 			clas = input.attr('class')
 		;
 
@@ -312,6 +322,7 @@ $(document).ready(function(){
 		let
 			sign = $('#operation_tab tbody').data('sign'),
 			counterSign = sign == 'pos' ? 'neg' : 'pos',
+			solde = 0,
 			solde_fait = 0,
 			solde_anticipe = 0
 		;
@@ -325,7 +336,7 @@ $(document).ready(function(){
 				solde_fait = val != undefined && val != ''
 					? solde_fait + parseFloat(val)
 					: $(this).text().trim() != ''
-						? solde_fait + parseFloat($(this).text())
+						? solde_fait + parseFloat(number_toInput($(this).text().trim()))
 						: solde_fait
 			}
 		})
@@ -338,7 +349,7 @@ $(document).ready(function(){
 				solde_anticipe = val != undefined && val != ''
 					? solde_anticipe + parseFloat(val)
 					: $(this).text().trim() != ''
-						? solde_anticipe + parseFloat($(this).text())
+						? solde_anticipe + parseFloat(number_toInput($(this).text().trim()))
 						: solde_anticipe
 			}
 		})
@@ -346,13 +357,11 @@ $(document).ready(function(){
 		// Math
 		solde_fait = Math.round((solde_fait)*100)/100
 		solde_anticipe = Math.round((solde_anticipe)*100)/100
+		solde = Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100
 
-		solde_fait = correctNumber(solde_fait)
-		solde_anticipe = correctNumber(solde_anticipe)
-
-		$('#soldeReel').text(solde_fait)
-		$('#soldeAnticipe').text(solde_anticipe)
-		$('#solde').text(Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100)
+		$('#soldeReel').text(number_format(solde_fait, 2, ',', ' '))
+		$('#soldeAnticipe').text(number_format(solde_anticipe, 2, ',', ' '))
+		$('#solde').text(number_format(solde, 2, ',', ' '))
 
 		// Color Reel
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
@@ -398,10 +407,10 @@ $(document).ready(function(){
 
 				number = input_number.length == 1
 					? input_number.val()
-					: $('#' + id + ' .td_number').text().trim(),
+					: number_toInput($('#' + id + ' .td_number').text().trim()),
 				anticipe = input_anticipe.length == 1
 					? input_anticipe.val()
-					: $('#' + id + ' .td_anticipe').text().trim(),
+					: number_toInput($('#' + id + ' .td_anticipe').text().trim()),
 				date = tr_formMod
 					? input_date.val() < 10
 						? '0' + input_date.val()
@@ -546,7 +555,6 @@ $(document).ready(function(){
 			// Stop si déja visible
 			if (tr.find('.inputComment').length > 0){ return false }
 
-
 			let 
 				daysInMonth = $('#operation_tab tbody').data('daysinmonth'),
 
@@ -555,8 +563,8 @@ $(document).ready(function(){
 				td_date = tr.find('.td_date'),
 				td_comment = tr.find('.td_comment'),
 
-				number = td_number.text().trim(),
-				anticipe = td_anticipe.text().trim(),
+				number = number_toInput(td_number.text().trim()),
+				anticipe = number_toInput(td_anticipe.text().trim()),
 				date = td_date.text().split('/'),
 				comment = td_comment.text().trim(),
 
@@ -607,8 +615,8 @@ $(document).ready(function(){
 			let
 				inputNumber = tr.find('.inputNumber'),
 				inputAnticipe = tr.find('.inputAnticipe'),
-				inputNumberVal = inputNumber.val() == null ? '' : correctNumber(inputNumber.val()),
-				inputAnticipeVal = inputAnticipe.val() == null ? '' : correctNumber(inputAnticipe.val()),
+				inputNumberVal = inputNumber.val() == null ? '' : number_format(inputNumber.val(), 2, ',', ' '),
+				inputAnticipeVal = inputAnticipe.val() == null ? '' : number_format(inputAnticipe.val(), 2, ',', ' '),
 				inputDay = tr.find('.inputDay'),
 				inputComment = tr.find('.inputComment'),
 				day = inputDay.val()
@@ -645,15 +653,21 @@ $(document).ready(function(){
 
 	// Reset 1 operation
 	function resetEdit(id){
-
+	
 		let 
+			date = _input_datas[id + '_date'],
 			number = _input_datas[id + '_number'],
 			anticipe = _input_datas[id + '_anticipe'],
-			date_text = _input_datas[id + '_date'],
-			date = date_text < 10 ? date_text.substring(1) : date_text,
 			input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
 			input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />"
 		;
+
+		resetForm(id, number, anticipe, date, input_number, input_anticipe)
+		checkFormEditDel()
+	}
+
+	// Reset 1 operation
+	function resetForm(id, number, anticipe, date, input_number, input_anticipe){
 
 		// Number
 		if (number != ''){
@@ -669,12 +683,11 @@ $(document).ready(function(){
 		}
 
 		// Date
+		date = date < 10 ? date.substring(1) : date
 		$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
 
 		// Comment
 		$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
-
-		checkFormEditDel()
 	}
 
 	// Reset all Edit operations
@@ -696,26 +709,7 @@ $(document).ready(function(){
 
 			// FormMod
 			if (tr_formMod){
-
-				// Number
-				if (number != ''){
-					$('#' + id + ' .inputNumber').length == 1
-						? $('#' + id + ' .inputNumber').val(number)
-						: $('#' + id + ' .td_number').append(input_number) && $('#' + id + ' .td_anticipe').empty()
-
-				// Anticipe
-				} else {
-					$('#' + id + ' .inputAnticipe').length == 1
-						? $('#' + id + ' .inputAnticipe').val(anticipe)
-						: $('#' + id + ' .td_anticipe').append(input_anticipe) && $('#' + id + ' .td_number').empty()
-				}
-
-				// Date
-				date = date < 10 ? date.substring(1) : date,
-				$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
-
-				// Comment
-				$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
+				resetForm(id, number, anticipe, date, input_number, input_anticipe)
 
 			// No FormMod
 			} else {
@@ -723,8 +717,8 @@ $(document).ready(function(){
 				// Number + Anticipe
 				$('#' + id + ' .td_number, #' + id + ' .td_anticipe').empty()
 				number != ''
-					? $('#' + id + ' .td_number').append(number)
-					: $('#' + id + ' .td_anticipe').append(anticipe)
+					? $('#' + id + ' .td_number').append(number_format(number, 2, ',', ' '))
+					: $('#' + id + ' .td_anticipe').append(number_format(anticipe, 2, ',', ' '))
 
 				// Date
 				$('#' + id + ' .td_date .day').text(date)
@@ -790,16 +784,6 @@ $(document).ready(function(){
 	}
 
 
-	/** Utilitaire **/
-
-	// Renvoie un nombre avec 2 chiffres après la virgule
-	function correctNumber(number){
-		return parseFloat(number) % 1 == 0
-			? parseFloat(number)
-			: parseFloat(number).toFixed(2)
-	}
-
-
 	/** Sauvegarde **/
 
 	// Mode save
@@ -819,7 +803,6 @@ $(document).ready(function(){
 			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
 			$('.modal-footer').hide()
 			$('#modalOperationClose').prop('title', 'Fermer la fenêtre').text('Fermer')
-			calculSolde()
 		}
 	}
 
@@ -933,17 +916,25 @@ $(document).ready(function(){
 			let
 				id_array = value.id.split('_'),
 				id = id_array[2] ? id_array[2] : null,
-				number = $(this).find('.inputNumber').val() == undefined ? $(this).find('.td_number').text() : parseFloat($(this).find('.inputNumber').val()).toFixed(2),
-				number_anticipe = $(this).find('.inputAnticipe').val() == undefined ? $(this).find('.td_anticipe').text() : parseFloat($(this).find('.inputAnticipe').val()).toFixed(2),
-				day = $(this).find('.inputDay').val() == undefined ? $(this).find('.td_date').text().substring(0, 2) : $(this).find('.inputDay').val(),
-				comment = $(this).find('.inputComment').val() == undefined ? $(this).find('.td_comment').text() : $(this).find('.inputComment').val()
+				number = $(this).find('.inputNumber').val() == undefined
+					? number_toInput($(this).find('.td_number').text().trim())
+					: number_toInput($(this).find('.inputNumber').val()),
+				anticipe = $(this).find('.inputAnticipe').val() == undefined
+					? number_toInput($(this).find('.td_anticipe').text().trim())
+					: number_toInput($(this).find('.inputAnticipe').val()),
+				day = $(this).find('.inputDay').val() == undefined
+					? $(this).find('.td_date').text().substring(0, 2)
+					: $(this).find('.inputDay').val(),
+				comment = $(this).find('.inputComment').val() == undefined
+					? $(this).find('.td_comment').text()
+					: $(this).find('.inputComment').val()
 			;
 
-			if (number != null || number_anticipe != null){
+			if (number != null || anticipe != null){
 				datas.push({
 					id: id,
 					number: number,
-					number_anticipe: number_anticipe,
+					anticipe: anticipe,
 					day: day,
 					month: month,
 					year: year,
@@ -959,7 +950,6 @@ $(document).ready(function(){
 			dataType: 'JSON',
 			timeout: 15000,
 			beforeSend: function(){
-
 			},
 			success: function(response){
 				updateTable()

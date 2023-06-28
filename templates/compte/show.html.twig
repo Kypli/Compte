@@ -42,7 +42,7 @@
 						id='soldeActuel'
 						class="soldeActuel total_month_full_{{ current_solde == null or current_solde < 0 ? 'neg' : 'pos' }}"
 					>
-						{{ current_solde == null ? 0 : current_solde }}
+						{{ current_solde == null ? 0 : current_solde|number_format(2, ',', ' ') }}
 					</span>
 				</div>
 				

@@ -9,17 +9,17 @@
 		{% for month in 1..12 %}
 
 			{% set done =
-					current_year > year or (current_year == year and month < current_month)
-						? 'done'
-						: current_year == year and month == current_month
-							? 'current normal'
-							: 'normal'
+				current_year > year or (current_year == year and month < current_month)
+					? 'done'
+					: current_year == year and month == current_month
+						? 'current normal'
+						: 'normal'
 			%}
 
 			{# DATAS #}
 			{% if soldes_mensuels['totaux_solde'][month] is defined %}
-				{% set number = soldes_mensuels['totaux_solde'][month]['solde']|round(2, 'ceil') %}
-				{% set revenuAnnuel = soldes_mensuels['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
+				{% set number = soldes_mensuels['totaux_solde'][month]['solde']|number_format(2, ',', ' ') %}
+				{% set revenuAnnuel = soldes_mensuels['totaux_solde'][month]['cumule']|number_format(2, ',', ' ') %}
 
 				<th	colspan='2' class="{{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number }}
@@ -49,7 +49,7 @@
 
 			{# DATAS #}
 			{% if soldes_mensuels['totaux_solde'][month] is defined %}
-				{% set number = soldes_mensuels['totaux_solde'][month]['cumule']|round(2, 'ceil') %}
+				{% set number = soldes_mensuels['totaux_solde'][month]['cumule']|number_format(2, ',', ' ') %}
 
 				<th colspan='2' class="centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number }}

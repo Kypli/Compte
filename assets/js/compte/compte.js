@@ -1,6 +1,7 @@
 // JS
 import './modalOperation.js';
 import './modalCategory.js';
+import { number_format } from '../service/service.js';
 
 // CSS
 import '../../styles/compte/compte.css';
@@ -14,7 +15,7 @@ export function updateTable(){
 		timeout: 15000,
 		success: function(response){
 			$('#tables').empty().append(response.render)
-			$('#soldeActuel').text(response.solde)
+			$('#soldeActuel').text(number_format(response.solde, 2, ',', ' '))
 		},
 		error: function(error){
 			console.log('Erreur ajax: ' + error)

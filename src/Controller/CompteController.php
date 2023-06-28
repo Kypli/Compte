@@ -233,7 +233,7 @@ class CompteController extends AbstractController
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
 
-			'soldes' => $this->soldesByMonth($operations_pos, $operations_neg),
+			'soldes_mensuels' => $this->soldesByMonth($operations_pos, $operations_neg),
 		])->getContent();
 
 		return new JsonResponse([
@@ -487,11 +487,11 @@ class CompteController extends AbstractController
 						$ope['number'] != 'NaN'
 					) ||
 					(
-						$ope['number_anticipe'] != null &&
-						$ope['number_anticipe'] != 0 &&
-						$ope['number_anticipe'] != '0' &&
-						$ope['number_anticipe'] != '' &&
-						$ope['number_anticipe'] != 'NaN'
+						$ope['anticipe'] != null &&
+						$ope['anticipe'] != 0 &&
+						$ope['anticipe'] != '0' &&
+						$ope['anticipe'] != '' &&
+						$ope['anticipe'] != 'NaN'
 					)
 				) &&
 				(
@@ -509,7 +509,7 @@ class CompteController extends AbstractController
 					$ope['number'] == '0' ||
 					$ope['number'] == '' ||
 					$ope['number'] == 'Nan'
-						? (float) $ope['number_anticipe']
+						? (float) $ope['anticipe']
 						: (float) $ope['number']
 				;
 				$anticipe =

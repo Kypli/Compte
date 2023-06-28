@@ -15,11 +15,11 @@
 			{% for month in 1..12 %}
 
 				{% set done =
-						current_year > year or (current_year == year and month < current_month)
-							? 'done'
-							: current_year == year and month == current_month
-								? 'current'
-								: ''
+					current_year > year or (current_year == year and month < current_month)
+						? 'done'
+						: current_year == year and month == current_month
+							? 'current'
+							: ''
 				%}
 
 				{% if operations['totaux_mois'][month] is defined %}
@@ -61,7 +61,7 @@
 
 				{% if operations['totaux_mois'][month] is defined %}
 					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">
-						{{ operations['totaux_mois'][month]['total'] }}
+						{{ operations['totaux_mois'][month]['total']|number_format(2, ',', ' ') }}
 					</td>
 				{% else %}
 					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">0</td>
@@ -71,6 +71,6 @@
 			{{ include('compte/table/empty/_totaux_mois_full.html.twig') }}
 		{% endif %}
 		<td class="td_total souligne done">{{ operations['total_final'] }}</td>
-		<td class="done">{{ (operations['total_final'] / 12)|round(2, 'ceil')  }}</td>
+		<td class="done">{{ (operations['total_final'] / 12)|number_format(2, ',', ' ') }}</td>
 		<td class="done">{{ operations['totaux_mois'] is defined ? 100 : 0 }}</td>
 	</tr>

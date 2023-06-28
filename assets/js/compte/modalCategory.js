@@ -31,6 +31,15 @@ $(document).ready(function(){
 	$("body").on("click", ".td_category_libelle, .td_subcategory_libelle", function(e){
 		let sign = $(this).parent().parent().parent().data('sign')
 		$('#cat_tab').data('sign', sign)
+
+		$('.modal-header')
+			.removeClass(sign ? 'bck_neg' : 'bck_pos')
+			.addClass(sign ? 'bck_pos' : 'bck_neg')
+
+		$('.modal-content')
+			.removeClass(sign ? 'border_neg' : 'border_pos')
+			.addClass(sign ? 'border_pos' : 'border_neg')
+
 		getCategory($(this).data('id'), sign, $(this).data('focusa'))
 	})
 
@@ -173,6 +182,14 @@ $(document).ready(function(){
 
 	// Récupère le render d'une nouvelle catégorie
 	function getAddCategory(sign){
+
+		$('.modal-header')
+			.removeClass(sign ? 'bck_neg' : 'bck_pos')
+			.addClass(sign ? 'bck_pos' : 'bck_neg')
+
+		$('.modal-content')
+			.removeClass(sign ? 'border_neg' : 'border_pos')
+			.addClass(sign ? 'border_pos' : 'border_neg')
 
 		cleanAllBack()
 

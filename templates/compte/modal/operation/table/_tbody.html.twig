@@ -5,7 +5,7 @@
 	{% set month = ope.month < 10 ? '0' ~ ope.month : ope.month %}
 
 	{# DEAL WITH 0 #}
-	{% set number = ope.number|number_format(2) %}
+	{% set number = ope.number|number_format(2, ',', ' ') %}
 	{% set number_l = number|length %}
 	{% set cts = number|slice(number_l - 2, 2) %}
 	{% set number = cts == '00' ? number|slice(0, number_l - 3) : number %}

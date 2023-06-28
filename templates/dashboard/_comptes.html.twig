@@ -7,5 +7,5 @@
 			{{ compte.libelle }}
 		</a>
 	</div>
-	<div class='col-4 mb-2{{ compte.main ? ' gras' }}'>{{ comptes_solde[compte.id].solde }} €</div>
+	<div class='col-3 pr-4 mb-2{{ compte.main ? ' gras' }} alignRight'>{{ comptes_solde[compte.id].solde }} €</div>
 {% endfor %}
