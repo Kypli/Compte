@@ -443,7 +443,6 @@ class CompteController extends AbstractController
 
 		// Datas from DB
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-		$operations = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
 
 		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
@@ -454,8 +453,13 @@ class CompteController extends AbstractController
 		// Save
 		foreach($datas as $ope){
 
+			// Delete
+			if ($ope['delete']){
+				$del = $this->or->find($ope['id']);
+				$this->or->remove($del, true);
+
 			// Edit
-			if (!empty($ope['id'])){
+			} elseif (!empty($ope['id'])){
 				$id = $ope['id'];
 				$ope_ent = $this->or->find($id);
 
@@ -468,15 +472,11 @@ class CompteController extends AbstractController
 				$ope_ent->setSubcategory($sc);
 			}
 
-			// Do not delete
-			foreach($operations as $key => $operation){
-				if ($id == $operation['id'] || $id == null){
-					unset($operations[$key]);
-				}
-			}
-
 			// Save ?
 			if (
+				// Pas supprimé
+				!$ope['delete'] &&
+
 				// Nombre valide
 				(
 					(
@@ -529,12 +529,6 @@ class CompteController extends AbstractController
 				;
 				$this->or->add($ope_ent, true);
 			}
-		}
-
-		// Delete
-		foreach($operations as $operation){
-			$del = $this->or->find($operation['id']);
-			$this->or->remove($del, true);
 		}
 
 		return new JsonResponse(['save' => true]);
