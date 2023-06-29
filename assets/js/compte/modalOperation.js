@@ -214,12 +214,9 @@ $(document).ready(function(){
 
 	// Toggle spinner
 	function spinner(etat){
-		if (etat){
-			$('.spinner').show()
-
-		} else {
-			$('.spinner').hide()
-		}
+		etat
+			? $('#modal_ope_spinner').show()
+			: $('#modal_ope_spinner').hide()
 	}
 
 	// Clean Text header + body

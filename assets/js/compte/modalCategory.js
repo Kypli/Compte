@@ -322,10 +322,10 @@ $(document).ready(function(){
 	function spinner(etat){
 		if (etat){
 			$('#cat_tab tbody').empty()
-			$('.spinner').show()
+			$('#modal_cat_spinner').show()
 
 		} else {
-			$('.spinner').hide()
+			$('#modal_cat_spinner').hide()
 		}
 	}
 

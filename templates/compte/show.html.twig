@@ -37,7 +37,7 @@
 			<div class='row'>
 
 				{# SOLDE #}
-				<div class="offset-1 col-3">
+				<div class="col-3">
 					Solde actuel du compte :
 					<span
 						id='soldeActuel'
@@ -55,9 +55,16 @@
 						</span>
 					</span>
 				</div>
+
+				{# SPINNER #}
+				<div class="col-1">
+					<div id="show_spinner" class="col-1 spinner spinner-border taille10 text-primary hide" role="status">
+						<span class="sr-only">Chargement...</span>
+					</div>
+				</div>
 				
 				{# NAVIGATION YEAR #}
-				<div class="offset-6 col-2 center">
+				<div class="offset-5 col-2 center">
 					{% if year != 'now'|date('Y') %}
 						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
 							<span class='button'>Retour {{ 'now'|date('Y') }}</span>
@@ -82,7 +89,7 @@
 		</span>
 
 		{# MODAL GESTION #}
-		{{ include('compte/modal/operation/index.html.twig') }}
+		{{ include('compte/modal/operations/index.html.twig') }}
 
 		{# MODAL CATEGORY #}
 		{{ include('compte/modal/category/index.html.twig') }}

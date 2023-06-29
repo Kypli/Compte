@@ -17,9 +17,13 @@ export function updateTables(){
 		type: "POST",
 		url: Routing.generate('compte_tables', { id: $('#datas').data('compteid') }),
 		timeout: 15000,
+		beforeSend: function(){
+			spinner(true)
+		},
 		success: function(response){
 			$('#tables').empty().append(response.render)
 			editSolde(response.solde)
+			spinner(false)
 		},
 		error: function(error){
 			console.log('Erreur ajax: ' + error)
@@ -75,6 +79,13 @@ function editSolde(solde){
 	hideAlert
 		? $('#soldeAlert').hide()
 		: $('#soldeAlert').show()
+}
+
+// Spinner
+function spinner(etat){
+	etat
+		? $('#show_spinner').removeClass('hide').show()
+		: $('.spinner').addClass('hide').hide()
 }
 
 $(document).ready(function(){

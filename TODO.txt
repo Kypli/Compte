@@ -5,30 +5,35 @@ Home
 
 User
 	Preference
-		Affichage total (total / mois)
-		Affichage % du total
-		Autoriser la suppr de catégory si opérations ?
-		Solde mensuel + cumulé possible de le mettre en haut
+		Comptes
+			- Afficher/Masquer
+				- Fin de tableau
+					- Total
+					- x€/mois
+					- %
+				- Tableau bleu (solde)
+					- Ligne du solde du compte en fin de mois
+					- Ligne du solde mensuel cumulé
+					- Solde annuel
+				- Légende
+			- Autoriser la suppr de catégory si présence d'opérations
+			- Mettre en haut tableau bleu (soldes)
+			- Fusionner les tableaux +/-
+			- Retirer les sub-catégories
+			- Saisir ne nombre d'historiques à afficher
 
 Compte
 	Gestion (show)
-
 		Interface
-			Propose de fusionner les tableaux +/-
-			Proposer de retirer les sub-catégorie
-			Tout les élements peuvent être caché dans les préférences
 			Tableau mois en cours plus distingué des autres
 			Rajout solde restant à la fin du mois pour le mois en cours + mois passé
-			Solde actuel plus a droite
-			Changement d'année plus droite et retour a l'année en cours sur sa gauche
 			Liste des anomalies (A venir dépassé et montant fait dans le futur)
-			Historique des 10/20 dernières actions
+			Historique des 15 dernières actions
 			Proposer un tutoriel
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Colorier bordure en jaune de la zone éditable
-			Année visible sur le titre
 			Alerte si dépassement opération à venir avec la date d'opération
 			Alerte si anticipation opération fait avec la date d'opération
 			Pop-up de suggestion de correction d'erreur
@@ -44,8 +49,8 @@ Compte
 			Raccourci fleche gauche droite pour changer de mois
 			Raccourci select on click pour cat et subcat
 			Bouton Autres actions
-				-> Dupliquer cette entrée
-				-> Déplacer cette entrée
+				-> Dupliquer 
+				-> Changer le mois/année
 				-> Associer cette entrée à une personne si multi-compte
 			Fin d'édition si click en dehors du tableau
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé

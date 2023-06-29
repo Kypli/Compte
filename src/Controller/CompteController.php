@@ -549,7 +549,7 @@ class CompteController extends AbstractController
 	 */
 	public function operation_add($month, $year, $daysInMonth, $sign)
 	{
-		return $this->render('compte/modal/operation/table/_add.html.twig', [
+		return $this->render('compte/modal/operations/operation/_add.html.twig', [
 			'sign' => $sign,
 			'year' => $year,
 			'month' => (int) $month,
@@ -563,7 +563,7 @@ class CompteController extends AbstractController
 	 */
 	public function operation_tbody($operations, $month, $year, $daysInMonth, $sign)
 	{
-		return $this->render('compte/modal/operation/table/_tbody.html.twig', [
+		return $this->render('compte/modal/operations/operation/_tbody.html.twig', [
 			'operations' => $operations,
 			'sign' => $sign,
 			'year' => $year,
