@@ -11,42 +11,45 @@ User
 					- Total
 					- x€/mois
 					- %
+				- Tableau vert et rouge
+					- Zone d'édition jaune
 				- Tableau bleu (solde)
 					- Ligne du solde du compte en fin de mois
 					- Ligne du solde mensuel cumulé
 					- Solde annuel
 				- Légende
+				- Modal opérations
+					- Zone d'édition jaune
+				- Modal catégories
+					- Zone d'édition jaune
 			- Autoriser la suppr de catégory si présence d'opérations
 			- Mettre en haut tableau bleu (soldes)
 			- Fusionner les tableaux +/-
 			- Retirer les sub-catégories
-			- Saisir ne nombre d'historiques à afficher
+			- Saisir le nombre d'historiques à afficher
 
 Compte
-	Gestion (show)
+	Show
 		Interface
 			Tableau mois en cours plus distingué des autres
 			Rajout solde restant à la fin du mois pour le mois en cours + mois passé
 			Liste des anomalies (A venir dépassé et montant fait dans le futur)
-			Historique des 15 dernières actions
+			Afficher 3 dernières opérations avec pop-up historique des 15 dernières actions
 			Proposer un tutoriel
+			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
 			Colorier bordure en jaune de la zone éditable
-			Alerte si dépassement opération à venir avec la date d'opération
-			Alerte si anticipation opération fait avec la date d'opération
 			Pop-up de suggestion de correction d'erreur
-			Entité operation rajouter date_operation (!= date action)
-			Si ajout ope fait, suggerer date du jour et ne pas proposer > date du jour
-			Si ajout ope a venir, suggerer date du jour + 1 et ne pas proposer < date du jour + 1
-			Afficher 3 dernières opérations avec pop-up historique
-			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
+			Entité operation rajouter date_action_utilisateur pour historique
+			Si ajout ope fait, ne pas proposer > date du jour
+			Si ajout ope a venir, ne pas proposer < date du jour
 			Glisser déposer les catégorie pour les changer de pos
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
-			Raccourci fleche gauche droite pour changer de mois
+			Raccourci flèche gauche droite pour changer de mois
 			Raccourci select on click pour cat et subcat
 			Bouton Autres actions
 				-> Dupliquer 
@@ -54,14 +57,12 @@ Compte
 				-> Associer cette entrée à une personne si multi-compte
 			Fin d'édition si click en dehors du tableau
 			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
-			Case Total final, rajout texte total + centrer la case
 			Possibilité de faire montant + a venir a la fois
 			Hover switch a faire apparaitre
 			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
-			Sous Total ne pas confondre avec les champs
+			Faire une zone d'édition visible en jaune
 
 		Modal Category / Sub-cat
-			Garder les bouton delete disabled ?
 			Si pas de sous catégorie, en créer une avec le nom de la catégorie
 
 	Add
