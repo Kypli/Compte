@@ -311,48 +311,49 @@ class CompteController extends AbstractController
 	/**
 	 * Renvoie sous formes d'array le solde d'un compte
 	 */
-	public function soldesByMonth($operations_pos, $operations_neg): Array
+	public function soldesByMonth($opes_pos, $opes_neg): Array
 	{
+		$opes = [];
 		$cumule = 0;
 		$total_final = 0;
-		$operations = [];
 
-		foreach($operations_pos as $operation){
+		foreach($opes_pos as $ope){
 
-			$total_final += $operation->getNumber();
-			$mois = $operation->getDate()->format('n');
+			$total_final += $ope->getNumber();
+			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($operations['totaux_solde'][$mois]['solde'])
-				? $operations['totaux_solde'][$mois]['solde'] += $operation->getNumber()
-				: $operations['totaux_solde'][$mois]['solde'] = $operation->getNumber()
+			isset($opes['totaux_solde'][$mois]['solde'])
+				? $opes['totaux_solde'][$mois]['solde'] += $ope->getNumber()
+				: $opes['totaux_solde'][$mois]['solde'] = $ope->getNumber()
 			;
 		}
 
-		foreach($operations_neg as $operation){
+		foreach($opes_neg as $ope){
 
-			$total_final -= $operation->getNumber();
-			$mois = $operation->getDate()->format('n');
+			$total_final -= $ope->getNumber();
+			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($operations['totaux_solde'][$mois]['solde'])
-				? $operations['totaux_solde'][$mois]['solde'] -= $operation->getNumber()
-				: $operations['totaux_solde'][$mois]['solde'] = $operation->getNumber()
+			isset($opes['totaux_solde'][$mois]['solde'])
+				? $opes['totaux_solde'][$mois]['solde'] -= $ope->getNumber()
+				: $opes['totaux_solde'][$mois]['solde'] = -$ope->getNumber()
 			;
 		}
 
-		if (isset($operations['totaux_solde'])){
-			foreach($operations['totaux_solde'] as $key => $mois){
+		if (isset($opes['totaux_solde'])){
+			ksort($opes['totaux_solde']);
+			foreach($opes['totaux_solde'] as $key => $mois){
 
 				$cumule += $mois['solde'];
-				$operations['totaux_solde'][$key]['cumule'] = $cumule;
+				$opes['totaux_solde'][$key]['cumule'] = $cumule;
 			}
 		}
 
 		// Total par année
-		$operations['total_final'] = $total_final;
+		$opes['total_final'] = $total_final;
 
-		return $operations;
+		return $opes;
 	}
 
 	/**
@@ -441,9 +442,6 @@ class CompteController extends AbstractController
 			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
 		}
 
-		// Datas from DB
-		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-
 		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
 			? $request->request->all()['datas']
@@ -454,7 +452,7 @@ class CompteController extends AbstractController
 		foreach($datas as $ope){
 
 			// Delete
-			if ($ope['delete']){
+			if ((int) $ope['delete'] == 1){
 				$del = $this->or->find($ope['id']);
 				$this->or->remove($del, true);
 

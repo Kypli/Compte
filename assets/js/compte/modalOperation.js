@@ -929,6 +929,8 @@ $(document).ready(function(){
 					? $(this).find('.td_comment').text()
 					: $(this).find('.inputComment').val(),
 				del = $(this).hasClass('tr_del')
+					? 1
+					: 0
 			;
 
 			if (number != null || anticipe != null){
