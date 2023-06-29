@@ -6,8 +6,12 @@ import { number_format } from '../service/service.js';
 // CSS
 import '../../styles/compte/compte.css';
 
+////////////
 // EXPORT FONCTIONS
-export function updateTable(){
+////////////
+
+// update tables
+export function updateTables(){
 
 	$.ajax({
 		type: "POST",
@@ -15,12 +19,62 @@ export function updateTable(){
 		timeout: 15000,
 		success: function(response){
 			$('#tables').empty().append(response.render)
-			$('#soldeActuel').text(number_format(response.solde, 2, ',', ' '))
+			editSolde(response.solde)
 		},
 		error: function(error){
 			console.log('Erreur ajax: ' + error)
 		}
 	})
+}
+
+
+////////////
+// FONCTIONS
+////////////
+
+// Color soldeActuel
+function editSolde(solde){
+
+	$('#soldeActuelNb').text(number_format(solde, 2, ',', ' '))
+
+	let 
+		decouvert = $('#datas').data('decouvert'),
+		hideAlert = true
+	;
+
+	if (solde == 0){
+		$('#soldeActuel')
+			.addClass('total_month_full_neutre')
+			.removeClass('total_month_full_pos')
+			.removeClass('total_month_full_neg')
+			.removeClass('total_month_full_dec')
+
+	} else if(solde > 0){
+		$('#soldeActuel')
+			.addClass('total_month_full_pos')
+			.removeClass('total_month_full_neutre')
+			.removeClass('total_month_full_neg')
+			.removeClass('total_month_full_dec')
+
+	} else if (solde < decouvert){
+		hideAlert = false
+		$('#soldeActuel')
+			.addClass('total_month_full_neg')
+			.removeClass('total_month_full_pos')
+			.removeClass('total_month_full_neutre')
+			.removeClass('total_month_full_dec')
+
+	} else {
+		$('#soldeActuel')
+			.addClass('total_month_full_dec')
+			.removeClass('total_month_full_pos')
+			.removeClass('total_month_full_neutre')
+			.removeClass('total_month_full_neg')
+	}
+
+	hideAlert
+		? $('#soldeAlert').hide()
+		: $('#soldeAlert').show()
 }
 
 $(document).ready(function(){
@@ -44,4 +98,5 @@ $(document).ready(function(){
 			function(){	$(this).prev().removeClass('jauni')	}
 		)
 	})
+
 })

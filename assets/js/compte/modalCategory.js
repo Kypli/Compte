@@ -1,5 +1,5 @@
 // JS IMPORT
-import { updateTable } from './compte.js';
+import { updateTables } from './compte.js';
 
 // CSS
 import '../../styles/compte/modalCategory.css';
@@ -663,7 +663,7 @@ $(document).ready(function(){
 				if (response.save == true){
 					console.log('ok')
 				}
-				updateTable()
+				updateTables()
 			},
 			error: function(error){
 				console.log('Erreur ajax:')
@@ -795,7 +795,7 @@ $(document).ready(function(){
 				if (response.save == true){
 					console.log('ok')
 				}
-				updateTable()
+				updateTables()
 			},
 			error: function(error){
 				console.log('Erreur ajax:')

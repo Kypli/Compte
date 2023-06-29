@@ -1,6 +1,6 @@
 // JS IMPORT
 import { ucFirst } from '../service/service.js';
-import { updateTable } from './compte.js';
+import { updateTables } from './compte.js';
 import { number_format } from '../service/service.js';
 import { number_toInput } from '../service/service.js';
 
@@ -956,7 +956,7 @@ $(document).ready(function(){
 			beforeSend: function(){
 			},
 			success: function(response){
-				updateTable()
+				updateTables()
 			},
 			error: function(error){
 				console.log('Erreur ajax: ' + error)

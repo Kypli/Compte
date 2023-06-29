@@ -128,6 +128,17 @@ class CompteController extends AbstractController
 			2
 		);
 
+		// Color solde
+		if ($current_solde == 0){
+			$color_solde = 'neutre';
+		} elseif ($current_solde > 0){
+			$color_solde = 'pos';
+		} elseif ($current_solde < ($compte->getDecouvert() * -1)){
+			$color_solde = 'neg';
+		} else {
+			$color_solde = 'dec';
+		}
+
 		// Opérations
 		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
 		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
@@ -165,6 +176,7 @@ class CompteController extends AbstractController
 			'operations_neg' => $this->operations($operations_neg, false),
 
 			'current_solde' => $current_solde, // Solde courant du compte
+			'color_solde' => $color_solde, // Couleur d'alerte du solde
 			'soldes_mensuels' => $this->soldesByMonth($operations_pos, $operations_neg),
 		]);
 	}

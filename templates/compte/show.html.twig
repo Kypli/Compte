@@ -18,6 +18,7 @@
 		class="{# container-fluid #}"
 		id='datas'
 		data-year="{{ year }}"
+		data-decouvert="{{ (compte.decouvert * -1) }}"
 		data-months="{{ months_json }}"
 		data-compteid="{{ compte.id }}"
 	>
@@ -36,18 +37,27 @@
 			<div class='row'>
 
 				{# SOLDE #}
-				<div class="offset-1 col-4">
+				<div class="offset-1 col-3">
 					Solde actuel du compte :
 					<span
 						id='soldeActuel'
-						class="soldeActuel total_month_full_{{ current_solde == null or current_solde < 0 ? 'neg' : 'pos' }}"
+						class="soldeActuel total_month_full_{{ color_solde }}"
 					>
-						{{ current_solde == null ? 0 : current_solde|number_format(2, ',', ' ') }}
+						<span id='soldeActuelNb'>
+							{{ current_solde == null ? 0 : current_solde|number_format(2, ',', ' ') }}
+						</span>
+						<span	
+							id="soldeAlert"						
+							class="taille18 ml-2 pointeur_help float-left{{ color_solde != 'neg' ? ' hide' }}"
+							title="Attention, vous avez dépassé votre autorisation de découvert"
+						>
+							<i class="red fas fa-exclamation"></i>
+						</span>
 					</span>
 				</div>
 				
 				{# NAVIGATION YEAR #}
-				<div class="offset-5 col-2 center">
+				<div class="offset-6 col-2 center">
 					{% if year != 'now'|date('Y') %}
 						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
 							<span class='button'>Retour {{ 'now'|date('Y') }}</span>

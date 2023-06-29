@@ -138,14 +138,21 @@ table {
 .total_month_detail_pos {
 	color: green;
 }
-.total_month_full_pos {
-	color: darkgreen;
-}
 .total_month_detail_neg {
 	color: #FF0000;
 }
+
+.total_month_full_pos {
+	color: darkgreen;
+}
 .total_month_full_neg {
 	color: darkred;
+}
+.total_month_full_dec {
+	color: #E6741F;
+}
+.total_month_full_neutre {
+	color: black;
 }
 
 /* SOLDE */
