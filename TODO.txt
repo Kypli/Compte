@@ -4,7 +4,7 @@ Home
 	Trouver un logo
 
 User
-	Preference
+	Préférence
 		Comptes
 			- Afficher/Masquer
 				- Fin de tableau
@@ -60,7 +60,6 @@ Compte
 			Possibilité de faire montant + a venir a la fois
 			Hover switch a faire apparaitre
 			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
-			Faire une zone d'édition visible en jaune
 
 		Modal Category / Sub-cat
 			Si pas de sous catégorie, en créer une avec le nom de la catégorie
