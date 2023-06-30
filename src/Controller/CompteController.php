@@ -188,6 +188,8 @@ class CompteController extends AbstractController
 			'current_solde' => $current_solde, // Solde courant du compte
 			'current_monthEnd' => $soldeFinMensuel, // Solde courant du compte à la fin du mois
 			'gains' => $this->gains($operations_pos, $operations_neg),
+
+			'lastActions' => $this->lastActions($this->or->lastAction($compte->getId(), 10)), // Last actions
 		]);
 	}
 
@@ -405,6 +407,17 @@ class CompteController extends AbstractController
 		}
 
 		return $gains;
+	}
+
+	/**
+	 * Renvoie les dernières actions pour twig
+	 */
+	public function lastActions($lastActions): Array
+	{
+		foreach($lastActions as $action){
+		}
+
+		return $lastActions;
 	}
 
 	/**

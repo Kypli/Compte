@@ -43,6 +43,21 @@ class Operation
      */
     private $subcategory;
 
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $dateLastAction;
+
+    /**
+     * @ORM\Column(type="string", length=15)
+     */
+    private $lastAction;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $actif = 1;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -115,5 +130,41 @@ class Operation
         }
 
         return false;
+    }
+
+    public function getDateLastAction(): ?\DateTimeInterface
+    {
+        return $this->dateLastAction;
+    }
+
+    public function setDateLastAction(\DateTimeInterface $dateLastAction): self
+    {
+        $this->dateLastAction = $dateLastAction;
+
+        return $this;
+    }
+
+    public function getLastAction(): ?string
+    {
+        return $this->lastAction;
+    }
+
+    public function setLastAction(string $lastAction): self
+    {
+        $this->lastAction = $lastAction;
+
+        return $this;
+    }
+
+    public function isActif(): ?bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): self
+    {
+        $this->actif = $actif;
+
+        return $this;
     }
 }

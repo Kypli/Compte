@@ -74,6 +74,8 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				->setAnticipe($anticipe)
 				->setDate($date)
 				->setComment('comment '.$i)
+				->setDateLastAction($date_now)
+				->setLastAction('create')
 				->setSubcategory($this->getReference($subcategory))
 			;
 			$manager->persist($entity);

@@ -53,6 +53,7 @@ class OperationRepository extends ServiceEntityRepository
 			->where('co.id = :compte_id')
 			->andWhere('ca.sign = :sign')
 			->andWhere('ca.year = :year')
+			->andWhere('x.actif = true')
 
 			->setParameters([
 				'sign' => $sign,
@@ -81,6 +82,7 @@ class OperationRepository extends ServiceEntityRepository
 
 			->where('co.id = :compte_id')
 			->andWhere('x.anticipe = false')
+			->andWhere('x.actif = true')
 			->andWhere('ca.sign = :sign')
 
 			->setParameters([
@@ -119,6 +121,7 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.date IS NOT NULL')
 			->andWhere('x.date >= :date_start')
 			->andWhere('x.date <= :date_end')
+			->andWhere('x.actif = true')
 			->andWhere('ca.sign = :sign')
 
 			->setParameters([
@@ -147,11 +150,43 @@ class OperationRepository extends ServiceEntityRepository
 			->select('COUNT(x)')
 
 			->where('cat.id = :cat_id')
+			->andWhere('x.actif = true')
 
 			->setParameter('cat_id', $cat_id)
 
 			->getQuery()
 			->getSingleScalarResult()
+		;
+	}
+
+	/**
+	 * Renvoie les x dernières actions
+	 */
+	public function lastAction($compte_id, $nb_actions)
+	{
+		return $this->createQueryBuilder('x')
+			->leftjoin('x.subcategory', 'sc')
+			->leftjoin('sc.category', 'cat')
+			->leftjoin('cat.compte', 'c')
+
+			->select([
+				'x.dateLastAction',
+				'x.lastAction',
+				'x.number',
+				'x.anticipe',
+				'x.date',
+				'sc.libelle as sc_libelle',
+				'cat.libelle as cat_libelle',
+			])
+
+			->where('c.id = :compte_id')
+			->setParameter('compte_id', $compte_id)
+
+			->orderBy('x.dateLastAction', 'DESC')
+			->setMaxResults($nb_actions)
+
+			->getQuery()
+			->getArrayResult()
 		;
 	}
 }
