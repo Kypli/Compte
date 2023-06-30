@@ -321,7 +321,7 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * Renvoie sous formes d'array le solde d'un compte
+	 * Renvoie array avec solde annuel + soldes mensuel + cumulé + restant
 	 */
 	public function soldesByMonth($opes_pos, $opes_neg): Array
 	{
@@ -329,6 +329,8 @@ class CompteController extends AbstractController
 		$cumule = 0;
 		$total_final = 0;
 
+		/* SOLDE */
+		// Pos
 		foreach($opes_pos as $ope){
 
 			$total_final += $ope->getNumber();
@@ -341,6 +343,7 @@ class CompteController extends AbstractController
 			;
 		}
 
+		// Neg
 		foreach($opes_neg as $ope){
 
 			$total_final -= $ope->getNumber();
@@ -353,6 +356,7 @@ class CompteController extends AbstractController
 			;
 		}
 
+		/* CUMULE */
 		if (isset($opes['totaux_solde'])){
 			ksort($opes['totaux_solde']);
 			foreach($opes['totaux_solde'] as $key => $mois){
@@ -362,7 +366,7 @@ class CompteController extends AbstractController
 			}
 		}
 
-		// Total par année
+		/* SOLDE ANNUEL */
 		$opes['total_final'] = $total_final;
 
 		return $opes;

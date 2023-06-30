@@ -6,12 +6,12 @@
 	border-bottom: 0 solid;
 	border-right: 0 solid;
 }
+#operation_tab tbody tr:nth-last-child(-1n+2) {
+	border-left: 4px white solid;
+}
 #operation_tab tbody tr {
 	border: 2px white solid;
 	border-bottom: 0 white solid;
-}
-#operation_tab tbody tr:nth-last-child(-1n+2) {
-	border-left: 4px white solid;
 }
 #operation_tab tbody tr:hover:not(:nth-last-child(-1n+2)){
 	cursor: pointer;

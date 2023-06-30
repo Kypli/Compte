@@ -15,7 +15,7 @@ export function updateTables(){
 
 	$.ajax({
 		type: "POST",
-		url: Routing.generate('compte_tables', { id: $('#datas').data('compteid') }),
+		url: Routing.generate('compte_tables', { id: $('#datas').data('compteid'), year: $('#datas').data('year') }),
 		timeout: 15000,
 		beforeSend: function(){
 			spinner(true)
