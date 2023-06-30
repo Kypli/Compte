@@ -114,15 +114,16 @@ table {
 }
 
 /* ZONE D'EDITION */
-/*#E2E2D6*/
+/*#E0DBBC*/
+/*#575756*/
 .compteTable .edit {
-	border-left: 3px #575756 solid!important;
+	border-left: 3px #E0DBBC solid!important;
 }
 .compteTable .edit:first-child :not(.counterEdit){
-	border-top: 3px #575756 solid!important;
+	border-top: 3px #E0DBBC solid!important;
 }
 .compteTable .collabo td:not(:nth-child(3)){
-	border-top: 3px #575756 solid!important;
+	border-top: 3px #E0DBBC solid!important;
 }
 
 .compteTable .edit td:hover:not(.counterEdit), /* tout les TD edit */

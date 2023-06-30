@@ -23,9 +23,11 @@ export function updateTables(){
 		success: function(response){
 			$('#tables').empty().append(response.render)
 			editSolde(response.solde)
+			editSolde(response.soldeFinMensuel, 'FinMois')
 			spinner(false)
 		},
 		error: function(error){
+			spinner(false)
 			console.log('Erreur ajax: ' + error)
 		}
 	})
@@ -37,9 +39,9 @@ export function updateTables(){
 ////////////
 
 // Color soldeActuel
-function editSolde(solde){
+function editSolde(solde, text = 'Actuel'){
 
-	$('#soldeActuelNb').text(number_format(solde, 2, ',', ' '))
+	$('#solde'+text+'Nb').text(number_format(solde, 2, ',', ' '))
 
 	let 
 		decouvert = $('#datas').data('decouvert'),
@@ -47,14 +49,14 @@ function editSolde(solde){
 	;
 
 	if (solde == 0){
-		$('#soldeActuel')
+		$('#solde'+text)
 			.addClass('total_month_full_neutre')
 			.removeClass('total_month_full_pos')
 			.removeClass('total_month_full_neg')
 			.removeClass('total_month_full_dec')
 
 	} else if(solde > 0){
-		$('#soldeActuel')
+		$('#solde'+text)
 			.addClass('total_month_full_pos')
 			.removeClass('total_month_full_neutre')
 			.removeClass('total_month_full_neg')
@@ -62,14 +64,14 @@ function editSolde(solde){
 
 	} else if (solde < decouvert){
 		hideAlert = false
-		$('#soldeActuel')
+		$('#solde'+text)
 			.addClass('total_month_full_neg')
 			.removeClass('total_month_full_pos')
 			.removeClass('total_month_full_neutre')
 			.removeClass('total_month_full_dec')
 
 	} else {
-		$('#soldeActuel')
+		$('#solde'+text)
 			.addClass('total_month_full_dec')
 			.removeClass('total_month_full_pos')
 			.removeClass('total_month_full_neutre')
@@ -77,8 +79,8 @@ function editSolde(solde){
 	}
 
 	hideAlert
-		? $('#soldeAlert').hide()
-		: $('#soldeAlert').show()
+		? $('#solde'+text+'Alert').hide()
+		: $('#solde'+text+'Alert').show()
 }
 
 // Spinner
@@ -109,5 +111,4 @@ $(document).ready(function(){
 			function(){	$(this).prev().removeClass('jauni')	}
 		)
 	})
-
 })

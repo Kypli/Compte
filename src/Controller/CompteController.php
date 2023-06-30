@@ -122,26 +122,34 @@ class CompteController extends AbstractController
 				: date('Y')
 		;
 
+		// Opérations
+		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
+		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+		$operations_pos_datas = $this->operations($operations_pos);
+		$operations_neg_datas = $this->operations($operations_neg, false);
+
 		// Solde
 		$current_solde = round(
 			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
 			2
 		);
 
-		// Color solde
-		if ($current_solde == 0){
-			$color_solde = 'neutre';
-		} elseif ($current_solde > 0){
-			$color_solde = 'pos';
-		} elseif ($current_solde < ($compte->getDecouvert() * -1)){
-			$color_solde = 'neg';
+		// Solde Fin mois
+		$soldeFinMensuel = $current_solde;
+		if ($current_year == $year){
+			if (isset($operations_pos_datas['totaux_mois'][$current_month]['anticipe'])){
+				$soldeFinMensuel += $operations_pos_datas['totaux_mois'][$current_month]['anticipe'];
+			}
+			if (isset($operations_neg_datas['totaux_mois'][$current_month]['anticipe'])){
+				$soldeFinMensuel += $operations_neg_datas['totaux_mois'][$current_month]['anticipe'];
+			}
 		} else {
-			$color_solde = 'dec';
+			$soldeFinMensuel = false;
 		}
 
-		// Opérations
-		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
-		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+		// Color solde
+		$color_solde = $this->colorSolde($current_solde, $compte->getDecouvert());
+		$color_soldeFinMois = $this->colorSolde($soldeFinMensuel, $compte->getDecouvert());
 
 		// Month
 		$months = [
@@ -172,12 +180,14 @@ class CompteController extends AbstractController
 			'current_year' => $current_year,
 			'current_month' => $current_month,
 
-			'operations_pos' => $this->operations($operations_pos),
-			'operations_neg' => $this->operations($operations_neg, false),
+			'operations_pos' => $operations_pos_datas,
+			'operations_neg' => $operations_neg_datas,
 
-			'current_solde' => $current_solde, // Solde courant du compte
 			'color_solde' => $color_solde, // Couleur d'alerte du solde
-			'soldes_mensuels' => $this->soldesByMonth($operations_pos, $operations_neg),
+			'color_soldeFinMois' => $color_soldeFinMois, // Couleur d'alerte du solde
+			'current_solde' => $current_solde, // Solde courant du compte
+			'current_monthEnd' => $soldeFinMensuel, // Solde courant du compte à la fin du mois
+			'gains' => $this->gains($operations_pos, $operations_neg),
 		]);
 	}
 
@@ -206,15 +216,30 @@ class CompteController extends AbstractController
 				: date('Y')
 		;
 
+		// Opérations
+		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
+		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+		$operations_pos_datas = $this->operations($operations_pos);
+		$operations_neg_datas = $this->operations($operations_neg, false);
+
 		// Solde
 		$solde = round(
 			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
 			2
 		);
 
-		// Opérations
-		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
-		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
+		// Solde Fin mois
+		$soldeFinMensuel = $solde;
+		if ($current_year == $year){
+			if (isset($operations_pos_datas['totaux_mois'][$current_month]['anticipe'])){
+				$soldeFinMensuel += $operations_pos_datas['totaux_mois'][$current_month]['anticipe'];
+			}
+			if (isset($operations_neg_datas['totaux_mois'][$current_month]['anticipe'])){
+				$soldeFinMensuel += $operations_neg_datas['totaux_mois'][$current_month]['anticipe'];
+			}
+		} else {
+			$soldeFinMensuel = false;
+		}
 
 		// Month
 		$months = [
@@ -245,12 +270,13 @@ class CompteController extends AbstractController
 			'operations_pos' => $this->operations($operations_pos),
 			'operations_neg' => $this->operations($operations_neg, false),
 
-			'soldes_mensuels' => $this->soldesByMonth($operations_pos, $operations_neg),
+			'gains' => $this->gains($operations_pos, $operations_neg),
 		])->getContent();
 
 		return new JsonResponse([
 			'render' => $render,
 			'solde' => $solde,
+			'soldeFinMensuel' => $soldeFinMensuel,
 		]);
 	}
 
@@ -321,55 +347,64 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * Renvoie array avec solde annuel + soldes mensuel + cumulé + restant
+	 * Renvoie la couleur du solde selon l'alerte
 	 */
-	public function soldesByMonth($opes_pos, $opes_neg): Array
+	public function colorSolde($solde, $decouvert)
 	{
-		$opes = [];
-		$cumule = 0;
-		$total_final = 0;
+		if ($solde == 0){
+			$color = 'neutre';
+		} elseif ($solde > 0){
+			$color = 'pos';
+		} elseif ($solde < ($decouvert * -1)){
+			$color = 'neg';
+		} else {
+			$color = 'dec';
+		}
 
-		/* GAIN MENSUEL */
+		return $color;
+	}
+
+	/**
+	 * Renvoie array avec gains mensuels + cumulé
+	 */
+	public function gains($opes_pos, $opes_neg): Array
+	{
+		// Gains
+		$gains = [];
+
 		// Pos
 		foreach($opes_pos as $ope){
 
-			$total_final += $ope->getNumber();
 			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($opes['gain_mensuel'][$mois]['gain'])
-				? $opes['gain_mensuel'][$mois]['gain'] += $ope->getNumber()
-				: $opes['gain_mensuel'][$mois]['gain'] = $ope->getNumber()
+			isset($gains[$mois]['gain'])
+				? $gains[$mois]['gain'] += $ope->getNumber()
+				: $gains[$mois]['gain'] = $ope->getNumber()
 			;
 		}
 
 		// Neg
 		foreach($opes_neg as $ope){
 
-			$total_final -= $ope->getNumber();
 			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($opes['gain_mensuel'][$mois]['gain'])
-				? $opes['gain_mensuel'][$mois]['gain'] -= $ope->getNumber()
-				: $opes['gain_mensuel'][$mois]['gain'] = -$ope->getNumber()
+			isset($gains[$mois]['gain'])
+				? $gains[$mois]['gain'] -= $ope->getNumber()
+				: $gains[$mois]['gain'] = -$ope->getNumber()
 			;
 		}
 
-		/* GAIN MENSUEL CUMULE */
-		if (isset($opes['gain_mensuel'])){
-			ksort($opes['gain_mensuel']);
-			foreach($opes['gain_mensuel'] as $key => $mois){
-
-				$cumule += $mois['gain'];
-				$opes['gain_mensuel'][$key]['cumule'] = $cumule;
-			}
+		// Cumulé
+		$cumule = 0;
+		ksort($gains);
+		foreach($gains as $key => $mois){
+			$cumule += $mois['gain'];
+			$gains[$key]['cumule'] = $cumule;
 		}
 
-		/* GAIN ANNUEL */
-		$opes['total_final'] = $total_final;
-
-		return $opes;
+		return $gains;
 	}
 
 	/**

@@ -22,19 +22,24 @@
 		data-months="{{ months_json }}"
 		data-compteid="{{ compte.id }}"
 	>
-		{# TITRE #}
+		{# HEADER #}
 		<div class="container p-2">
-			<div class='row'>
+			<div class='row mt-1'>
+
+				{# TITRE #}
 				<div class="offset-4 col-4 center">
 					{% include('_h1.html.twig') with {'text': compte.libelle } %}
 				</div>
-				<div class="offset-2 col-2 center">
-					<span class="button">Légende</span>
+
+				{# LÉGENDE #}
+				<div class="offset-1 col-3 center">
+					<span class="button p-2">Légende</span>
+					<span class="button p-2">Tutoriel</span>
 				</div>
 			</div>
 
 			{# SOLDE + NAVIGATION YEAR #}
-			<div class='row'>
+			<div class='row mt-2'>
 
 				{# SOLDE #}
 				<div class="col-3">
@@ -47,7 +52,7 @@
 							{{ current_solde == null ? 0 : current_solde|number_format(2, ',', ' ') }}
 						</span>
 						<span	
-							id="soldeAlert"						
+							id="soldeActuelAlert"						
 							class="taille18 ml-2 pointeur_help float-left{{ color_solde != 'neg' ? ' hide' }}"
 							title="Attention, vous avez dépassé votre autorisation de découvert"
 						>
@@ -55,6 +60,28 @@
 						</span>
 					</span>
 				</div>
+
+				{# SOLDE FIN DU MOIS #}
+				{% if false != current_monthEnd %}
+					<div class="col-4">
+						Solde du compte à la fin du mois:
+						<span
+							id='soldeFinMois'
+							class="soldeActuel total_month_full_{{ color_solde }}"
+						>
+							<span id='soldeFinMoisNb'>
+								{{ current_monthEnd|number_format(2, ',', ' ') }}
+							</span>
+							<span	
+								id="soldeFinMoisAlert"						
+								class="taille18 ml-2 pointeur_help float-left{{ color_solde != 'neg' ? ' hide' }}"
+								title="Attention, vous allez dépasser votre autorisation de découvert"
+							>
+								<i class="red fas fa-exclamation"></i>
+							</span>
+						</span>
+					</div>
+				{% endif %}
 
 				{# SPINNER #}
 				<div class="col-1">
@@ -64,7 +91,7 @@
 				</div>
 				
 				{# NAVIGATION YEAR #}
-				<div class="offset-5 col-2 center">
+				<div class="offset-{{ current_monthEnd ? 2 : 6 }} col-2 center">
 					{% if year != 'now'|date('Y') %}
 						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
 							<span class='button'>Retour {{ 'now'|date('Y') }}</span>

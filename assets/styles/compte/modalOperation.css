@@ -1,7 +1,7 @@
 
 /* TR OPE */
 #operation_tab tbody {
-	border: 4px #F1F1C6 solid;
+	border: 4px #FFF6B1 solid;
 	border-top: 0 solid;
 	border-bottom: 0 solid;
 	border-right: 0 solid;
@@ -15,7 +15,7 @@
 }
 #operation_tab tbody tr:hover:not(:nth-last-child(-1n+2)){
 	cursor: pointer;
-	border: 2px #F1F1C6 solid!important;
+	border: 2px #FFF6B1 solid!important;
 }
 
 /* TH */

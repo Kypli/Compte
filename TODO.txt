@@ -32,7 +32,6 @@ Compte
 	Show
 		Interface
 			Tableau mois en cours plus distingué des autres
-			Rajout solde restant à la fin du mois pour le mois en cours + mois passé
 			Liste des anomalies (A venir dépassé et montant fait dans le futur)
 			Afficher 3 dernières opérations avec pop-up historique des 15 dernières actions
 			Proposer un tutoriel

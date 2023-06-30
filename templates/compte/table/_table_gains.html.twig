@@ -17,12 +17,12 @@
 			%}
 
 			{# DATAS #}
-			{% if soldes_mensuels['gain_mensuel'][month] is defined %}
-				{% set number = soldes_mensuels['gain_mensuel'][month]['gain']|number_format(2, ',', ' ') %}
-				{% set revenuAnnuel = soldes_mensuels['gain_mensuel'][month]['cumule']|number_format(2, ',', ' ') %}
+			{% if gains[month] is defined %}
+				{% set number = gains[month]['gain'] %}
+				{% set revenuAnnuel = gains[month]['cumule'] %}
 
 				<th	colspan='2' class="{{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
-					{{ number }}
+					{{ number|number_format(2, ',', ' ') }}
 				</th>
 
 			{% else %}
@@ -48,11 +48,11 @@
 			%}
 
 			{# DATAS #}
-			{% if soldes_mensuels['gain_mensuel'][month] is defined %}
-				{% set number = soldes_mensuels['gain_mensuel'][month]['cumule']|number_format(2, ',', ' ') %}
+			{% if gains[month] is defined %}
+				{% set number = gains[month]['cumule'] %}
 
 				<th colspan='2' class="centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
-					{{ number }}
+					{{ number|number_format(2, ',', ' ') }}
 				</th>
 
 			{% else %}
@@ -63,7 +63,7 @@
 			colspan="3"
 			class="th_solde_cache_2 revenuAnnuel {{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}"
 		>
-			{{ revenuAnnuel }}
+			{{ revenuAnnuel|number_format(2, ',', ' ') }}
 		</td>
 	</tr>
 </table>
