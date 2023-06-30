@@ -329,7 +329,7 @@ class CompteController extends AbstractController
 		$cumule = 0;
 		$total_final = 0;
 
-		/* SOLDE */
+		/* GAIN MENSUEL */
 		// Pos
 		foreach($opes_pos as $ope){
 
@@ -337,9 +337,9 @@ class CompteController extends AbstractController
 			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($opes['totaux_solde'][$mois]['solde'])
-				? $opes['totaux_solde'][$mois]['solde'] += $ope->getNumber()
-				: $opes['totaux_solde'][$mois]['solde'] = $ope->getNumber()
+			isset($opes['gain_mensuel'][$mois]['gain'])
+				? $opes['gain_mensuel'][$mois]['gain'] += $ope->getNumber()
+				: $opes['gain_mensuel'][$mois]['gain'] = $ope->getNumber()
 			;
 		}
 
@@ -350,23 +350,23 @@ class CompteController extends AbstractController
 			$mois = $ope->getDate()->format('n');
 
 			// Total by month
-			isset($opes['totaux_solde'][$mois]['solde'])
-				? $opes['totaux_solde'][$mois]['solde'] -= $ope->getNumber()
-				: $opes['totaux_solde'][$mois]['solde'] = -$ope->getNumber()
+			isset($opes['gain_mensuel'][$mois]['gain'])
+				? $opes['gain_mensuel'][$mois]['gain'] -= $ope->getNumber()
+				: $opes['gain_mensuel'][$mois]['gain'] = -$ope->getNumber()
 			;
 		}
 
-		/* CUMULE */
-		if (isset($opes['totaux_solde'])){
-			ksort($opes['totaux_solde']);
-			foreach($opes['totaux_solde'] as $key => $mois){
+		/* GAIN MENSUEL CUMULE */
+		if (isset($opes['gain_mensuel'])){
+			ksort($opes['gain_mensuel']);
+			foreach($opes['gain_mensuel'] as $key => $mois){
 
-				$cumule += $mois['solde'];
-				$opes['totaux_solde'][$key]['cumule'] = $cumule;
+				$cumule += $mois['gain'];
+				$opes['gain_mensuel'][$key]['cumule'] = $cumule;
 			}
 		}
 
-		/* SOLDE ANNUEL */
+		/* GAIN ANNUEL */
 		$opes['total_final'] = $total_final;
 
 		return $opes;
