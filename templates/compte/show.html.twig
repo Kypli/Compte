@@ -38,7 +38,7 @@
 				</div>
 			</div>
 
-			{# SOLDE + NAVIGATION YEAR #}
+			{# SUB-HEADER #}
 			<div class='row mt-2'>
 
 				{# SOLDE #}
@@ -89,9 +89,25 @@
 						<span class="sr-only">Chargement...</span>
 					</div>
 				</div>
+
+				{# SPINNER #}
+				<div class="col-2">
+					10 dernières actions
+					<select style="max-width: 150px;'">
+						{% for la in lastActions %}
+							<option>
+								{{ loop.index}}.
+								{{ la.lastAction == 'create' ? 'Création' : la.lastAction == 'edit' ? 'Édition' : 'Suppression' }}:
+								{{ la.dateLastAction|date('d/m/Y') }}:
+								{{ la.cat_libelle|capitalize }}/{{ la.sc_libelle|capitalize }}:
+								{{ la.number }}
+							</option>
+						{% endfor %}
+					</select>
+				</div>
 				
 				{# NAVIGATION YEAR #}
-				<div class="offset-{{ current_monthEnd ? 2 : 6 }} col-2 center">
+				<div class="offset-{{ current_monthEnd ? 0 : 4 }} col-2 center">
 					{% if year != 'now'|date('Y') %}
 						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
 							<span class='button'>Retour {{ 'now'|date('Y') }}</span>

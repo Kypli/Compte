@@ -30,6 +30,7 @@ class UserType extends AbstractType
 					'label' => 'Pseudo',
 					'attr' => [
 						'class' => 'form-control',
+						'autocomplete' => 'off',
 					],
 				]
 			)

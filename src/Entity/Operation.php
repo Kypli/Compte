@@ -38,10 +38,9 @@ class Operation
     private $comment;
 
     /**
-     * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="string", length=15)
      */
-    private $subcategory;
+    private $lastAction;
 
     /**
      * @ORM\Column(type="datetime")
@@ -49,14 +48,15 @@ class Operation
     private $dateLastAction;
 
     /**
-     * @ORM\Column(type="string", length=15)
-     */
-    private $lastAction;
-
-    /**
      * @ORM\Column(type="boolean")
      */
     private $actif = 1;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $subcategory;
 
     public function getId(): ?int
     {
@@ -111,6 +111,42 @@ class Operation
         return $this;
     }
 
+    public function getLastAction(): ?string
+    {
+        return $this->lastAction;
+    }
+
+    public function setLastAction(string $lastAction): self
+    {
+        $this->lastAction = $lastAction;
+
+        return $this;
+    }
+
+    public function getDateLastAction(): ?\DateTimeInterface
+    {
+        return $this->dateLastAction;
+    }
+
+    public function setDateLastAction(\DateTimeInterface $dateLastAction): self
+    {
+        $this->dateLastAction = $dateLastAction;
+
+        return $this;
+    }
+
+    public function isActif(): ?bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): self
+    {
+        $this->actif = $actif;
+
+        return $this;
+    }
+
     public function getSubcategory(): ?SubCategory
     {
         return $this->subcategory;
@@ -130,41 +166,5 @@ class Operation
         }
 
         return false;
-    }
-
-    public function getDateLastAction(): ?\DateTimeInterface
-    {
-        return $this->dateLastAction;
-    }
-
-    public function setDateLastAction(\DateTimeInterface $dateLastAction): self
-    {
-        $this->dateLastAction = $dateLastAction;
-
-        return $this;
-    }
-
-    public function getLastAction(): ?string
-    {
-        return $this->lastAction;
-    }
-
-    public function setLastAction(string $lastAction): self
-    {
-        $this->lastAction = $lastAction;
-
-        return $this;
-    }
-
-    public function isActif(): ?bool
-    {
-        return $this->actif;
-    }
-
-    public function setActif(bool $actif): self
-    {
-        $this->actif = $actif;
-
-        return $this;
     }
 }

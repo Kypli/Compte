@@ -173,8 +173,6 @@ class OperationRepository extends ServiceEntityRepository
 				'x.dateLastAction',
 				'x.lastAction',
 				'x.number',
-				'x.anticipe',
-				'x.date',
 				'sc.libelle as sc_libelle',
 				'cat.libelle as cat_libelle',
 			])

@@ -31,6 +31,21 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class CompteController extends AbstractController
 {
+	public const MONTHS = [
+		1 => 'janvier',
+		2 => 'février',
+		3 => 'mars',
+		4 => 'avril',
+		5 => 'mai',
+		6 => 'juin',
+		7 => 'juillet',
+		8 => 'aout',
+		9 => 'septembre',
+		10 => 'octobre',
+		11 => 'novembre',
+		12 => 'décembre',
+	];
+
 	private $navigation_max_year;
 	private $navigation_min_year;
 
@@ -107,7 +122,7 @@ class CompteController extends AbstractController
 	 */
 	public function show(Compte $compte, Request $request): Response
 	{
-		// Current Month
+		// Current dates
 		$date = new \Datetime('now');
 		$current_year = $date->format('Y');
 		$current_month = $date->format('n');
@@ -151,28 +166,12 @@ class CompteController extends AbstractController
 		$color_solde = $this->colorSolde($current_solde, $compte->getDecouvert());
 		$color_soldeFinMois = $this->colorSolde($soldeFinMensuel, $compte->getDecouvert());
 
-		// Month
-		$months = [
-			1 => 'janvier',
-			2 => 'février',
-			3 => 'mars',
-			4 => 'avril',
-			5 => 'mai',
-			6 => 'juin',
-			7 => 'juillet',
-			8 => 'aout',
-			9 => 'septembre',
-			10 => 'octobre',
-			11 => 'novembre',
-			12 => 'décembre',
-		];
-
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
 
 			'year' => $year,
-			'months' => $months,
-			'months_json' => json_encode($months),
+			'months' => SELF::MONTHS,
+			'months_json' => json_encode(SELF::MONTHS),
 			'max_year' => $this->navigation_max_year,
 			'min_year' => $this->navigation_min_year,
 
@@ -189,7 +188,7 @@ class CompteController extends AbstractController
 			'current_monthEnd' => $soldeFinMensuel, // Solde courant du compte à la fin du mois
 			'gains' => $this->gains($operations_pos, $operations_neg),
 
-			'lastActions' => $this->lastActions($this->or->lastAction($compte->getId(), 10)), // Last actions
+			'lastActions' => $this->or->lastAction($compte->getId(), 10), // Last actions
 		]);
 	}
 
@@ -203,7 +202,7 @@ class CompteController extends AbstractController
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
-		// Current Month
+		// Current dates
 		$date = new \Datetime('now');
 		$current_year = $date->format('Y');
 		$current_month = $date->format('n');
@@ -243,27 +242,11 @@ class CompteController extends AbstractController
 			$soldeFinMensuel = false;
 		}
 
-		// Month
-		$months = [
-			1 => 'janvier',
-			2 => 'février',
-			3 => 'mars',
-			4 => 'avril',
-			5 => 'mai',
-			6 => 'juin',
-			7 => 'juillet',
-			8 => 'aout',
-			9 => 'septembre',
-			10 => 'octobre',
-			11 => 'novembre',
-			12 => 'décembre',
-		];
-
 		$render = $this->render('compte/table/_tables.html.twig', [
 			'compte' => $compte,
 
 			'year' => $year,
-			'months' => $months,
+			'months' => SELF::MONTHS,
 
 			'user' => $this->getUser(),
 			'current_year' => $current_year,
@@ -410,17 +393,6 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * Renvoie les dernières actions pour twig
-	 */
-	public function lastActions($lastActions): Array
-	{
-		foreach($lastActions as $action){
-		}
-
-		return $lastActions;
-	}
-
-	/**
 	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
 	 */
 	public function edit(Compte $compte, Request $request): Response
@@ -474,10 +446,10 @@ class CompteController extends AbstractController
 	 * Renvoie les opérations selon la sc, l'année, le mois et le signe
 	 * Ajax only
 	 */
-	public function operationDatas(SubCategory $sc, $year, $month, $sign, Request $request): Response
+	public function operation_datas(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
-		// if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
 		$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 		$datas['days_in_month'] = $daysInMonth;
@@ -511,6 +483,9 @@ class CompteController extends AbstractController
 			? $request->request->all()['datas']
 			: []
 		;
+
+		// Date
+		$date = new \Datetime('now');
 	
 		// Save
 		foreach($datas as $ope){
@@ -518,7 +493,12 @@ class CompteController extends AbstractController
 			// Delete
 			if ((int) $ope['delete'] == 1){
 				$del = $this->or->find($ope['id']);
-				$this->or->remove($del, true);
+				$del
+					->setActif(false)
+					->setLastAction('del')
+					->setDateLastAction($date)
+				;
+				$this->or->add($del, true);
 
 			// Edit
 			} elseif (!empty($ope['id'])){
@@ -527,11 +507,29 @@ class CompteController extends AbstractController
 
 				if ($ope_ent == null){ return new JsonResponse(['save' => false]); }
 
+				// Edit ?
+				if (
+					$ope['number'] != (string) $ope_ent->getNumber() ||
+					$ope['day'] != $ope_ent->getDate()->format('j') ||
+					$ope['month'] != $ope_ent->getDate()->format('n') ||
+					$ope['year'] != $ope_ent->getDate()->format('Y') ||
+					$ope['comment'] != $ope_ent->getComment()
+				){
+					$ope_ent
+						->setLastAction('edit')
+						->setDateLastAction($date)
+					;
+				}
+
 			// Add
 			} else {
 				$id = null;
 				$ope_ent = new operation();
-				$ope_ent->setSubcategory($sc);
+				$ope_ent
+					->setSubcategory($sc)
+					->setLastAction('create')
+					->setDateLastAction($date)
+				;
 			}
 
 			// Save ?

@@ -141,11 +141,13 @@ $(document).ready(function(){
 	// Reset 1 ope edit
 	$("body").on("click", ".trButCancelEdit", function(e){
 		resetEdit('ope_id_' + $(this).data('opeid'))
+		calculSolde()
 	})
 
 	// Reset all ope edit
 	$("body").on("click", "#butFullCancelEdit", function(e){
 		resetAllEdit()
+		calculSolde()
 	})
 
 	// Delete ope
