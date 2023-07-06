@@ -173,8 +173,10 @@ class OperationRepository extends ServiceEntityRepository
 				'x.dateLastAction',
 				'x.lastAction',
 				'x.number',
+				'x.date',
 				'sc.libelle as sc_libelle',
 				'cat.libelle as cat_libelle',
+				'cat.sign as sign',
 			])
 
 			->where('c.id = :compte_id')

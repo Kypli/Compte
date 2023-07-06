@@ -1,0 +1,27 @@
+Dernières actions
+<select class='select-last-actions{# form-select #}'>
+	{% for la in lastActions %}
+
+		{% if date_select is defined and la.dateLastAction|date('d/m/Y') != date_select %}
+			</optgroup>
+		{% endif %}
+
+		{% if loop.first or (date_select is defined and la.dateLastAction|date('d/m/Y') != date_select) %}
+			{% set date_select = la.dateLastAction|date('d/m/Y') %}
+			<optgroup label="Date de l'action: {{ date_select }}">
+		{% endif %}
+
+			{% set color = la.lastAction == 'del' ? 'select_del' : la.lastAction == 'edit' ? 'select_edit' : 'select_cre' %}
+			<option class='{{ color }}{{ la.sign ? ' bck_pos' : ' bck_neg' }}'>
+				{{ la.lastAction == 'create' ? 'Création' : la.lastAction == 'edit' ? 'Édition' : 'Suppression' }}:
+				{{ la.cat_libelle|capitalize }}/{{ la.sc_libelle|capitalize }} au
+				{{ la.date|date('d/m/Y') }}
+				({{ la.number|number_format(2, ',', ' ') }} €)
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			</option>
+
+		{% if loop.last %}
+			</optgroup>
+		{% endif %}
+	{% endfor %}
+</select>

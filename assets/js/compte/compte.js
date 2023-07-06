@@ -22,6 +22,7 @@ export function updateTables(){
 		},
 		success: function(response){
 			$('#tables').empty().append(response.render)
+			$('#last-actions-div').empty().append(response.render_last_actions)
 			editSolde(response.solde)
 			editSolde(response.soldeFinMensuel, 'FinMois')
 			spinner(false)

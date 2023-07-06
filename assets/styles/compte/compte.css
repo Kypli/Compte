@@ -1,13 +1,63 @@
 
-/* MAIN COLORS */
+/**********/
+/* BODY */
+/**********/
+body {
+	background-color: #D6E5C9;
+}
+
+
+/**********/
+/* SUB-HEADER */
+/**********/
+
+/* SOLDE ACTUEL */
+.soldeActuel {
+	border: 1px black solid;
+	padding: 12px;
+	font-weight: bold;
+	background-color: #E6E6E6;
+	min-width: 350px!important;
+}
+
+/* LAST ACTIONS */
+.select-last-actions {
+	max-width: 20px;
+}
+.select-last-actions optgroup {
+	color: white;
+	background-color: #8595AB;
+}
+.select_edit {
+	color: #1C8DCB!important;
+}
+.select_del {
+	color: darkred!important;
+}
+.select_cre {
+	color: #077E0E!important;
+}
+
+/* YEAR */
+.navigation_elem {
+	margin: 0 10px 0 10px;
+	font-size: 18px!important;
+}
+.button {
+	color: black;
+	padding: 6px;
+	cursor: pointer;
+	margin-left: 25px;
+	border-radius: 15px;
+	border: 1px black solid;
+	background-color: #E6E6E6;
+	text-decoration: #E6E6E6 underline;
+}
+
 
 /**********/
 /* TABLE */
 /**********/
-
-body {
-	background-color: #D6E5C9;
-}
 
 table {
 	table-layout: fixed;
@@ -193,32 +243,4 @@ table {
 }
 .bck_black {
 	background-color: black!important;
-}
-
-/* SOLDE ACTUEL */
-.soldeActuel {
-	border: 1px black solid;
-	padding: 12px;
-	font-weight: bold;
-	background-color: #E6E6E6;
-	min-width: 350px!important;
-}
-
-/* YEAR */
-.navigation {
-	margin: 15px 0 0 15px;
-}
-.navigation_elem {
-	margin: 0 10px 0 10px;
-	font-size: 18px!important;
-}
-.button {
-	color: black;
-	padding: 6px;
-	cursor: pointer;
-	margin-left: 25px;
-	border-radius: 15px;
-	border: 1px black solid;
-	background-color: #E6E6E6;
-	text-decoration: #E6E6E6 underline;
 }

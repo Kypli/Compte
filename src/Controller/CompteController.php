@@ -258,8 +258,13 @@ class CompteController extends AbstractController
 			'gains' => $this->gains($operations_pos, $operations_neg),
 		])->getContent();
 
+		$render_last_actions = $this->render('compte/_last_actions.html.twig', [
+			'lastActions' => $this->or->lastAction($compte->getId(), 10),
+		])->getContent();
+
 		return new JsonResponse([
 			'render' => $render,
+			'render_last_actions' => $render_last_actions,
 			'solde' => $solde,
 			'soldeFinMensuel' => $soldeFinMensuel,
 		]);
@@ -485,7 +490,7 @@ class CompteController extends AbstractController
 		;
 
 		// Date
-		$date = new \Datetime('now');
+		$current_date = new \Datetime('now');
 	
 		// Save
 		foreach($datas as $ope){
@@ -496,7 +501,7 @@ class CompteController extends AbstractController
 				$del
 					->setActif(false)
 					->setLastAction('del')
-					->setDateLastAction($date)
+					->setDateLastAction($current_date)
 				;
 				$this->or->add($del, true);
 
@@ -517,7 +522,7 @@ class CompteController extends AbstractController
 				){
 					$ope_ent
 						->setLastAction('edit')
-						->setDateLastAction($date)
+						->setDateLastAction($current_date)
 					;
 				}
 
@@ -528,7 +533,7 @@ class CompteController extends AbstractController
 				$ope_ent
 					->setSubcategory($sc)
 					->setLastAction('create')
-					->setDateLastAction($date)
+					->setDateLastAction($current_date)
 				;
 			}
 
