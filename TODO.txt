@@ -75,5 +75,9 @@ Tableau de bord
 Service
 	Toaster
 
-Page de connexion
-	- Faire des sessions avec des comptes test pour une inscription ultérieur et inciter à l'inscription
+Page d'inscription
+	- Si user anonyme, lors de l'enregistrement, passer sur un form qui ne déconnecte pas pour controller le proprietaire et valider l'enregistrement
+		- Retirer le paramConverter user du form d'enregistrement de base
+	- créer un cookie en cas de déconnection pour retrouver son compte
+		Proposer de retrouver son travail ou de s'enregistrer, ne pas afficher le bouton de test
+	- Supprimer le cookie si enregistrement

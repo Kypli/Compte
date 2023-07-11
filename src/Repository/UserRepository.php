@@ -22,6 +22,20 @@ class UserRepository extends ServiceEntityRepository
 		parent::__construct($registry, User::class);
 	}
 
+	/**
+	 * Used to upgrade (rehash) the user's password automatically over time.
+	 */
+	public function upgradePassword(UserInterface $user, string $newEncodedPassword): void
+	{
+		if (!$user instanceof User) {
+			throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+		}
+
+		$user->setPassword($newEncodedPassword);
+		$this->_em->persist($user);
+		$this->_em->flush();
+	}
+
 	public function add(User $entity, bool $flush = false): void
 	{
 		$this->getEntityManager()->persist($entity);
@@ -40,28 +54,45 @@ class UserRepository extends ServiceEntityRepository
 		}
 	}
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+	/**
+	 * @return Renvoie le nombre d'admin
+	 */
+	public function countAdmin()
+	{
+		return $this->createQueryBuilder('u')
+			->where('u.roles LIKE :role')
+			->setParameter('role', '%ROLE_ADMIN%')
+			->select('COUNT(u.id)')
+			->getQuery()
+			->getSingleScalarResult()
+		;
+	}
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+	/**
+	 * @return Renvoie le nombre d'anonyme
+	 */
+	public function countAnonymous()
+	{
+		return $this->createQueryBuilder('u')
+			->where('u.anonyme = TRUE')
+			->select('COUNT(u.id)')
+			->getQuery()
+			->getSingleScalarResult()
+		;
+	}
+
+	/**
+	 * @return Renvoie le login du dernier anonyme
+	 */
+	public function getLastAnonyme()
+	{
+		return $this->createQueryBuilder('u')
+			->where('u.anonyme = TRUE')
+			->select('u.userName')
+			->setMaxResults(1)
+			->orderBy('u.id', 'DESC')
+			->getQuery()
+			->getOneOrNullResult()
+		;
+	}
 }

@@ -11,9 +11,15 @@ use App\Repository\UserProfilRepository;
 use App\Repository\UserPreferenceRepository;
 
 use App\Form\UserType;
+use App\Service\CompteService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+use App\Security\LoginFormAuthenticator;
+use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
+
+use Symfony\Component\HttpFoundation\Cookie;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,34 +31,66 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 class UserController extends AbstractController
 {
-	public function __construct(UserPasswordHasherInterface $passwordHasher)
-	{
+	// Repository
+	private $ur;
+	private $upr;
+	private $uprer;
+
+	// Password
+	private $passwordHasher;
+
+	// User
+	private $guard;
+	private $loginAuthenticator;
+
+	public function __construct(
+		UserRepository $ur,
+		UserProfilRepository $upr,
+		UserPreferenceRepository $uprer,
+		UserPasswordHasherInterface $passwordHasher,
+		GuardAuthenticatorHandler $guard,
+		LoginFormAuthenticator $loginAuthenticator
+	){
+		$this->ur = $ur;
+		$this->upr = $upr;
+		$this->uprer = $uprer;
 		$this->passwordHasher = $passwordHasher;
+		$this->guard = $guard;
+		$this->loginAuthenticator = $loginAuthenticator;
 	}
 
 	/**
 	 * @IsGranted("ROLE_ADMIN")
 	 * @Route("/", name="", methods={"GET"})
 	 */
-	public function index(UserRepository $ur): Response
+	public function index(): Response
 	{
 		return $this->render('user/index.html.twig', [
-			'users' => $ur->findAll(),
+			'users' => $this->ur->findAll(),
 		]);
 	}
 
 	/**
-	 * @Route("/inscription", name="_add", methods={"GET", "POST"})
+	 * @Route("/inscription/{id}", defaults={"id": null}, name="_add", methods={"GET", "POST"})
 	 */
-	public function add(Request $request, UserRepository $ur, UserProfilRepository $upr, UserPreferenceRepository $uprer)
+	public function add($id, Request $request)
 	{
 		// Ne doit pas être membre ou alors être admin
-		if (null !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')){
+		if (null !== $this->getUser() && !$this->getUser()->getAnonyme() && !$this->isGranted('ROLE_ADMIN')){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire si vous êtes déjà membre.');
-			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('logout', [], Response::HTTP_SEE_OTHER);
 		}
 
-		$user = new User();
+		// User
+		if ($id == null){
+			$user = new User();
+			$new = true;
+		} else {
+			$user = $this->ur->find($id);
+			$user->setUserName('');
+			$new = false;
+		}
+
 		$form = $this->createForm(UserType::class, $user);
 
 		$form
@@ -69,7 +107,7 @@ class UserController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()){
 
 			// Duplicate control
-			if (!empty($ur->findOneByUserName($form->getData()->getUserName()))){
+			if (!empty($this->ur->findOneByUserName($form->getData()->getUserName()))){
 				$this->addFlash('error', "Ce login est déjà pris. Merci d'en sélectionner un autre.");
 
 			// Save
@@ -78,10 +116,11 @@ class UserController extends AbstractController
 				// Code
 				code:
 				$code = $this->randMdp();
-				if (!empty($ur->findOneByCode($code))){ goto code; }
+				if (!empty($this->ur->findOneByCode($code))){ goto code; }
 
 				// Default datas
 				$user
+					->setAnonyme(false)
 					->setRoles(["ROLE_USER"])
 					->setCode($code)
 					->setPassword($this->passwordHasher->hashPassword(
@@ -90,26 +129,39 @@ class UserController extends AbstractController
 					))
 				;
 
-				$userProfil = new UserProfil();
-				$userProfil
-					->setUser($user)
-				;
+				// Save
+				$this->ur->add($user, true);
 
-				$userPreference = new UserPreference();
-				$userPreference
-					->setUser($user)
-				;
+				if ($new){
 
-				$ur->add($user, true);
-				$upr->add($userProfil, true);
-				$uprer->add($userPreference, true);
+					$userProfil = new UserProfil();
+					$userProfil
+						->setUser($user)
+					;
+
+					$userPreference = new UserPreference();
+					$userPreference
+						->setUser($user)
+					;
+
+					$this->upr->add($userProfil, true);
+					$this->uprer->add($userPreference, true);
+				}
 
 				$this->addFlash(
 					'success',
-					'Félicitations '.$user->getUserName().', vous inscription est prise en compte, vous pouvez maintenant vous connecter.'
+					'Félicitations '.$user->getUserName().', vous inscription est prise en compte.'
 				);
 
-				return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+				// Authenticate user 
+				$this->guard->authenticateUserAndHandleSuccess(
+					$user,
+					$request,
+					$this->loginAuthenticator,
+					'main'
+				);
+
+				return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 			}
 		}
 
@@ -117,6 +169,70 @@ class UserController extends AbstractController
 			'user' => $user,
 			'form' => $form->createView(),
 		]);
+	}
+
+	/**
+	 * @Route("/inscription_test", name="_add_test", methods={"GET", "POST"})
+	 */
+	public function add_test(Request $request, CompteService $cs)
+	{
+		// Ne doit pas être membre
+		if (null !== $this->getUser()){
+			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire à une session de test si vous êtes déjà membre.');
+			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+		}
+
+		// Login anonyme
+		$last_anonyme = $this->ur->getLastAnonyme();
+		$login_ano_count = $last_anonyme == null ? 0 : (int) str_replace('Visiteur', '', $last_anonyme['userName']);
+		$login_ano_count++;
+
+		// Default datas
+		$user = new User();
+		$user
+			->setAnonyme(true)
+			->setUserName('Visiteur'.(string) $login_ano_count)
+			->setPassword($this->passwordHasher->hashPassword(
+				$user,
+				$this->randMdp(),
+			))
+		;
+
+		$userProfil = new UserProfil();
+		$userProfil
+			->setUser($user)
+		;
+
+		$userPreference = new UserPreference();
+		$userPreference
+			->setUser($user)
+		;
+
+		// Save
+		$this->ur->add($user, true);
+		$this->upr->add($userProfil, true);
+		$this->uprer->add($userPreference, true);
+
+		// Ajout d'un compte modèle
+		$cs->addModele($user);
+
+		// Add Cookie
+		$this->cookie($user->getUserName(), $user->getPassword());
+
+		$this->addFlash(
+			'success',
+			'Voici votre tableau de bord fournit avec un modèle de votre compte principal. N\'oubliez pas de vous enregistrer vous pour sauvegarder votre travail.'
+		);
+
+		// Authenticate user 
+		$this->guard->authenticateUserAndHandleSuccess(
+			$user,
+			$request,
+			$this->loginAuthenticator,
+			'main'
+		);
+
+		return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 	}
 
 	/**
@@ -139,7 +255,7 @@ class UserController extends AbstractController
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/edit/{id}", name="_edit", methods={"GET", "POST"})
 	 */
-	public function edit(Request $request, User $user, UserRepository $userRepository): Response
+	public function edit(Request $request, User $user): Response
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
@@ -195,7 +311,7 @@ class UserController extends AbstractController
 					$user->setRoles(["ROLE_ADMIN"]);
 
 				// False
-				} elseif(!$user->isAdmin() || ($user->isAdmin() && $userRepository->countAdmin() > 1)){
+				} elseif(!$user->isAdmin() || ($user->isAdmin() && $this->ur->countAdmin() > 1)){
 					$user->setRoles(["ROLE_USER"]);
 
 				// Null
@@ -221,7 +337,7 @@ class UserController extends AbstractController
 				;
 			}
 
-			$userRepository->add($user);
+			$this->ur->add($user);
 			$this->addFlash('success', 'Vos modifications ont bien été prise en compte.');
 			return $this->redirectToRoute('user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
 		}
@@ -235,7 +351,7 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/delete/{id}", name="_delete", methods={"POST"})
 	 */
-	public function delete(Request $request, User $user, UserRepository $ur, DiscussionRepository $dr): Response
+	public function delete(Request $request, User $user, DiscussionRepository $dr): Response
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
@@ -243,12 +359,12 @@ class UserController extends AbstractController
 		}
 
 		// Doit rester 1 admin
-		$countAdmin = $ur->countAdmin();
+		$countAdmin = $this->ur->countAdmin();
 		if (
 			$countAdmin > 1 ||
 			(
 				$countAdmin == 1 &&
-				!in_array($user->getId(), $ur->getAdminsId())
+				!in_array($user->getId(), $this->ur->getAdminsId())
 			)
 		){
 			if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))){
@@ -262,7 +378,7 @@ class UserController extends AbstractController
 				}
 
 				// Delete
-				$ur->remove($user);
+				$this->ur->remove($user);
 			}	
 
 		} else {
@@ -345,5 +461,35 @@ class UserController extends AbstractController
 		}
 
 		return implode($pass);
+	}
+
+	public function cookie($user_id, $user_psw): Response
+	{
+
+		$cookie_user = new Cookie(
+			'anonyme', // Nom cookie
+			$user_id, // Valeur
+			strtotime('tomorrow'), //expire le
+			'/', // Chemin de serveur
+			'stacktraceback.com', //Nom domaine
+			true, // Https seulement
+			true
+		); // Disponible uniquement dans le protocole HTTP
+
+		$cookie_mdp = new Cookie(
+			'anonyme_mdp', // Nom cookie
+			$user_psw, // Valeur
+			strtotime('tomorrow'), //expire le
+			'/', // Chemin de serveur
+			'stacktraceback.com', //Nom domaine
+			true, // Https seulement
+			true
+		); // Disponible uniquement dans le protocole HTTP
+
+		$res = new Response();
+		$res->headers->setCookie($cookie_user);
+		$res->headers->setCookie($cookie_mdp);
+
+		return $res;
 	}
 }

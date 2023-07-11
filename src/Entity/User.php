@@ -29,9 +29,9 @@ class User implements UserInterface
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=8, unique=true)
+     * @ORM\Column(type="string", length=8, unique=true, nullable=true)
      */
-    private $code;
+    private $code = null;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
@@ -47,7 +47,7 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private $roles = [];
+    private $roles = ["ROLE_USER"];
 
     /**
      * @ORM\Column(type="string", length=50, nullable=true)
@@ -99,9 +99,9 @@ class User implements UserInterface
      *
      * @see UserInterface
      */
-    public function getCode(): string
+    public function getCode(): ?string
     {
-        return (string) $this->code;
+        return $this->code;
     }
 
     public function setCode(string $code): self

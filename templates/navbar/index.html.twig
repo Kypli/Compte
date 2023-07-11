@@ -46,24 +46,34 @@
 					Investissement
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">
-					<i class="fa-solid fa-star"></i></i>
-					Préférences
-				</a>
-			</li>
-			<li class="nav-item decaleLeftLi {{ 'user' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user_show', {'id': app.user.id}) }}">
-					<i class="fa-solid fa-user"></i></i>
-					Profil
-				</a>
-			</li>
-			<li class="nav-item decaleLeftLi {{ 'logout' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'logout' ? '#' : path('logout') }}">
-					<i class="fa-solid fa-power-off" title='Déconnexion'></i>
-					Se déconnecter
-				</a>
-			</li>
+
+			{% if app.user.anonyme %}
+				<li class="nav-item decaleLeftLi {{ 'add' in app.request.get('_route') ? 'active' }}">
+					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'add' ? '#' : path('user_add', {'id': app.user.id}) }}">
+						<i class="fa-solid fa-star"></i></i>
+						S'enregistrer
+					</a>
+				</li>
+			{% else %}
+				<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
+					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">
+						<i class="fa-solid fa-star"></i></i>
+						Préférences
+					</a>
+				</li>
+				<li class="nav-item decaleLeftLi {{ 'user' in app.request.get('_route') ? 'active' }}">
+					<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user_show', {'id': app.user.id}) }}">
+						<i class="fa-solid fa-user"></i></i>
+						Profil
+					</a>
+				</li>
+				<li class="nav-item decaleLeftLi {{ 'logout' in app.request.get('_route') ? 'active' }}">
+					<a class="nav-link" href="{{ app.request.get('_route') == 'logout' ? '#' : path('logout') }}">
+						<i class="fa-solid fa-power-off" title='Déconnexion'></i>
+						Se déconnecter
+					</a>
+				</li>
+			{% endif %}
 		</ul>
 	</div>
 </nav>

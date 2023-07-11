@@ -21,10 +21,17 @@
 			<section class='row form'>
 
 				{# RETOUR #}
-				<a class="col-4" href="{{ path('home') }}">
-					<i class="fas fa-backward" title="Retour à l'accueil"></i>
-					Retour à la page d'accueil
-				</a>
+				{% if app.user is not null and app.user.anonyme == true %}
+					<a class="col-4" href="{{ path('tableau_bord') }}">
+						<i class="fas fa-backward" title="Retour au tableau de bord"></i>
+						Retour au tableau de bord
+					</a>
+				{% else %}
+					<a class="col-4" href="{{ path('home') }}">
+						<i class="fas fa-backward" title="Retour à l'accueil"></i>
+						Retour à la page d'accueil
+					</a>
+				{% endif %}
 
 				{% set edit = {'edit': false} %}
 				{% include 'user/_form.html.twig' with edit %}
