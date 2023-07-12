@@ -24,8 +24,8 @@ class DashBoardController extends AbstractController
 	/**
 	 * @Route("/", name="")
 	 */
-	public function index(CompteRepository $cr, OperationRepository $or){
-
+	public function index(CompteRepository $cr, OperationRepository $or)
+	{
 		// To do
 		$total = 0;
 		$credits = [];

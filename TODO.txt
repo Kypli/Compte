@@ -76,8 +76,8 @@ Service
 	Toaster
 
 Page d'inscription
-	- Si user anonyme, lors de l'enregistrement, passer sur un form qui ne déconnecte pas pour controller le proprietaire et valider l'enregistrement
-		- Retirer le paramConverter user du form d'enregistrement de base
-	- créer un cookie en cas de déconnection pour retrouver son compte
-		Proposer de retrouver son travail ou de s'enregistrer, ne pas afficher le bouton de test
+	- Si anonyme
+		- Créer un cookie en cas de déconnection pour retrouver son compte
+		- Proposer de retrouver son travail ou de s'enregistrer
+		- Ne pas afficher le bouton de test page d'accueil
 	- Supprimer le cookie si enregistrement

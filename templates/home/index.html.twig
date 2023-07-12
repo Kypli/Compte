@@ -47,38 +47,65 @@
 					<div class="offset-1 col-5 p-4">
 						<div class='row'>
 
-							{# TESTER #}
-							<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
-								<a href="{{ path('user_add_test')}}" class='p-1'>
-									<nav>
-										<ul>
-											<li class="pointeur taille20">
-												Tester l'application
-												<span></span>
-												<span></span>
-												<span></span>
-												<span></span>
-											</li>
-										</ul>
-									</nav>
-								</a>
-							</div>
+							{% if null == anonyme %}
+								{# TESTER #}
+								<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
+									<a href="{{ path('user_add_test')}}" class='p-1'>
+										<nav>
+											<ul>
+												<li class="pointeur taille20">
+													Tester l'application
+													<span></span>
+													<span></span>
+													<span></span>
+													<span></span>
+												</li>
+											</ul>
+										</nav>
+									</a>
+								</div>
 
-							<hr>
+								<hr>
 
-							{# S'INSCRIRE #}
-							<div class='offset-1 col-10 d-flex justify-content-center'>
-								<a href="{{ path('user_add')}}" class='p-1'>
-									<nav>
-										<ul>
-											<li class="pointeur taille20">
-												Créer un nouveau compte
-												<span></span><span></span><span></span><span></span>
-											</li>
-										</ul>
-									</nav>
-								</a>
-							</div>
+								{# S'INSCRIRE #}
+								<div class='offset-1 col-10 d-flex justify-content-center'>
+									<a href="{{ path('user_add')}}" class='p-1'>
+										<nav>
+											<ul>
+												<li class="pointeur taille20">
+													Créer un nouveau compte
+													<span></span><span></span><span></span><span></span>
+												</li>
+											</ul>
+										</nav>
+									</a>
+								</div>
+
+							{# ANONYME #}
+							{% else %}
+								<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
+									<a href="{{ path('user_anonyme_connect', {'id': anonyme})}}" class='p-1'>
+										<nav>
+											<ul>
+												<li class="pointeur taille20">
+													Enregistrez-vous
+													<span></span>
+													<span></span>
+													<span></span>
+													<span></span>
+												</li>
+											</ul>
+										</nav>
+									</a>
+								</div>
+								<small>
+									Pour reprendre la ou vous en étiez
+									<br/>
+									et sauvegarder sans risque votre travail,
+									<br/>
+									vous devez vous enregistrer.
+								</small>
+							{% endif %}
 						</div>
 					</div>
 				</div>

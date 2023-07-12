@@ -12,15 +12,15 @@ use App\Repository\UserPreferenceRepository;
 
 use App\Form\UserType;
 use App\Form\UserPreferenceType;
+
 use App\Service\CompteService;
+use App\Service\CookieService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 use App\Security\LoginFormAuthenticator;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
-
-use Symfony\Component\HttpFoundation\Cookie;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -167,12 +167,12 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/inscription/test", name="_add_test", methods={"GET", "POST"})
 	 */
-	public function add_test(Request $request, CompteService $cs): Response
+	public function add_test(Request $request, CompteService $cs, CookieService $coos): Response
 	{
 		// Ne doit pas être membre
 		if (null !== $this->getUser()){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire à une session de test si vous êtes déjà membre.');
-			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
 		// Login anonyme
@@ -209,9 +209,6 @@ class UserController extends AbstractController
 		// Ajout d'un compte modèle
 		$cs->addModele($user);
 
-		// Add Cookie
-		$this->cookie($user->getUserName(), $user->getPassword());
-
 		// Message flash
 		$this->addFlash(
 			'success',
@@ -226,7 +223,47 @@ class UserController extends AbstractController
 			'main'
 		);
 
+		// Add Cookie
+		$res = $coos->addCookie($request, $user->getId(), $user->getPassword());
+
 		return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+	}
+
+	/**
+	 * @Route("/anonyme/connect/{id}", name="_anonyme_connect", methods={"GET", "POST"})
+	 */
+	public function add_anonyme_connect(Request $request, User $user): Response
+	{
+		// Ne doit pas être membre
+		if (null !== $this->getUser()){
+			$this->addFlash('error', 'Vous ne pouvez pas vous enregistrer si vous êtes déjà membre.');
+			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+		}
+
+		// Connect
+		if ($user->getPassword() == $request->cookies->get('anonyme_mdp')){
+
+			// Authenticate user 
+			$this->guard->authenticateUserAndHandleSuccess(
+				$user,
+				$request,
+				$this->loginAuthenticator,
+				'main'
+			);
+
+			return $this->redirectToRoute('user_edit', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
+
+		// Error
+		} else {
+
+			// Message flash
+			$this->addFlash(
+				'error',
+				'Mot de passe incorrect.'
+			);
+
+			return $this->redirectToRoute('user_edit', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
+		}
 	}
 
 	/**
@@ -249,7 +286,7 @@ class UserController extends AbstractController
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/edit/{id}", name="_edit", methods={"GET", "POST"})
 	 */
-	public function edit(Request $request, User $user): Response
+	public function edit(Request $request, User $user, CookieService $coos): Response
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
@@ -320,6 +357,9 @@ class UserController extends AbstractController
 
 			// Anonyme ?
 			if ($user->getAnonyme()){
+
+				// Delete cookie
+				$coos->removeCookie();
 
 				// Code
 				code_edit:
@@ -403,6 +443,11 @@ class UserController extends AbstractController
 	 */
 	public function preference(Request $request, User $user): Response
 	{
+		// Acces control
+		if ($this->accesControl($user->getId()) == false){
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+
 		// Form
 		$form = $this->createForm(UserPreferenceType::class, $user->getPreferences());
 		$form->handleRequest($request);
@@ -424,6 +469,9 @@ class UserController extends AbstractController
 		]);
 	}
 
+	/**
+	 * Vérifie si user à accès
+	 */
 	public function accesControl($user_id)
 	{
 		// Si non-admin
@@ -444,6 +492,9 @@ class UserController extends AbstractController
 		return true;
 	}
 
+	/**
+	 * Controle le formulaire
+	 */
 	public function formControl($user)
 	{
 		// Courriel valide
@@ -455,6 +506,9 @@ class UserController extends AbstractController
 		return true;
 	}
 
+	/**
+	 * Renvoie un mdp au hasard
+	 */
 	public function randMdp($nbCharacter = 8)
 	{
 		$comb = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
@@ -467,35 +521,5 @@ class UserController extends AbstractController
 		}
 
 		return implode($pass);
-	}
-
-	public function cookie($user_id, $user_psw): Response
-	{
-
-		$cookie_user = new Cookie(
-			'anonyme', // Nom cookie
-			$user_id, // Valeur
-			strtotime('tomorrow'), //expire le
-			'/', // Chemin de serveur
-			'stacktraceback.com', //Nom domaine
-			true, // Https seulement
-			true
-		); // Disponible uniquement dans le protocole HTTP
-
-		$cookie_mdp = new Cookie(
-			'anonyme_mdp', // Nom cookie
-			$user_psw, // Valeur
-			strtotime('tomorrow'), //expire le
-			'/', // Chemin de serveur
-			'stacktraceback.com', //Nom domaine
-			true, // Https seulement
-			true
-		); // Disponible uniquement dans le protocole HTTP
-
-		$res = new Response();
-		$res->headers->setCookie($cookie_user);
-		$res->headers->setCookie($cookie_mdp);
-
-		return $res;
 	}
 }
