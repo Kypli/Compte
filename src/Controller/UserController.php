@@ -11,6 +11,7 @@ use App\Repository\UserProfilRepository;
 use App\Repository\UserPreferenceRepository;
 
 use App\Form\UserType;
+use App\Form\UserPreferenceType;
 use App\Service\CompteService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -71,9 +72,9 @@ class UserController extends AbstractController
 	}
 
 	/**
-	 * @Route("/inscription/{id}", defaults={"id": null}, name="_add", methods={"GET", "POST"})
+	 * @Route("/inscription", name="_add", methods={"GET", "POST"})
 	 */
-	public function add($id, Request $request)
+	public function add(Request $request): Response
 	{
 		// Ne doit pas être membre ou alors être admin
 		if (null !== $this->getUser() && !$this->getUser()->getAnonyme() && !$this->isGranted('ROLE_ADMIN')){
@@ -82,21 +83,16 @@ class UserController extends AbstractController
 		}
 
 		// User
-		if ($id == null){
-			$user = new User();
-			$new = true;
-		} else {
-			$user = $this->ur->find($id);
-			$user->setUserName('');
-			$new = false;
-		}
+		$user = new User();
 
+		// Form
 		$form = $this->createForm(UserType::class, $user);
 
 		$form
 			->remove('admin')
 			->remove('anonyme')
 			->remove('ip')
+			->remove('commentaire')
 			->remove('profil')
 			->remove('preferences')
 		;
@@ -130,23 +126,20 @@ class UserController extends AbstractController
 				;
 
 				// Save
+				$userProfil = new UserProfil();
+				$userProfil
+					->setUser($user)
+				;
+
+				$userPreference = new UserPreference();
+				$userPreference
+					->setUser($user)
+				;
+
 				$this->ur->add($user, true);
+				$this->upr->add($userProfil, true);
+				$this->uprer->add($userPreference, true);
 
-				if ($new){
-
-					$userProfil = new UserProfil();
-					$userProfil
-						->setUser($user)
-					;
-
-					$userPreference = new UserPreference();
-					$userPreference
-						->setUser($user)
-					;
-
-					$this->upr->add($userProfil, true);
-					$this->uprer->add($userPreference, true);
-				}
 
 				$this->addFlash(
 					'success',
@@ -172,9 +165,9 @@ class UserController extends AbstractController
 	}
 
 	/**
-	 * @Route("/inscription_test", name="_add_test", methods={"GET", "POST"})
+	 * @Route("/inscription/test", name="_add_test", methods={"GET", "POST"})
 	 */
-	public function add_test(Request $request, CompteService $cs)
+	public function add_test(Request $request, CompteService $cs): Response
 	{
 		// Ne doit pas être membre
 		if (null !== $this->getUser()){
@@ -219,6 +212,7 @@ class UserController extends AbstractController
 		// Add Cookie
 		$this->cookie($user->getUserName(), $user->getPassword());
 
+		// Message flash
 		$this->addFlash(
 			'success',
 			'Voici votre tableau de bord fournit avec un modèle de votre compte principal. N\'oubliez pas de vous enregistrer vous pour sauvegarder votre travail.'
@@ -265,22 +259,23 @@ class UserController extends AbstractController
 		$form = $this->createForm(UserType::class, $user);
 		$req_user = $request->request->get('user');
 
+		// Champs exclusif au anonyme
+		if ($user->getAnonyme()){
+			$form
+				->remove('profil')
+				->remove('admin')
+				->remove('anonyme')
+				->remove('ip')
+				->remove('commentaire')
+			;
 
 		// Champs exclusif à l'admin
-		if (!$this->isGranted('ROLE_ADMIN')){
+		} elseif (!$this->isGranted('ROLE_ADMIN')){
 			$form
 				->remove('userName')
 				->remove('admin')
 				->remove('anonyme')
 				->remove('ip')
-				->remove('accesPhoto')
-				->remove('accesPhotoLanceurAlerte')
-				->remove('adherant')
-				->remove('dateInscription')
-				->remove('dateFinAdhesion')
-				->remove('roleCa')
-				->remove('dateFinMandat')
-				->remove('membreHonneur')
 				->remove('commentaire')
 			;
 		}
@@ -297,8 +292,11 @@ class UserController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid() && $this->formControl($user)){
 
+			// Profil
+			$profil = $user->getProfil();
+
 			// Lower Nom + Prenom
-			$user->getProfil()
+			$profil
 				->setNom(strtolower($user->getProfil()->getNom()))
 				->setPrenom(strtolower($user->getProfil()->getPrenom()))
 			;
@@ -320,11 +318,17 @@ class UserController extends AbstractController
 				}
 			}
 
-			// Si plus anonyme, retrait du mdp temporaire + ip
-			if (!$user->getAnonyme()){
+			// Anonyme ?
+			if ($user->getAnonyme()){
+
+				// Code
+				code_edit:
+				$code = $this->randMdp();
+				if (!empty($this->ur->findOneByCode($code))){ goto code_edit; }
+
 				$user
-					->setPasswordTempo('')
-					->setIp('')
+					->setAnonyme(false)
+					->setCode($code)
 				;
 			}
 
@@ -337,8 +341,13 @@ class UserController extends AbstractController
 				;
 			}
 
-			$this->ur->add($user);
+			// Save
+			$this->ur->add($user, true);
+			$this->upr->add($profil, true);
+
+			// Message flash
 			$this->addFlash('success', 'Vos modifications ont bien été prise en compte.');
+
 			return $this->redirectToRoute('user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
 		}
 
@@ -392,11 +401,26 @@ class UserController extends AbstractController
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/preference/{id}", name="_preference")
 	 */
-	public function preference(User $user): Response
+	public function preference(Request $request, User $user): Response
 	{
-		$user = $this->getUser();
+		// Form
+		$form = $this->createForm(UserPreferenceType::class, $user->getPreferences());
+		$form->handleRequest($request);
+
+		// Valid form
+		if ($form->isSubmitted() && $form->isValid()){
+
+			$this->addFlash(
+				'success',
+				'Vos préférences ont été prises en compte.'
+			);
+
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+
 		return $this->render('user/preference.html.twig', [
 			'user' => $user,
+			'form' => $form->createView(),
 		]);
 	}
 
@@ -422,27 +446,9 @@ class UserController extends AbstractController
 
 	public function formControl($user)
 	{
-		// Si adhérant, rajouter date inscription + date fin adhesion
-		if (
-			null != $user->getAsso()->isAdherant() &&
-			(
-				null == $user->getAsso()->getDateInscription() ||
-				null == $user->getAsso()->getDateFinAdhesion()
-			)
-		){
-			$this->addFlash('error', "Si l'utilisateur est un adhérant, il doit avoir une date d'inscription et de fin d'adhésion.");
-			return false;
-		}
-
 		// Courriel valide
 		if (!empty($user->getProfil()->getMail()) && !filter_var($user->getProfil()->getMail(), FILTER_VALIDATE_EMAIL)){
 			$this->addFlash('error', "Le courriel n'est pas valide.");
-			return false;
-		}
-
-		// Si newsletter, doit avoir un mail
-		if (empty($user->getProfil()->getMail()) && $user->getNewsletter()){
-			$this->addFlash('error', "Vous devez avoir un courriel pour être inscrit à la newsletter.");
 			return false;
 		}
 

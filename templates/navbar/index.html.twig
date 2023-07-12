@@ -47,13 +47,16 @@
 				</a>
 			</li>
 
+			{# ANONYME #}
 			{% if app.user.anonyme %}
 				<li class="nav-item decaleLeftLi {{ 'add' in app.request.get('_route') ? 'active' }}">
-					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'add' ? '#' : path('user_add', {'id': app.user.id}) }}">
+					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'add' ? '#' : path('user_edit', {'id': app.user.id}) }}">
 						<i class="fa-solid fa-star"></i></i>
 						S'enregistrer
 					</a>
 				</li>
+
+			{# USER #}
 			{% else %}
 				<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
 					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">

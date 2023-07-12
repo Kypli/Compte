@@ -1,3 +1,18 @@
+body {
+  color:white;
+  background-color:black;
+  background-image:url("../../images/fond/vert_tableauNoirSale.jpg");
+  margin:0;
+}
+
+button {
+  display: block;
+  padding: 10px;
+  color: #30742A;
+  background-color: #e9f5db;
+  border: 3px solid black;
+}
+
 .table {
 	background-color: #e9f5db;
 }
@@ -8,6 +23,11 @@
 	width: 60.00%!important;
 }
 
+a { color:#e9f5db; }
+a:hover { 
+  color:#29843B;
+  text-decoration: none;
+}
 a:link {
   text-decoration: none;
 }

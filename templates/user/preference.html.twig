@@ -2,6 +2,11 @@
 
 {% block title %}Préférences{% endblock %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('user') }}
+{% endblock %}
+
 {% block body %}
 
 	<div class="container">
@@ -10,6 +15,13 @@
 			{# TITRE #}
 			<h2 class="radius-long offset-4 col-4">Préférences</h2>
 
+			{# MODIFIER PREFERENCES #}
+			<section class='form'>
+
+				{# FORM #}
+				{% include 'user/_form_preference.html.twig' %}
+
+			</section>
 		</div>
 	</div>
 {% endblock %}

@@ -1,5 +1,10 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('user') }}
+{% endblock %}
+
 {% block title %}Modifier mes informations{% endblock %}
 
 {% block body %}
@@ -12,16 +17,22 @@
 
 			{# MODIFIER USER #}
 			<section class='form'>
-				<div class="col-3">
-					<a href="{{ path('user_show', {'id': user.id}) }}" class="btn btn-info">Retour</a>
+				<div class="col-2 m-2 mb-0 p-1 pb-0 alignLeft">
+					<a href="{{ path('user_show', {'id': user.id}) }}">
+						<i class="fas fa-backward" title="Retour"></i>
+						Retour
+					</a>
 				</div>
 
-				{% set edit = {'edit': true, 'button_label': 'Modifier'} %}
-				{% include 'user/_form.html.twig' with edit %}
+				{# FORM #}
+				{% if user.anonyme %}
+					{% include 'user/_form_add.html.twig' %}
+				{% else %}
+					{% include 'user/_form_edit.html.twig' %}
+				{% endif %}
 
-				<div class="col-3 offset-9 center mb-2">
-					{{ include('user/_delete_form.html.twig') }}
-				</div>
+				{# FORM DELETE #}
+				{{ include('user/_form_delete.html.twig') }}
 			</section>
 		</div>
 	</div>

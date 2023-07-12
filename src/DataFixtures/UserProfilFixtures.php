@@ -21,6 +21,7 @@ class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 			->setMail('admin@yahoo.fr')
 			->setAdresse('10 rue des admins')
 			->setVille('AdminLand')
+			->setPays('France')
 			->setCodePostal('12345')
 			->setTelephone('06 06 06 06 06')
 		;
@@ -35,6 +36,7 @@ class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 			->setMail('user@yahoo.fr')
 			->setAdresse('6 rue des users')
 			->setVille('User-city')
+			->setPays('France')
 			->setCodePostal('67890')
 			->setTelephone('01 01 01 01 01')
 		;

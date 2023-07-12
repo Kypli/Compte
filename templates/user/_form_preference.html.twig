@@ -1,0 +1,33 @@
+{{ form_start(form) }}
+
+	{% set label = 'col-5 offset-1 mb-4 alignRight' %}
+	{% set widget = 'p-1 col-1 mb-4' %}
+	{% set widget_check = 'p-1 col-1 mb-4' %}
+
+	{# PRÉFÉRENCES #}
+	<div class="row center mt-5">
+		<div class="col-4 offset-4 mb-4 souligne">
+			Préférences
+		</div>
+	</div>
+
+	{# PRÉFÉRENCES FORM #}
+	<div class="row center mt-4 mb-5">
+
+		{# COMPTE GENRE SHOW #}
+		<div class="{{ label }}">
+			{{ form_label(form.compteGenreShow) }}
+		</div>
+		<div class="{{ widget_check }}">
+			{{ form_widget(form.compteGenreShow) }}
+		</div>
+	</div>
+
+	{{ form_widget(form) }}
+
+	<div class="offset-6 col-2 mt-5">
+		<button class="m-2 mt-0 floatleft radius-button taille22">
+			&nbsp;&nbsp;{{ button_label|default("Modifier") }}&nbsp;&nbsp;
+		</button>
+	</div>
+{{ form_end(form) }}

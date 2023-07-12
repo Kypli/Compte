@@ -66,6 +66,19 @@ section {
 	padding: 10px;
 }
 
+.checkType, .radioType{
+  width: 25px;
+  height: 25px;
+  /*-webkit-appearance: none;*/
+  background-color: lightGrey;
+  cursor: pointer;
+  border: 1px solid #659c41;
+}
+
+.checkType:checked {
+  background-color: white;
+}
+
 
 /* Commun */
 .center				{	text-align: center;				}

@@ -1,0 +1,32 @@
+{{ form_start(form) }}
+
+	{% set label = 'col-5 offset-1 mb-4 alignRight' %}
+	{% set widget = 'col-3 mb-4' %}
+
+	<div class="row center mt-4">
+
+		{# LOGIN #}
+		<div class="{{ label }}">
+			{{ form_label(form.userName) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.userName) }}
+		</div>
+
+		{# MOT DE PASSE #}
+		<div class="{{ label }}">
+			{{ form_label(form.password) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.password) }}
+		</div>
+	</div>
+
+	{{ form_widget(form) }}
+
+	<div class="offset-6 col-2">
+		<button class="m-2 mt-0 floatleft radius-button taille22">
+			&nbsp;&nbsp;{{ button_label|default("S'enregistrer") }}&nbsp;&nbsp;
+		</button>
+	</div>
+{{ form_end(form) }}

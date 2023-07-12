@@ -1,0 +1,150 @@
+{{ form_start(form) }}
+
+	{% set label = 'col-5 offset-1 mb-4 alignRight' %}
+	{% set widget = 'pt-1 col-3 mb-4' %}
+	{% set widget_check = 'col-1 mb-4' %}
+
+	{# PROFIL #}
+	<div class="row center mt-0">
+		<div class="col-4 offset-4 mb-1 souligne">
+			Profil
+		</div>
+	</div>
+
+	{# PROFIL FORM #}
+	<div class="row center mt-4">
+
+		{# NOM #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.nom) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.nom) }}
+		</div>
+
+		{# PRENOM #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.prenom) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.prenom) }}
+		</div>
+
+		{# MAIL #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.mail) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.mail) }}
+		</div>
+
+		{# ADRESSE #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.adresse) }}
+		</div>
+		<div class="col-5 mb-4">
+			{{ form_widget(form.profil.adresse) }}
+		</div>
+
+		{# VILLE #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.ville) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.ville) }}
+		</div>
+
+		{# CODE POSTAL #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.codePostal) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.codePostal) }}
+		</div>
+
+		{# PAYS #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.pays) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.pays) }}
+		</div>
+
+		{# TÉLÉPHONE #}
+		<div class="{{ label }}">
+			{{ form_label(form.profil.telephone) }}
+		</div>
+		<div class="{{ widget }}">
+			{{ form_widget(form.profil.telephone) }}
+		</div>
+	</div>
+
+	{# SITE INTERNET #}
+	<div class="row center mt-4">
+		<div class="col-4 offset-4 mb-1 souligne">
+			Site internet
+		</div>
+	</div>
+
+	{# SITE INTERNET FORM #}
+	<div class="row center mt-4">
+
+		{# LOGIN #}
+		{% if is_granted('ROLE_ADMIN') %}
+			<div class="{{ label }}">
+				{{ form_label(form.userName) }}
+			</div>
+			<div class="{{ widget }}">
+				{{ form_widget(form.userName) }}
+			</div>
+		{% endif %}
+
+		{# MOT DE PASSE #}
+		{% if is_granted('ROLE_ADMIN') or user.id == app.user.id %}
+			<div class="{{ label }}">
+				{{ user.anonyme ? form_label(form.password) : 'Changer le mot de passe' }}
+			</div>
+			<div class="{{ widget }}">
+				{{ form_widget(form.password) }}
+			</div>
+		{% endif %}
+
+		{# ADMIN #}
+		{% if is_granted('ROLE_ADMIN') %}
+			<div class="{{ label }}">
+				{{ form_label(form.admin) }}
+			</div>
+			<div class="{{ widget_check }} pt-2">
+				{{ form_widget(form.admin) }}
+			</div>
+			<div class="{{ label }}">
+				{{ form_label(form.anonyme) }}
+			</div>
+			<div class="{{ widget_check }} pt-2">
+				{{ form_widget(form.anonyme) }}
+			</div>
+			<div class="{{ label }}">
+				{{ form_label(form.ip) }}
+			</div>
+			<div class="{{ widget }}">
+				{{ form_widget(form.ip) }}
+			</div>
+
+			{# COMMENTAIRE #}
+			<div class="{{ label }}">
+				{{ form_label(form.commentaire) }}
+			</div>
+			<div class="col-5 mb-4">
+				{{ form_widget(form.commentaire) }}
+			</div>
+		{% endif %}
+	</div>
+
+	{{ form_widget(form) }}
+
+	<div class="offset-6 col-2 mt-3">
+		<button class="m-2 mt-0 floatleft radius-button taille22">
+			&nbsp;&nbsp;{{ button_label|default("Modifier") }}&nbsp;&nbsp;
+		</button>
+	</div>
+{{ form_end(form) }}

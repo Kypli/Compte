@@ -23,11 +23,16 @@ class UserType extends AbstractType
 	{
 		$builder
 			->add(
+				'profil',
+				UserProfilType::class
+			)
+			->add(
 				'userName',
 				TextType::class,
 				[
 					'required' => true,
 					'label' => 'Pseudo',
+					'data' => $options['data']->getAnonyme() ? '' : $options['data']->getUserName(),
 					'attr' => [
 						'class' => 'form-control',
 						'autocomplete' => 'off',
@@ -44,10 +49,6 @@ class UserType extends AbstractType
 						'class' => 'form-control',
 					],
 				]
-			)
-			->add(
-				'profil',
-				UserProfilType::class
 			)
 			->add(
 				'admin',
@@ -86,8 +87,15 @@ class UserType extends AbstractType
 				]
 			)
 			->add(
-				'preferences',
-				UserPreferenceType::class
+				'commentaire',
+				TextType::class,
+				[
+					'required' => false,
+					'label' => 'Commentaire',
+					'attr' => [
+						'class' => 'form-control',
+					],
+				]
 			)
 		;
 	}
