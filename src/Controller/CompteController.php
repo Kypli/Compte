@@ -14,12 +14,11 @@ use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
 use App\Repository\SubCategoryRepository;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +28,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * @IsGranted("ROLE_USER")
  * @Route("/compte", name="compte")
  */
+#[IsGranted("ROLE_USER")]
+#[Route("/compte", name: "compte")]
 class CompteController extends AbstractController
 {
 	public const MONTHS = [
@@ -75,6 +76,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/", name="")
 	 */
+	#[Route("/", name: "")]
 	public function index(CompteRepository $cr): Response
 	{
 		return $this->render('compte/index.html.twig', [
@@ -85,6 +87,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/new", name="_new", methods={"GET", "POST"})
 	 */
+	#[Route("/new", name: "_new", methods: ["GET", "POST"])]
 	public function new(Request $request): Response
 	{
 		$compte = new Compte();
@@ -110,9 +113,9 @@ class CompteController extends AbstractController
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
-		return $this->renderForm('compte/new.html.twig', [
+		return $this->render('compte/new.html.twig', [
 			'compte' => $compte,
-			'form' => $form,
+			'form' => $form->createView(),
 		]);
 	}
 
@@ -120,6 +123,7 @@ class CompteController extends AbstractController
 	 * @Route("/{id}", name="_show", methods={"GET", "POST"})
 	 * Montre un compte
 	 */
+	#[Route("/{id}", name: "_show", methods: ["GET", "POST"])]
 	public function show(Compte $compte, Request $request): Response
 	{
 		// Current dates
@@ -197,6 +201,7 @@ class CompteController extends AbstractController
 	 * Renvoie le render des tables
 	 * Ajax only
 	 */
+	#[Route("/{id}/tables", name: "_tables", methods: ["GET", "POST"])]
 	public function tables(Compte $compte, Request $request): Response
 	{
 		// Control request
@@ -400,6 +405,7 @@ class CompteController extends AbstractController
 	/**
 	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
 	 */
+	#[Route("/{id}/edit", name: "_edit", methods: ["GET", "POST"])]
 	public function edit(Compte $compte, Request $request): Response
 	{
 		$form = $this->createForm(CompteType::class, $compte);
@@ -424,15 +430,16 @@ class CompteController extends AbstractController
 			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
 		}
 
-		return $this->renderForm('compte/edit.html.twig', [
+		return $this->render('compte/edit.html.twig', [
 			'compte' => $compte,
-			'form' => $form,
+			'form' => $form->createView(),
 		]);
 	}
 
 	/**
 	 * @Route("/{id}", name="_delete", methods={"GET", "POST"})
 	 */
+	#[Route("/{id}", name: "_delete", methods: ["GET", "POST"])]
 	public function delete(Compte $compte, Request $request): Response
 	{
 		if ($this->isCsrfTokenValid('delete'.$compte->getId(), $request->request->get('_token'))) {
@@ -451,6 +458,7 @@ class CompteController extends AbstractController
 	 * Renvoie les opérations selon la sc, l'année, le mois et le signe
 	 * Ajax only
 	 */
+	#[Route("/operation/{sc}/{year}/{month}/{sign}", name: "_operation", methods: ["GET", "POST"])]
 	public function operation_datas(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
@@ -472,6 +480,7 @@ class CompteController extends AbstractController
 	 * Sauvegarde les opérations d'une sc
 	 * Ajax only
 	 */
+	#[Route("/operation/save/{sc}/{year}/{month}/{sign}", name: "_operation_save")]
 	public function operation_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
 		// Control request
@@ -637,6 +646,7 @@ class CompteController extends AbstractController
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
+	#[Route("/cat/{id}/{cat}/{sign}", name: "_category", methods: ["GET", "POST"])]
 	public function category(Compte $compte, Category $cat, $sign, Request $request): Response
 	{
 		// Control request
@@ -665,6 +675,7 @@ class CompteController extends AbstractController
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
+	#[Route("/caty/add/{id}/{sign}", name: "_category_add", methods: ["GET", "POST"])]
 	public function category_add(Compte $compte, $sign, Request $request): Response
 	{
 		// Control request
@@ -690,6 +701,7 @@ class CompteController extends AbstractController
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
+	#[Route("/{compte}/cat/save/{year}", name: "_category_save", methods: ["GET", "POST"])]
 	public function category_save(Compte $compte, $year, Request $request): Response
 	{
 		// Control request
@@ -770,6 +782,7 @@ class CompteController extends AbstractController
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
+	#[Route("/cat/delete/{id}/{cat}", name: "_category_delete", methods: ["GET", "POST"])]
 	public function category_delete(Compte $compte, Category $cat, Request $request): Response
 	{
 		// Control request
@@ -810,6 +823,7 @@ class CompteController extends AbstractController
 	 * Récupère render de tr_subcategorie_back
 	 * Ajax only
 	 */
+	#[Route("/sc/{id}", name: "_subcategory", methods: ["GET", "POST"])]
 	public function subcategory(SubCategory $sc, Request $request): Response
 	{
 		// Control request
@@ -829,6 +843,7 @@ class CompteController extends AbstractController
 	 * Récupère render de tr_subcategories_add
 	 * Ajax only
 	 */
+	#[Route("/sc/add/{addMod}", name: "_subcategory_add", methods: ["GET", "POST"])]
 	public function subCategory_add($addMod, Request $request): Response
 	{
 		// Control request

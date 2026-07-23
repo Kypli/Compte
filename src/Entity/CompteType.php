@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=CompteTypeRepository::class)
  */
+#[ORM\Entity(repositoryClass: CompteTypeRepository::class)]
 class CompteType
 {
     /**
@@ -17,41 +18,51 @@ class CompteType
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=100)
      */
+    #[ORM\Column(type: "string", length: 100)]
     private $libelle;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 15, nullable: true)]
     private $libelleShort;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $decouvert;
 
     /**
      * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: "float")]
     private $tauxInteret;
 
     /**
      * @ORM\Column(type="integer")
      */
+    #[ORM\Column(type: "integer")]
     private $plancher;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
+    #[ORM\Column(type: "integer", nullable: true)]
     private $plafond;
 
     /**
      * @ORM\OneToMany(targetEntity=Compte::class, mappedBy="type")
      */
+    #[ORM\OneToMany(targetEntity: Compte::class, mappedBy: "type")]
     private $comptes;
 
     public function __construct()

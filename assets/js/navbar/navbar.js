@@ -1,5 +1,6 @@
 // CSS
 import '../../styles/navbar/navbar.scss';
+import $ from 'jquery';
 
 
 // ---------Responsive-navbar-active-animation-----------
@@ -9,71 +10,81 @@ import '../../styles/navbar/navbar.scss';
 // ON LOAD
 ////////////
 
+$(window).on('load', function(){
+	moveActiveSelectorOnLoad();
+});
 $(document).ready(function(){
-	setTimeout(function(){ test(); });
+	moveActiveSelectorOnLoad();
 });
-
-// --------------add active class-on another-page move----------
-jQuery(document).ready(function($){
-	// Get current path and find target link
-	var path = window.location.pathname.split("/").pop();
-
-	// Account for home page with empty path
-	if ( path == '' ) {
-		path = 'index.html';
-	}
-
-	var target = $('#navbarSupportedContent ul li a[href="'+path+'"]');
-	// Add active class to target link
-	target.parent().addClass('active');
-});
-
 
 ////////////
 // ON EVENTS
 ////////////
 
 $(window).on('resize', function(){
-	setTimeout(function(){ test(); }, 500);
+	setTimeout(function(){ moveActiveSelector(); }, 500);
 });
 $(".navbar-toggler").click(function(){
 	$(".navbar-collapse").slideToggle(300);
-	setTimeout(function(){ test(); });
+	setTimeout(function(){ moveActiveSelector(); }, 350);
 });
 
 
 ////////////
 // FONCTIONS
 ////////////
-function test(){
-	var tabsNewAnim = $('#navbarSupportedContent');
-	var selectorNewAnim = $('#navbarSupportedContent').find('li').length;
-	var activeItemNewAnim = tabsNewAnim.find('.active');
-	var activeWidthNewAnimHeight = activeItemNewAnim.innerHeight();
-	var activeWidthNewAnimWidth = activeItemNewAnim.innerWidth();
-	var itemPosNewAnimTop = activeItemNewAnim.position();
-	var itemPosNewAnimLeft = activeItemNewAnim.position();
-	$(".hori-selector").css({
-		"top":itemPosNewAnimTop.top + "px", 
-		"left":itemPosNewAnimLeft.left + "px",
-		"height": activeWidthNewAnimHeight + "px",
-		"width": activeWidthNewAnimWidth + "px"
+function moveActiveSelectorOnLoad(){
+	moveActiveSelector(false);
+	window.requestAnimationFrame(function(){
+		moveActiveSelector(false);
 	});
-	$("#navbarSupportedContent").on("click","li",function(e){
-		$('#navbarSupportedContent ul li').removeClass("active");
-		$(this).addClass('active');
-		var activeWidthNewAnimHeight = $(this).innerHeight();
-		var activeWidthNewAnimWidth = $(this).innerWidth();
-		var itemPosNewAnimTop = $(this).position();
-		var itemPosNewAnimLeft = $(this).position();
-		$(".hori-selector").css({
-			"top":itemPosNewAnimTop.top + "px", 
-			"left":itemPosNewAnimLeft.left + "px",
-			"height": activeWidthNewAnimHeight + "px",
-			"width": activeWidthNewAnimWidth + "px"
+	setTimeout(function(){ moveActiveSelector(false); }, 150);
+	setTimeout(function(){ moveActiveSelector(false); }, 500);
+
+	if (document.fonts) {
+		document.fonts.ready.then(function(){
+			moveActiveSelector(false);
 		});
-	});
+	}
 }
+
+function moveActiveSelector(animate = true){
+	var tabsNewAnim = $('#navbarSupportedContent');
+	var activeItemNewAnim = tabsNewAnim.find('li.active').first();
+	if (!activeItemNewAnim.length) {
+		return;
+	}
+
+	var containerRect = tabsNewAnim[0].getBoundingClientRect();
+	var activeItemRect = activeItemNewAnim[0].getBoundingClientRect();
+	var topOffset = $(window).width() <= 991 ? 0 : 10;
+
+	var selector = $(".hori-selector");
+	if (!animate) {
+		selector.css('transition', 'none');
+	}
+
+	selector.css({
+		"top": (activeItemRect.top - containerRect.top + topOffset) + "px",
+		"left": (activeItemRect.left - containerRect.left) + "px",
+		"height": (activeItemRect.height - topOffset) + "px",
+		"width": activeItemRect.width + "px"
+	});
+	selector.addClass('is-ready');
+
+	if (!animate) {
+		selector[0].offsetHeight;
+		window.requestAnimationFrame(function(){
+			selector.css('transition', '');
+		});
+	}
+}
+
+$("#navbarSupportedContent").on("click", "li", function(e){
+	$('#navbarSupportedContent ul li').removeClass("active");
+	$(this).addClass('active');
+	moveActiveSelector();
+});
 
 
 // Add active class on another page linked

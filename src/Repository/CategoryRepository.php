@@ -59,11 +59,9 @@ class CategoryRepository extends ServiceEntityRepository
 			->andWhere('x.sign = :sign')
 			->andWhere('x.position < :cat_pos')
 
-			->setParameters([
-				'compte_id' => $compte_id,
-				'sign' => $sign,
-				'cat_pos' => $cat_pos,
-			])
+			->setParameter('compte_id', $compte_id)
+			->setParameter('sign', $sign)
+			->setParameter('cat_pos', $cat_pos)
 
 			->orderBy('x.position', 'ASC')
 
@@ -91,11 +89,9 @@ class CategoryRepository extends ServiceEntityRepository
 			->andWhere('x.sign = :sign')
 			->andWhere('x.position > :cat_pos')
 
-			->setParameters([
-				'compte_id' => $compte_id,
-				'sign' => $sign,
-				'cat_pos' => $cat_pos,
-			])
+			->setParameter('compte_id', $compte_id)
+			->setParameter('sign', $sign)
+			->setParameter('cat_pos', $cat_pos)
 
 			->orderBy('x.position', 'ASC')
 
@@ -145,12 +141,10 @@ class CategoryRepository extends ServiceEntityRepository
 			->andWhere('x.sign = :sign')
 			->andWhere('x.year = :year')
 
-			->setParameters([
-				'compte_id' => $compte_id,
-				'cat_id' => $cat_id,
-				'sign' => $sign,
-				'year' => $year,
-			])
+			->setParameter('compte_id', $compte_id)
+			->setParameter('cat_id', $cat_id)
+			->setParameter('sign', $sign)
+			->setParameter('year', $year)
 
 			->orderBy('x.position', 'ASC')
 			->addOrderBy('x.id', 'DESC')

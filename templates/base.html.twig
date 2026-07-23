@@ -25,7 +25,7 @@
 	<body>
 
 		{# HEADER #}
-		{% block header %}{% include '_header.html.twig' %}{% endblock %}
+		{% block header %}{% include 'partiel/_header.html.twig' %}{% endblock %}
 
 		{# NAVBAR #}
 		{% block navbar %}{% include 'navbar/index.html.twig' %}{% endblock %}
@@ -48,7 +48,7 @@
 		{% block body %}{% endblock %}
 
 		{# FOOTER #}
-		{% block footer %}{% include '_footer.html.twig' %}{% endblock %}
+		{% block footer %}{% include 'partiel/_footer.html.twig' %}{% endblock %}
 
 		{# TOASTER #}
 		<div id="toaster" class="pointer" data-toaster="{{ message_toaster is defined ? message_toaster : 'Action inconnue !' }}"></div>

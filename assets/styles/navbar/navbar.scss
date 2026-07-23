@@ -46,6 +46,33 @@ $main-color: #8FB4A3;
 	background-color: transparent;
 	transition: all 0.7s;
 }
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link {
+	margin: 8px 10px;
+	padding: 12px 20px;
+	color: #295935;
+	font-weight: 700;
+	background-color: #e9f5db;
+	border: 2px solid #295935;
+	border-radius: 999px;
+	box-shadow: 0 3px 10px rgba(41, 89, 53, 0.35);
+	opacity: 1;
+}
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link i {
+	color: #295935;
+}
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link:hover,
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link:focus,
+#navbarSupportedContent>ul>li.nav-register-item.active>a.nav-register-link {
+	color: #e9f5db;
+	background-color: #295935;
+	border-color: #e9f5db;
+	box-shadow: 0 4px 12px rgba(41, 89, 53, 0.45);
+}
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link:hover i,
+#navbarSupportedContent ul li.nav-register-item a.nav-register-link:focus i,
+#navbarSupportedContent>ul>li.nav-register-item.active>a.nav-register-link i {
+	color: #e9f5db;
+}
 #navbarSupportedContent a:not(:only-child):after {
 	content: "\f105";
 	position: absolute;
@@ -73,7 +100,11 @@ $main-color: #8FB4A3;
 	background-color: #fff;
 	border-top-left-radius: 15px;
 	border-top-right-radius: 15px;
-	margin-top: 10px;
+	margin-top: 0;
+	visibility: hidden;
+}
+.hori-selector.is-ready{
+	visibility: visible;
 }
 .hori-selector .right,
 .hori-selector .left{
@@ -81,7 +112,7 @@ $main-color: #8FB4A3;
 	width: 25px;
 	height: 25px;
 	background-color: #fff;
-	bottom: 10px;
+	bottom: 0;
 }
 .hori-selector .right{
 	right: -25px;

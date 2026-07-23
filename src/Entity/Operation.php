@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=OperationRepository::class)
  */
+#[ORM\Entity(repositoryClass: OperationRepository::class)]
 class Operation
 {
     /**
@@ -15,47 +16,59 @@ class Operation
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: "float")]
     private $number;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $anticipe = false;
 
     /**
      * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: "datetime")]
     private $date;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
+    #[ORM\Column(type: "text", nullable: true)]
     private $comment;
 
     /**
      * @ORM\Column(type="string", length=15)
      */
+    #[ORM\Column(type: "string", length: 15)]
     private $lastAction;
 
     /**
      * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: "datetime")]
     private $dateLastAction;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $actif = 1;
 
     /**
      * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: SubCategory::class, inversedBy: "operations")]
+    #[ORM\JoinColumn(nullable: false)]
     private $subcategory;
 
     public function getId(): ?int

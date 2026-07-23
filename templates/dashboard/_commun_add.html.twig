@@ -4,7 +4,13 @@
 {# ADD #}
 <div class="mt-4">
 	<div class='div-bottom text-defaut-invers'>
-		<a href="{{ path(lien ~ '_new') }}" title="Ajouter un {{ lien }}">
+		<a
+			href="#"
+			title="Ajouter un {{ lien }}"
+			data-toggle="modal"
+			data-target="#modal{{ lien|capitalize }}Add"
+			role="button"
+		>
 			<i class="fas fa-plus"></i>
 		</a>
 	</div>

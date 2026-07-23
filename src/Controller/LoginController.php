@@ -5,7 +5,7 @@ namespace App\Controller;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class LoginController extends AbstractController
@@ -14,6 +14,7 @@ class LoginController extends AbstractController
 	 * @Route("/login", name="login")
 	 * Se retrouve ici en cas de redirection vers le login si non connecté
 	 */
+	#[Route("/login", name: "login")]
 	public function index(AuthenticationUtils $authenticationUtils): Response
 	{
 		// get the login error if there is one
@@ -31,6 +32,7 @@ class LoginController extends AbstractController
 	 * @Route("/login_error", name="login_error")
 	 * Erreur de connection + Messages
 	 */
+	#[Route("/login_error", name: "login_error")]
 	public function login_error(AuthenticationUtils $authenticationUtils): Response
 	{
 		// Get the login error if there is one
@@ -73,6 +75,7 @@ class LoginController extends AbstractController
 	 * @Route("/logout_alert", name="logout_alert")
 	 * Information de déconnexion
 	 */
+	#[Route("/logout_alert", name: "logout_alert")]
 	public function logout_alert(): Response
 	{
 		$this->addFlash('login_info', 'Déconnexion !');
@@ -84,6 +87,7 @@ class LoginController extends AbstractController
      * @Route("/logout", name="logout")
      * Pas de passage ici
      */
+    #[Route("/logout", name: "logout")]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');

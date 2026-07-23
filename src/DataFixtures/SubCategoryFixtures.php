@@ -33,7 +33,7 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 	public const SUBCATEGORY_USER_NEG_2_1 = 'subcategory_user_neg_2_1';
 	public const SUBCATEGORY_USER_NEG_2_2 = 'subcategory_user_neg_2_2';
 
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 
 		$datas = [
@@ -173,7 +173,7 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 		$manager->flush();
 	}
 
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return [
 			CategoryFixtures::class,

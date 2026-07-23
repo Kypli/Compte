@@ -7,10 +7,15 @@
 	{{ encore_entry_link_tags('dashboard') }}
 {% endblock %}
 
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('dashboard') }}
+{% endblock %}
+
 {% block body %}
 	<div class="container">
 
-		{% include('_h1.html.twig') with {'text': 'Tableau de bord'} %}
+		{% include('partiel/_h1.html.twig') with {'text': 'Tableau de bord'} %}
 
 		<div class="row mb-3 mlDashBoard">
 			<div class="col-5 card encard m-2">
@@ -56,5 +61,46 @@
 				</div>
 			</div>
 		</div>
+
+		{% include('dashboard/_add_modal.html.twig') with {
+			'id': 'modalCompteAdd',
+			'title': 'Ajouter un compte',
+			'form': compte_form,
+			'form_id': 'dashboardCompteForm',
+			'form_template': 'compte/_form.html.twig',
+			'open': open_compte_modal
+		} %}
+		{% include('dashboard/_add_modal.html.twig') with {
+			'id': 'modalCreditAdd',
+			'title': 'Ajouter un credit',
+			'form': credit_form,
+			'form_id': 'dashboardCreditForm',
+			'form_template': 'credit/_form.html.twig',
+			'open': open_credit_modal
+		} %}
+		{% include('dashboard/_add_modal.html.twig') with {
+			'id': 'modalImmobilierAdd',
+			'title': 'Ajouter un bien immobilier',
+			'form': immobilier_form,
+			'form_id': 'dashboardImmobilierForm',
+			'form_template': 'immobilier/_form.html.twig',
+			'open': open_immobilier_modal
+		} %}
+		{% include('dashboard/_add_modal.html.twig') with {
+			'id': 'modalMobilierAdd',
+			'title': 'Ajouter un bien mobilier',
+			'form': mobilier_form,
+			'form_id': 'dashboardMobilierForm',
+			'form_template': 'mobilier/_form.html.twig',
+			'open': open_mobilier_modal
+		} %}
+		{% include('dashboard/_add_modal.html.twig') with {
+			'id': 'modalInvestissementAdd',
+			'title': 'Ajouter un investissement',
+			'form': investissement_form,
+			'form_id': 'dashboardInvestissementForm',
+			'form_template': 'invest/_form.html.twig',
+			'open': open_investissement_modal
+		} %}
 	</div>
 {% endblock %}

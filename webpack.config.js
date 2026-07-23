@@ -24,12 +24,13 @@ Encore
 
     // Home
     .addStyleEntry('home', './assets/styles/home/home.css')
+    .addEntry('homeConfirm', './assets/js/home/confirm.js')
 
     // NavBar
     .addEntry('navbar', './assets/js/navbar/navbar.js')
 
     // Dashboard
-    .addStyleEntry('dashboard', './assets/styles/dashboard/dashboard.css')
+    .addEntry('dashboard', './assets/js/dashboard/dashboard.js')
 
     // Compte
     .addEntry('compte', './assets/js/compte/compte.js')

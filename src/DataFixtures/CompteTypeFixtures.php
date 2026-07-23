@@ -12,7 +12,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 class CompteTypeFixtures extends Fixture implements FixtureGroupInterface
 {
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		// Datas
 		$datas = [

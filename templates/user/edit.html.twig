@@ -5,7 +5,7 @@
 	{{ encore_entry_link_tags('user') }}
 {% endblock %}
 
-{% block title %}Modifier mes informations{% endblock %}
+{% block title %}{{ user.anonyme ? "S'enregistrer" : 'Modifier mes informations' }}{% endblock %}
 
 {% block body %}
 
@@ -13,26 +13,33 @@
 		<div class='row mb-3'>
 
 			{# TITRE #}
-			<h2 class="radius-long offset-4 col-4">Modifier mes informations</h2>
+			<h2 class="radius-long offset-4 col-4">{{ user.anonyme ? "S'enregistrer" : 'Modifier mes informations' }}</h2>
 
 			{# MODIFIER USER #}
-			<section class='form'>
-				<div class="col-2 m-2 mb-0 p-1 pb-0 alignLeft">
-					<a href="{{ path('user_show', {'id': user.id}) }}">
-						<i class="fas fa-backward" title="Retour"></i>
-						Retour
+			<section class="form {{ user.anonyme ? 'user-register-form' }}">
+				<div class="{{ user.anonyme ? 'col-12 register-return' : 'col-2' }} m-2 mb-0 p-1 pb-0 alignLeft">
+					<a href="{{ user.anonyme ? path('home') : path('user_show', {'id': user.id}) }}">
+						<i class="fas fa-backward" title="{{ user.anonyme ? "Retour à l'accueil" : 'Retour' }}"></i>
+						{{ user.anonyme ? "Retour à la page d'accueil" : 'Retour' }}
 					</a>
 				</div>
 
 				{# FORM #}
 				{% if user.anonyme %}
-					{% include 'user/_form_add.html.twig' %}
+					{% include 'user/_form_add.html.twig' with {
+						'row_class': 'row center mt-4 justify-content-center',
+						'label_class': 'col-3 mb-4 alignRight',
+						'widget_class': 'col-3 mb-4 alignLeft',
+						'submit_class': 'col-12 d-flex justify-content-center'
+					} %}
 				{% else %}
 					{% include 'user/_form_edit.html.twig' %}
 				{% endif %}
 
 				{# FORM DELETE #}
-				{{ include('user/_form_delete.html.twig') }}
+				{% if not user.anonyme %}
+					{{ include('user/_form_delete.html.twig') }}
+				{% endif %}
 			</section>
 		</div>
 	</div>

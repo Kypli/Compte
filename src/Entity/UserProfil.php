@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=UserProfilRepository::class)
  */
+#[ORM\Entity(repositoryClass: UserProfilRepository::class)]
 class UserProfil
 {
     /**
@@ -15,52 +16,65 @@ class UserProfil
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=100, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 100, nullable: true)]
     private $nom;
 
     /**
      * @ORM\Column(type="string", length=100, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 100, nullable: true)]
     private $prenom;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private $mail;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private $adresse;
 
     /**
      * @ORM\Column(type="string", length=150, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 150, nullable: true)]
     private $ville;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 15, nullable: true)]
     private $codePostal;
 
     /**
      * @ORM\Column(type="string", length=35, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 35, nullable: true)]
     private $pays;
 
     /**
      * @ORM\Column(type="string", length=30, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 30, nullable: true)]
     private $telephone;
 
     /**
      * @ORM\OneToOne(targetEntity=User::class, inversedBy="profil", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: "profil", cascade: ["persist", "remove"])]
+    #[ORM\JoinColumn(nullable: false)]
     private $user;
 
 

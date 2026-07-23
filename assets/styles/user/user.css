@@ -32,6 +32,20 @@ a:link {
   text-decoration: none;
 }
 
+.user-register-form .register-return {
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.user-register-form form {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.user-register-form form .row {
+  justify-content: center;
+}
+
 #td_solde a:visited {
   text-decoration: none;
 }

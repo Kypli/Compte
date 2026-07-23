@@ -22,7 +22,7 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
 		$this->passwordHasher = $passwordHasher;
 	}
 
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		// Admin
 		$entity = new Entity();

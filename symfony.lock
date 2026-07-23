@@ -1,15 +1,12 @@
 {
-    "doctrine/annotations": {
-        "version": "1.13",
+    "doctrine/deprecations": {
+        "version": "1.1",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "1.0",
-            "ref": "a2759dd6123694c8d901d0ec80006e044c2e6457"
-        },
-        "files": [
-            "./config/routes/annotations.yaml"
-        ]
+            "ref": "fdd756167454623e21f1d769c5b814b243782a67"
+        }
     },
     "doctrine/doctrine-bundle": {
         "version": "2.7",
@@ -73,18 +70,6 @@
             "./tests/bootstrap.php"
         ]
     },
-    "sensio/framework-extra-bundle": {
-        "version": "6.2",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "5.2",
-            "ref": "fb7e19da7f013d0d422fa9bce16f5c510e27609b"
-        },
-        "files": [
-            "./config/packages/sensio_framework_extra.yaml"
-        ]
-    },
     "symfony/apache-pack": {
         "version": "1.0",
         "recipe": {
@@ -133,6 +118,18 @@
             "./.env"
         ]
     },
+    "symfony/form": {
+        "version": "8.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.2",
+            "ref": "7d86a6723f4a623f59e2bf966b6aad2fc461d36b"
+        },
+        "files": [
+            "./config/packages/csrf.yaml"
+        ]
+    },
     "symfony/framework-bundle": {
         "version": "5.4",
         "recipe": {
@@ -150,18 +147,6 @@
             "./public/index.php",
             "./src/Controller/.gitignore",
             "./src/Kernel.php"
-        ]
-    },
-    "symfony/lock": {
-        "version": "5.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "5.2",
-            "ref": "a1c8800e40ae735206bb14586fdd6c4630a51b8d"
-        },
-        "files": [
-            "./config/packages/lock.yaml"
         ]
     },
     "symfony/mailer": {
@@ -197,18 +182,6 @@
             "./config/packages/messenger.yaml"
         ]
     },
-    "symfony/monolog-bundle": {
-        "version": "3.8",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "3.7",
-            "ref": "213676c4ec929f046dfde5ea8e97625b81bc0578"
-        },
-        "files": [
-            "./config/packages/monolog.yaml"
-        ]
-    },
     "symfony/notifier": {
         "version": "5.4",
         "recipe": {
@@ -234,6 +207,18 @@
             "./bin/phpunit",
             "./phpunit.xml.dist",
             "./tests/bootstrap.php"
+        ]
+    },
+    "symfony/property-info": {
+        "version": "8.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.3",
+            "ref": "dae70df71978ae9226ae915ffd5fad817f5ca1f7"
+        },
+        "files": [
+            "./config/packages/property_info.yaml"
         ]
     },
     "symfony/routing": {
@@ -341,18 +326,6 @@
             "./config/packages/webpack_encore.yaml",
             "./package.json",
             "./webpack.config.js"
-        ]
-    },
-    "symfonycasts/reset-password-bundle": {
-        "version": "1.16",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "1.0",
-            "ref": "97c1627c0384534997ae1047b93be517ca16de43"
-        },
-        "files": [
-            "./config/packages/reset_password.yaml"
         ]
     },
     "twig/extra-bundle": {

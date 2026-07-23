@@ -5,11 +5,18 @@
 	{{ encore_entry_link_tags('home') }}
 {% endblock %}
 
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('homeConfirm') }}
+{% endblock %}
+
 {% block title %}A vos comptes{% endblock %}
 
 {% block navbar %}{% endblock %}
 
 {% block body %}
+	{% set has_test_cookie = test_user is defined and test_user is not null %}
+
 	<div class="container">
 		<div class='row mb-3'>
 
@@ -34,16 +41,42 @@
 					{# MESSAGE D'ACCUEIL #}
 					<div class="offset-2 col-8 taille22 mt-2">
 						<p>
-							Bonjour et bienvenue sur cette application de gestion de comptes.
+							{% if app.user or has_test_cookie %}
+								Bonjour {{ app.user ? (app.user.anonyme ? 'Visiteur' : app.user.userName) : 'Visiteur' }} et bienvenue sur cette application de gestion de comptes.
+							{% else %}
+								Bonjour et bienvenue sur cette application de gestion de comptes.
+							{% endif %}
 						</p>
+
+						{# MESSAGES FLASH SUCCESS #}
+						{% for message in app.flashes('login_success') %}
+							<div class="flash-notice mt-2 mb-1 bg-success text-center">
+								Succès : {{ message }}
+							</div>
+						{% endfor %}
+
+						{# MESSAGES FLASH LOGIN ERROR #}
+						{% for message in app.flashes('login_error') %}
+							<div class="flash-notice mt-2 mb-1 bg-danger text-center">
+								Erreur : {{ message }}
+							</div>
+						{% endfor %}
+
+						{# MESSAGES FLASH LOGIN INFOS #}
+						{% for message in app.flashes('login_info') %}
+							<div class="flash-notice mt-2 mb-1 bg-info text-center">
+								{{ message }}
+							</div>
+						{% endfor %}
 					</div>
 
 					{# ESPACE MEMBRE - FORM LOGIN #}
-					<div class="offset-1 col-4 mt-3">
+					<div class="{{ app.user or has_test_cookie ? 'col-12' : 'offset-1 col-4' }} mt-1">
 						{% include 'home/connexion/_index.html.twig' %}
 					</div>
 
 					{# TEST + INSCRIPTION #}
+					{% if not app.user and not has_test_cookie %}
 					<div class="offset-1 col-5 p-4">
 						<div class='row'>
 
@@ -99,7 +132,7 @@
 									</a>
 								</div>
 								<small>
-									Pour reprendre la ou vous en étiez
+									Pour reprendre là où vous en étiez
 									<br/>
 									et sauvegarder sans risque votre travail,
 									<br/>
@@ -108,6 +141,7 @@
 							{% endif %}
 						</div>
 					</div>
+					{% endif %}
 				</div>
 			</section>
 		</div>

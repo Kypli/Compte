@@ -1,4 +1,5 @@
 <nav class="navbar navbar-expand-custom navbar-mainbg">
+	{% set current_route = app.request.attributes.get('_route') %}
 	{# <a class="navbar-brand navbar-logo" href="{{ path('home') }}">Navbar</a> #}
 	<button
 		class="navbar-toggler"
@@ -16,32 +17,32 @@
 				<div class="left"></div>
 				<div class="right"></div>
 			</div>
-			<li class="nav-item decaleLeftLi {{ 'tableau_bord' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'tableau_bord' ? '#' : path('tableau_bord') }}">
+			<li class="nav-item decaleLeftLi {{ current_route == 'tableau_bord' ? 'active' }}">
+				<a class="nav-link" href="{{ current_route == 'tableau_bord' ? '#' : path('tableau_bord') }}">
 					<i class="fas fa-tachometer-alt"></i>
 					Tableau de bord
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'compte' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'compte' ? '#' : path('compte') }}">
+			<li class="nav-item decaleLeftLi {{ current_route starts with 'compte' ? 'active' }}">
+				<a class="nav-link" href="{{ current_route == 'compte' ? '#' : path('compte') }}">
 					<i class="fa-solid fa-sack-dollar"></i>
 					Comptes
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'credit' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'credit' ? '#' : path('credit') }}">
+			<li class="nav-item decaleLeftLi {{ current_route starts with 'credit' ? 'active' }}">
+				<a class="nav-link" href="{{ current_route == 'credit' ? '#' : path('credit') }}">
 					<i class="fa-solid fa-comments-dollar"></i>
 					Crédit
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'immobilier' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'immobilier' ? '#' : path('immobilier') }}">
+			<li class="nav-item decaleLeftLi {{ current_route starts with 'immobilier' or current_route starts with 'mobilier' ? 'active' }}">
+				<a class="nav-link" href="{{ current_route == 'immobilier' ? '#' : path('immobilier') }}">
 					<i class="fa-sharp fa-solid fa-house"></i>
 					Immobilier / Mobilier
 				</a>
 			</li>
-			<li class="nav-item decaleLeftLi {{ 'investissement' in app.request.get('_route') ? 'active' }}">
-				<a class="nav-link" href="{{ app.request.get('_route') == 'investissement' ? '#' : path('investissement') }}">
+			<li class="nav-item decaleLeftLi {{ current_route starts with 'investissement' ? 'active' }}">
+				<a class="nav-link" href="{{ current_route == 'investissement' ? '#' : path('investissement') }}">
 					<i class="fa-solid fa-money-bill-trend-up"></i>
 					Investissement
 				</a>
@@ -49,8 +50,8 @@
 
 			{# ANONYME #}
 			{% if app.user.anonyme %}
-				<li class="nav-item decaleLeftLi {{ 'add' in app.request.get('_route') ? 'active' }}">
-					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'add' ? '#' : path('user_edit', {'id': app.user.id}) }}">
+				<li class="nav-item decaleLeftLi nav-register-item">
+					<a class="nav-link nav-register-link" href="{{ path('user_edit', {'id': app.user.id}) }}">
 						<i class="fa-solid fa-star"></i></i>
 						S'enregistrer
 					</a>
@@ -58,20 +59,20 @@
 
 			{# USER #}
 			{% else %}
-				<li class="nav-item decaleLeftLi {{ 'preference' in app.request.get('_route') ? 'active' }}">
-					<a class="nav-link decaleLeftUl" href="{{ app.request.get('_route') == 'preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">
+				<li class="nav-item decaleLeftLi {{ current_route == 'user_preference' ? 'active' }}">
+					<a class="nav-link" href="{{ current_route == 'user_preference' ? '#' : path('user_preference', {'id': app.user.id}) }}">
 						<i class="fa-solid fa-star"></i></i>
 						Préférences
 					</a>
 				</li>
-				<li class="nav-item decaleLeftLi {{ 'user' in app.request.get('_route') ? 'active' }}">
-					<a class="nav-link" href="{{ app.request.get('_route') == 'user' ? '#' : path('user_show', {'id': app.user.id}) }}">
+				<li class="nav-item decaleLeftLi {{ current_route in ['user', 'user_show', 'user_edit'] ? 'active' }}">
+					<a class="nav-link" href="{{ current_route == 'user_show' ? '#' : path('user_show', {'id': app.user.id}) }}">
 						<i class="fa-solid fa-user"></i></i>
 						Profil
 					</a>
 				</li>
-				<li class="nav-item decaleLeftLi {{ 'logout' in app.request.get('_route') ? 'active' }}">
-					<a class="nav-link" href="{{ app.request.get('_route') == 'logout' ? '#' : path('logout') }}">
+				<li class="nav-item decaleLeftLi {{ current_route starts with 'logout' ? 'active' }}">
+					<a class="nav-link" href="{{ current_route == 'logout' ? '#' : path('logout') }}">
 						<i class="fa-solid fa-power-off" title='Déconnexion'></i>
 						Se déconnecter
 					</a>

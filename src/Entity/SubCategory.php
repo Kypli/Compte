@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=SubCategoryRepository::class)
  */
+#[ORM\Entity(repositoryClass: SubCategoryRepository::class)]
 class SubCategory
 {
     /**
@@ -17,27 +18,35 @@ class SubCategory
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
+    #[ORM\Column(type: "string", length: 255)]
     private $libelle;
 
     /**
      * @ORM\Column(type="integer")
      */
+    #[ORM\Column(type: "integer")]
     private $position = 1;
 
     /**
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="subCategories")
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "subCategories")]
+    #[ORM\JoinColumn(nullable: false)]
     private $category;
 
     /**
      * @ORM\OneToMany(targetEntity=Operation::class, mappedBy="subcategory", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: Operation::class, mappedBy: "subcategory", orphanRemoval: true)]
     private $operations;
 
     public function __construct()

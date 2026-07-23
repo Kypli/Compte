@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=CategoryRepository::class)
  */
+#[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
 {
     /**
@@ -17,38 +18,48 @@ class Category
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
+    #[ORM\Column(type: "string", length: 255)]
     private $libelle;
 
     /**
      * @ORM\Column(type="boolean")
      * True = Positive, False = Negative
      */
+    #[ORM\Column(type: "boolean")]
     private $sign = true;
 
     /**
      * @ORM\Column(type="integer")
      */
+    #[ORM\Column(type: "integer")]
     private $position = 1;
 
     /**
      * @ORM\Column(type="integer")
      */
+    #[ORM\Column(type: "integer")]
     private $year;
 
     /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="categories")
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Compte::class, inversedBy: "categories")]
+    #[ORM\JoinColumn(nullable: false)]
     private $compte;
 
     /**
      * @ORM\OneToMany(targetEntity=SubCategory::class, mappedBy="category", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: SubCategory::class, mappedBy: "category", orphanRemoval: true)]
     private $subCategories;
 
     public function __construct()

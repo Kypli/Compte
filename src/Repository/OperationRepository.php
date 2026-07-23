@@ -55,11 +55,9 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('ca.year = :year')
 			->andWhere('x.actif = true')
 
-			->setParameters([
-				'sign' => $sign,
-				'compte_id' => $compte_id,
-				'year' => $year,
-			])
+			->setParameter('sign', $sign)
+			->setParameter('compte_id', $compte_id)
+			->setParameter('year', $year)
 
 			->orderBy('x.date', 'ASC')
 
@@ -85,10 +83,8 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.actif = true')
 			->andWhere('ca.sign = :sign')
 
-			->setParameters([
-				'compte_id' => $compte_id,
-				'sign' => $sign,
-			])
+			->setParameter('compte_id', $compte_id)
+			->setParameter('sign', $sign)
 
 			->getQuery()
 			->getSingleScalarResult()
@@ -124,12 +120,10 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.actif = true')
 			->andWhere('ca.sign = :sign')
 
-			->setParameters([
-				'sc' => $sc,
-				'date_end' => $date_end,
-				'date_start' => $date_start,
-				'sign' => $sign,
-			])
+			->setParameter('sc', $sc)
+			->setParameter('date_end', $date_end)
+			->setParameter('date_start', $date_start)
+			->setParameter('sign', $sign)
 
 			->orderBy('x.date', 'DESC')
 

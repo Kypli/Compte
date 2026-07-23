@@ -14,7 +14,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 	public const CATEGORY_ADMIN = 'category_admin';
 	public const CATEGORY_USER = 'category_user';
 
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		$subcategories = [
 			SubCategoryFixtures::SUBCATEGORY_ADMIN_POS_1_1,
@@ -84,7 +84,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 		$manager->flush();
 	}
 
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return [
 			SubCategoryFixtures::class,

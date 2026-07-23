@@ -75,6 +75,204 @@ nav ul li:hover {
   color: black;
   text-decoration: none;
 }
+.home-connected-actions nav ul {
+  padding: 8px 6px;
+}
+.home-connected-actions {
+  align-items: flex-start;
+}
+.home-connected-actions > div {
+  align-items: flex-start;
+}
+.home-connected-actions nav ul li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16em;
+  min-height: 5em;
+  height: auto;
+  padding: 12px 14px;
+  line-height: 1.25;
+}
+.home-connected-actions .home-register-action {
+  flex-direction: column;
+  align-items: center;
+}
+.home-register-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.home-register-stack > a {
+  display: block;
+  text-decoration: none;
+}
+.home-register-stack > a:hover,
+.home-register-stack > a:focus {
+  text-decoration: none;
+}
+.home-register-help {
+  display: block;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin-top: 6px;
+  color: #e9f5db;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: center;
+}
+.home-register-help-line {
+  display: block;
+  white-space: nowrap;
+}
+.home-test-delete-form {
+  margin: 0;
+}
+.home-test-delete-form > button[type="submit"] {
+  appearance: none;
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  cursor: pointer;
+}
+.home-test-delete-form > button[type="submit"]:focus {
+  outline: none;
+}
+.home-test-delete-form nav ul li {
+  width: 16em;
+  white-space: normal;
+}
+.home-confirm-open {
+  overflow: hidden;
+}
+.home-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 2000;
+}
+.home-confirm-overlay[hidden] {
+  display: none;
+}
+.home-confirm-dialog {
+  position: relative;
+  width: min(430px, 100%);
+  padding: 34px 30px 26px;
+  color: #1f130c;
+  background: #f8eddf;
+  border: 3px solid #5f1414;
+  border-radius: 8px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+.home-confirm-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #5f1414;
+  background: #f6dada;
+  border: 2px solid #5f1414;
+  border-radius: 50%;
+}
+.home-confirm-close:hover,
+.home-confirm-close:focus {
+  color: white;
+  background: #8f1d1d;
+}
+.home-confirm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 14px;
+  color: #8f1d1d;
+  background: #f6dada;
+  border: 2px solid #8f1d1d;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.home-confirm-dialog h4 {
+  margin: 0 38px 12px;
+  color: #5f1414;
+  font-size: 24px;
+  font-weight: 700;
+}
+.home-confirm-dialog p {
+  margin: 0 0 22px;
+  color: #3b2b22;
+  font-size: 16px;
+  line-height: 1.45;
+}
+.home-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+.home-confirm-actions button {
+  min-width: 128px;
+  padding: 10px 18px;
+  color: #1f130c;
+  border: 2px solid #5f1414;
+  border-radius: 6px;
+  font-weight: 700;
+}
+.home-confirm-cancel {
+  background: #fffaf2;
+}
+.home-confirm-cancel:hover,
+.home-confirm-cancel:focus {
+  background: #efe2d2;
+}
+.home-confirm-delete {
+  color: white !important;
+  background: #8f1d1d;
+}
+.home-confirm-delete:hover,
+.home-confirm-delete:focus {
+  background: #5f1414;
+}
+nav ul li.home-button-switch {
+  --b: #1f4f7a;
+  --c: #2f6f9f;
+  --ct: #245f89;
+  --cb: #dceefa;
+}
+nav ul li.home-button-switch:hover {
+  color: white;
+}
+nav ul li.home-button-register {
+  --b: #735012;
+  --c: #b7831f;
+  --ct: #6b4b11;
+  --cb: #f6d56b;
+}
+nav ul li.home-button-register:hover {
+  color: black;
+}
+nav ul li.home-button-danger {
+  --b: #5f1414;
+  --c: #8f1d1d;
+  --ct: #8f1d1d;
+  --cb: #f6dada;
+}
+nav ul li.home-button-danger:hover {
+  color: white;
+}
 nav ul li:hover span {
   transform: translateY(0) scale(2);
   text-decoration: none;

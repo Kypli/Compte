@@ -9,12 +9,15 @@ use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @ORM\Table(name="`user`")
  */
-class User implements UserInterface
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: "`user`")]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     public static $availableRoles = [
         "ROLE_USER" => "ROLE_USER",
@@ -26,62 +29,76 @@ class User implements UserInterface
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=8, unique=true, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 8, unique: true, nullable: true)]
     private $code = null;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
      */
+    #[ORM\Column(type: "string", length: 180, unique: true)]
     private $userName;
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
      */
+    #[ORM\Column(type: "string")]
     private $password;
 
     /**
      * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: "json", nullable: true)]
     private $roles = ["ROLE_USER"];
 
     /**
      * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 50, nullable: true)]
     private $ip;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $anonyme = false;
 
     /**
      * @ORM\Column(type="string", length=150, nullable=true)
      */
+    #[ORM\Column(type: "string", length: 150, nullable: true)]
     private $commentaire;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $active = 1;
 
     /**
      * @ORM\ManyToMany(targetEntity=Compte::class, mappedBy="users")
      */
+    #[ORM\ManyToMany(targetEntity: Compte::class, mappedBy: "users")]
     private $comptes;
 
     /**
      * @ORM\OneToOne(targetEntity=UserProfil::class, mappedBy="user", cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: UserProfil::class, mappedBy: "user", cascade: ["persist", "remove"])]
     private $profil;
 
     /**
      * @ORM\OneToOne(targetEntity=UserPreference::class, mappedBy="user", cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: UserPreference::class, mappedBy: "user", cascade: ["persist", "remove"])]
     private $preferences;
 
     public function __construct()
@@ -117,6 +134,11 @@ class User implements UserInterface
      * @see UserInterface
      */
     public function getUsername(): string
+    {
+        return (string) $this->userName;
+    }
+
+    public function getUserIdentifier(): string
     {
         return (string) $this->userName;
     }
@@ -157,7 +179,7 @@ class User implements UserInterface
     /**
      * @see UserInterface
      */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;

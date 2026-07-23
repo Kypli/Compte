@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=UserPreferenceRepository::class)
  */
+#[ORM\Entity(repositoryClass: UserPreferenceRepository::class)]
 class UserPreference
 {
     /**
@@ -15,17 +16,23 @@ class UserPreference
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $compteGenreShow = true;
 
     /**
      * @ORM\OneToOne(targetEntity=User::class, inversedBy="preferences", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: "preferences", cascade: ["persist", "remove"])]
+    #[ORM\JoinColumn(nullable: false)]
     private $user;
 
     public function getId(): ?int

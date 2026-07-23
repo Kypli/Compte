@@ -30,7 +30,7 @@ class CompteType extends AbstractType
 					'expanded' => false,
 					'multiple' => false,
 					'attr' => [
-						'class' => 'form-control',
+						'class' => 'form-control form-select',
 					],
 					'label' => "Type de compte",
 					// 'query_builder' => function(UserRepository $e){

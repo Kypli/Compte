@@ -16,7 +16,7 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 	public const COMPTE_ADMIN = 'compte_admin';
 	public const COMPTE_USER = 'compte_user';
 
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		// Admin
 		$entity = new Entity();
@@ -48,7 +48,7 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		return ['dev'];
 	}
 
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return [
 			UserFixtures::class,

@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=CompteRepository::class)
  */
+#[ORM\Entity(repositoryClass: CompteRepository::class)]
 class Compte
 {
     /**
@@ -17,37 +18,47 @@ class Compte
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     /**
      * @ORM\Column(type="string", length=35)
      */
+    #[ORM\Column(type: "string", length: 35)]
     private $libelle;
 
     /**
      * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: "boolean")]
     private $main;
 
     /**
      * @ORM\Column(type="integer", length=10)
      */
+    #[ORM\Column(type: "integer", length: 10)]
     private $decouvert = 0;
 
     /**
      * @ORM\OneToMany(targetEntity=Category::class, mappedBy="compte", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: "compte", orphanRemoval: true)]
     private $categories;
 
     /**
      * @ORM\ManyToOne(targetEntity=CompteType::class, inversedBy="comptes")
      * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: CompteType::class, inversedBy: "comptes")]
+    #[ORM\JoinColumn(nullable: false)]
     private $type;
 
     /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="comptes")
      */
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: "comptes")]
     private $users;
 
     public function __construct()

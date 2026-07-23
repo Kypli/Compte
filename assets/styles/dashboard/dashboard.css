@@ -36,3 +36,105 @@ a:hover {
     font-size: 20px;
     position:absolute;
 }
+
+.dashboard-compte-modal {
+	background-color: #D6E5C9;
+}
+
+.dashboard-compte-modal .modal-header,
+.dashboard-compte-modal .modal-body {
+	background-color: #D6E5C9;
+}
+
+.dashboard-compte-modal .dashboard-compte-modal-header {
+	position: relative;
+	justify-content: center;
+	min-height: 82px;
+	padding: 0;
+	overflow: hidden;
+	background-color: #8FB4A3;
+	border-bottom: 2px solid #295935;
+}
+
+.dashboard-compte-modal .dashboard-compte-modal-header:before {
+	display: none;
+}
+
+.dashboard-compte-modal .modal-title {
+	width: 100%;
+	padding: 18px 64px;
+	color: #fff;
+	font-size: 30px;
+	font-weight: lighter;
+	text-align: center;
+	text-shadow: 2px 1px #295935;
+	text-underline-offset: 8px;
+	text-decoration: underline overline 3px #e9f5db;
+}
+
+.dashboard-compte-modal .close {
+	position: absolute;
+	top: 50%;
+	right: 18px;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	color: #e9f5db;
+	text-shadow: none;
+	background-color: #295935;
+	border: 2px solid #e9f5db;
+	border-radius: 50%;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+	opacity: 1;
+	transform: translateY(-50%);
+	transition: background-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.dashboard-compte-modal .close:hover,
+.dashboard-compte-modal .close:focus {
+	color: #295935;
+	background-color: #e9f5db;
+	transform: translateY(-50%) scale(1.08);
+}
+
+.dashboard-compte-modal .btn-success {
+	min-width: 150px;
+	color: #e9f5db;
+	background-color: #295935;
+	border: 2px solid #e9f5db;
+	box-shadow: 0 3px 8px rgba(41, 89, 53, 0.35);
+	transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-compte-modal .btn-success:hover,
+.dashboard-compte-modal .btn-success:focus {
+	color: #295935;
+	background-color: #e9f5db;
+	border-color: #295935;
+	box-shadow: 0 5px 12px rgba(41, 89, 53, 0.45);
+	transform: translateY(-1px);
+}
+
+.dashboard-compte-modal form > .row.mt-3 {
+	justify-content: flex-end;
+	padding: 0 32px 18px 0;
+}
+
+.dashboard-compte-modal form > .row.mt-3 > div {
+	flex: 0 0 auto;
+	max-width: none;
+	margin-left: 0;
+}
+
+.dashboard-compte-modal .dashboard-field-help {
+	display: block;
+	margin-top: 6px;
+	color: #295935;
+	font-size: 13px;
+	line-height: 1.3;
+	text-align: left;
+}

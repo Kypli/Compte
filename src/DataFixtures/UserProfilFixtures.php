@@ -10,7 +10,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 {
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		// Admin
 		$entity = new Entity();
@@ -45,7 +45,7 @@ class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 		$manager->flush();
 	}
 
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return [
 			UserFixtures::class,

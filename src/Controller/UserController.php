@@ -7,6 +7,7 @@ use App\Entity\UserProfil;
 use App\Entity\UserPreference;
 
 use App\Repository\UserRepository;
+use App\Repository\CompteRepository;
 use App\Repository\UserProfilRepository;
 use App\Repository\UserPreferenceRepository;
 
@@ -16,20 +17,22 @@ use App\Form\UserPreferenceType;
 use App\Service\CompteService;
 use App\Service\CookieService;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-use App\Security\LoginFormAuthenticator;
-use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
+use Symfony\Bundle\SecurityBundle\Security;
+
+use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
  * @Route("/user", name="user")
  */
+#[Route("/user", name: "user")]
 class UserController extends AbstractController
 {
 	// Repository
@@ -41,29 +44,28 @@ class UserController extends AbstractController
 	private $passwordHasher;
 
 	// User
-	private $guard;
-	private $loginAuthenticator;
+	private $security;
 
 	public function __construct(
 		UserRepository $ur,
 		UserProfilRepository $upr,
 		UserPreferenceRepository $uprer,
 		UserPasswordHasherInterface $passwordHasher,
-		GuardAuthenticatorHandler $guard,
-		LoginFormAuthenticator $loginAuthenticator
+		Security $security
 	){
 		$this->ur = $ur;
 		$this->upr = $upr;
 		$this->uprer = $uprer;
 		$this->passwordHasher = $passwordHasher;
-		$this->guard = $guard;
-		$this->loginAuthenticator = $loginAuthenticator;
+		$this->security = $security;
 	}
 
 	/**
 	 * @IsGranted("ROLE_ADMIN")
 	 * @Route("/", name="", methods={"GET"})
 	 */
+	#[IsGranted("ROLE_ADMIN")]
+	#[Route("/", name: "", methods: ["GET"])]
 	public function index(): Response
 	{
 		return $this->render('user/index.html.twig', [
@@ -74,13 +76,16 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/inscription", name="_add", methods={"GET", "POST"})
 	 */
-	public function add(Request $request): Response
+	#[Route("/inscription", name: "_add", methods: ["GET", "POST"])]
+	public function add(Request $request, CookieService $coos): Response
 	{
 		// Ne doit pas être membre ou alors être admin
 		if (null !== $this->getUser() && !$this->getUser()->getAnonyme() && !$this->isGranted('ROLE_ADMIN')){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire si vous êtes déjà membre.');
 			return $this->redirectToRoute('logout', [], Response::HTTP_SEE_OTHER);
 		}
+
+		$removeAnonymousCookies = null !== $this->getUser() && $this->getUser()->getAnonyme();
 
 		// User
 		$user = new User();
@@ -146,15 +151,12 @@ class UserController extends AbstractController
 					'Félicitations '.$user->getUserName().', vous inscription est prise en compte.'
 				);
 
-				// Authenticate user 
-				$this->guard->authenticateUserAndHandleSuccess(
-					$user,
-					$request,
-					$this->loginAuthenticator,
-					'main'
-				);
+				// Authenticate user
+				$this->security->login($user, 'form_login', 'main');
 
-				return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+				$response = $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+
+				return $removeAnonymousCookies ? $coos->removeCookie($response) : $response;
 			}
 		}
 
@@ -167,6 +169,7 @@ class UserController extends AbstractController
 	/**
 	 * @Route("/inscription/test", name="_add_test", methods={"GET", "POST"})
 	 */
+	#[Route("/inscription/test", name: "_add_test", methods: ["GET", "POST"])]
 	public function add_test(Request $request, CompteService $cs, CookieService $coos): Response
 	{
 		// Ne doit pas être membre
@@ -215,23 +218,19 @@ class UserController extends AbstractController
 			'Voici votre tableau de bord fournit avec un modèle de votre compte principal. N\'oubliez pas de vous enregistrer vous pour sauvegarder votre travail.'
 		);
 
-		// Authenticate user 
-		$this->guard->authenticateUserAndHandleSuccess(
-			$user,
-			$request,
-			$this->loginAuthenticator,
-			'main'
-		);
+		// Authenticate user
+		$this->security->login($user, 'form_login', 'main');
 
 		// Add Cookie
-		$res = $coos->addCookie($request, $user->getId(), $user->getPassword());
+		$response = $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 
-		return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		return $coos->addCookie($response, $user->getId(), $user->getPassword());
 	}
 
 	/**
 	 * @Route("/anonyme/connect/{id}", name="_anonyme_connect", methods={"GET", "POST"})
 	 */
+	#[Route("/anonyme/connect/{id}", name: "_anonyme_connect", methods: ["GET", "POST"])]
 	public function add_anonyme_connect(Request $request, User $user): Response
 	{
 		// Ne doit pas être membre
@@ -243,13 +242,8 @@ class UserController extends AbstractController
 		// Connect
 		if ($user->getPassword() == $request->cookies->get('anonyme_mdp')){
 
-			// Authenticate user 
-			$this->guard->authenticateUserAndHandleSuccess(
-				$user,
-				$request,
-				$this->loginAuthenticator,
-				'main'
-			);
+			// Authenticate user
+			$this->security->login($user, 'form_login', 'main');
 
 			return $this->redirectToRoute('user_edit', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
 
@@ -267,9 +261,89 @@ class UserController extends AbstractController
 	}
 
 	/**
+	 * @Route("/anonyme/dashboard/{id}", name="_anonyme_dashboard", methods={"GET"})
+	 */
+	#[Route("/anonyme/dashboard/{id}", name: "_anonyme_dashboard", methods: ["GET"])]
+	public function add_anonyme_dashboard(Request $request, User $user): Response
+	{
+		if (null !== $this->getUser()){
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+
+		if ($this->isValidAnonymousCookie($request, $user)){
+			$this->security->login($user, 'form_login', 'main');
+
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+
+		$this->addFlash('login_error', 'Session de test introuvable.');
+
+		return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+	}
+
+	/**
+	 * @Route("/anonyme/session-test/delete/{id}", name="_delete_test_session", methods={"POST"})
+	 */
+	#[Route("/anonyme/session-test/delete/{id}", name: "_delete_test_session", methods: ["POST"])]
+	public function delete_test_session(
+		Request $request,
+		User $user,
+		CompteRepository $compteRepository,
+		CookieService $coos,
+		EntityManagerInterface $entityManager
+	): Response
+	{
+		$isCurrentAnonymousUser = null !== $this->getUser()
+			&& $this->getUser()->getId() === $user->getId()
+			&& $user->getAnonyme()
+		;
+
+		if (
+			!$user->getAnonyme()
+			|| (!$isCurrentAnonymousUser && !$this->isValidAnonymousCookie($request, $user))
+			|| !$this->isCsrfTokenValid('delete_test_session'.$user->getId(), $request->request->get('_token'))
+		){
+			$this->addFlash('login_error', 'Impossible de supprimer cette session de test.');
+			$response = $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+
+			return $coos->removeCookie($response);
+		}
+
+		foreach ($compteRepository->getComptesByUser($user) as $compte){
+			foreach ($compte->getCategories() as $category){
+				foreach ($category->getSubCategories() as $subCategory){
+					foreach ($subCategory->getOperations() as $operation){
+						$entityManager->remove($operation);
+					}
+
+					$entityManager->remove($subCategory);
+				}
+
+				$entityManager->remove($category);
+			}
+
+			$entityManager->remove($compte);
+		}
+
+		$entityManager->remove($user);
+		$entityManager->flush();
+
+		if ($isCurrentAnonymousUser && $request->hasSession()){
+			$request->getSession()->invalidate();
+		}
+
+		$this->addFlash('login_info', 'Votre session de test a été supprimée.');
+		$response = $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+
+		return $coos->removeCookie($response);
+	}
+
+	/**
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/{id}", name="_show", methods={"GET"})
 	 */
+	#[IsGranted("ROLE_USER")]
+	#[Route("/{id}", name: "_show", methods: ["GET"])]
 	public function show(User $user): Response
 	{
 		// Acces control
@@ -286,6 +360,8 @@ class UserController extends AbstractController
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/edit/{id}", name="_edit", methods={"GET", "POST"})
 	 */
+	#[IsGranted("ROLE_USER")]
+	#[Route("/edit/{id}", name: "_edit", methods: ["GET", "POST"])]
 	public function edit(Request $request, User $user, CookieService $coos): Response
 	{
 		// Acces control
@@ -328,6 +404,7 @@ class UserController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid() && $this->formControl($user)){
+			$removeAnonymousCookies = false;
 
 			// Profil
 			$profil = $user->getProfil();
@@ -359,7 +436,7 @@ class UserController extends AbstractController
 			if ($user->getAnonyme()){
 
 				// Delete cookie
-				$coos->removeCookie();
+				$removeAnonymousCookies = true;
 
 				// Code
 				code_edit:
@@ -388,18 +465,21 @@ class UserController extends AbstractController
 			// Message flash
 			$this->addFlash('success', 'Vos modifications ont bien été prise en compte.');
 
-			return $this->redirectToRoute('user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
+			$response = $this->redirectToRoute('user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
+
+			return $removeAnonymousCookies ? $coos->removeCookie($response) : $response;
 		}
 
-		return $this->renderForm('user/edit.html.twig', [
+		return $this->render('user/edit.html.twig', [
 			'user' => $user,
-			'form' => $form,
+			'form' => $form->createView(),
 		]);
 	}
 
 	/**
 	 * @Route("/delete/{id}", name="_delete", methods={"POST"})
 	 */
+	#[Route("/delete/{id}", name: "_delete", methods: ["POST"])]
 	public function delete(Request $request, User $user, DiscussionRepository $dr): Response
 	{
 		// Acces control
@@ -441,6 +521,8 @@ class UserController extends AbstractController
 	 * @IsGranted("ROLE_USER")
 	 * @Route("/preference/{id}", name="_preference")
 	 */
+	#[IsGranted("ROLE_USER")]
+	#[Route("/preference/{id}", name: "_preference")]
 	public function preference(Request $request, User $user): Response
 	{
 		// Acces control
@@ -521,5 +603,13 @@ class UserController extends AbstractController
 		}
 
 		return implode($pass);
+	}
+
+	private function isValidAnonymousCookie(Request $request, User $user): bool
+	{
+		return $user->getAnonyme()
+			&& (string) $user->getId() === (string) $request->cookies->get('anonyme')
+			&& $user->getPassword() === $request->cookies->get('anonyme_mdp')
+		;
 	}
 }

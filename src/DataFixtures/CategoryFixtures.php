@@ -21,7 +21,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 	public const CATEGORY_USER_NEG_1 = 'category_user_neg_1';
 	public const CATEGORY_USER_NEG_2 = 'category_user_neg_2';
 
-	public function load(ObjectManager $manager)
+	public function load(ObjectManager $manager): void
 	{
 		// Admin (+)
 		$entity = new Entity();
@@ -111,7 +111,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 		$manager->flush();
 	}
 
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return [
 			CompteFixtures::class,

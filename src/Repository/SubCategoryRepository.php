@@ -50,9 +50,7 @@ class SubCategoryRepository extends ServiceEntityRepository
 
 			->where('c.id = :category_id')
 
-			->setParameters([
-				'category_id' => $category_id,
-			])
+			->setParameter('category_id', $category_id)
 
 			->orderBy('x.id', 'ASC')
 
@@ -73,9 +71,7 @@ class SubCategoryRepository extends ServiceEntityRepository
 
 			->where('c.id = :category_id')
 
-			->setParameters([
-				'category_id' => $category_id,
-			])
+			->setParameter('category_id', $category_id)
 
 			->getQuery()
 			->getResult()

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=MobilierRepository::class)
  */
+#[ORM\Entity(repositoryClass: MobilierRepository::class)]
 class Mobilier
 {
     /**
@@ -15,6 +16,9 @@ class Mobilier
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
     public function getId(): ?int

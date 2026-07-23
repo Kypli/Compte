@@ -1,71 +1,88 @@
-<?php 
+<?php
 
 namespace App\Service;
 
 use Symfony\Component\HttpFoundation\Cookie;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CookieService
 {
+	private const ANONYME_COOKIE_DURATION = '+30 days';
+	private const ANONYME_EXPIRES_AT_COOKIE = 'anonyme_expires_at';
+
 	/**
-	 * Ajoute des cookies
-	 * New Cookie('nom', 'valeur', 'date expiration', 'Chemin de serveur', 'Nom domaine', 'Https seulement', 'Protocole HTTP')
+	 * Ajoute les cookies du visiteur anonyme sur la reponse renvoyee au navigateur.
 	 */
-	public function addCookie(Request $request, $user_id, $user_psw)
+	public function addCookie(Response $response, $user_id, $user_psw): Response
 	{
-		// setcookie("anonyme", $user_id);
-		// setcookie("anonyme_mdp", $user_psw);
+		$expires = new \DateTimeImmutable(self::ANONYME_COOKIE_DURATION);
 
-		$cookie_user = new Cookie('anonyme', $user_id);
-		$cookie_mdp = new Cookie('anonyme_mdp',	$user_psw);
+		$response->headers->setCookie(
+			Cookie::create('anonyme', (string) $user_id)
+				->withExpires($expires)
+				->withPath('/')
+				->withHttpOnly(true)
+				->withSameSite(Cookie::SAMESITE_LAX)
+		);
+		$response->headers->setCookie(
+			Cookie::create('anonyme_mdp', $user_psw)
+				->withExpires($expires)
+				->withPath('/')
+				->withHttpOnly(true)
+				->withSameSite(Cookie::SAMESITE_LAX)
+		);
+		$response->headers->setCookie(
+			Cookie::create(self::ANONYME_EXPIRES_AT_COOKIE, (string) $expires->getTimestamp())
+				->withExpires($expires)
+				->withPath('/')
+				->withHttpOnly(true)
+				->withSameSite(Cookie::SAMESITE_LAX)
+		);
 
-		// $cookie_user = new Cookie(
-		// 	'anonyme',
-		// 	$user_id,
-		// 	strtotime('tomorrow'),
-		// 	'/',
-		// 	'localhost',
-		// 	true,
-		// 	true
-		// );
-		// $cookie_mdp = new Cookie(
-		// 	'anonyme_mdp',
-		// 	$user_psw,
-		// 	strtotime('tomorrow'),
-		// 	'/',
-		// 	'localhost',
-		// 	true,
-		// 	true
-		// );
-
-		$res = new Response();
-		$res->headers->setCookie($cookie_user);
-		$res->headers->setCookie($cookie_mdp);
-		
-		// TODO - Réparer ce truc qui bloque
-		// $res->send();
-
-		return $res;
+		return $response;
 	}
-	/**
-	 * Retire des cookies
-	 */
-	public function removeCookie()
+
+	public function getAnonymousCookieRemainingTimeLabel(Request $request): string
 	{
-		// setcookie("anonyme", "", time() - 3600);
-		// setcookie("anonyme_mdp", "", time() - 3600);
+		$expiresAt = $request->cookies->get(self::ANONYME_EXPIRES_AT_COOKIE);
 
-		$res = new Response();
-		$res->headers->clearCookie('anonyme');
-		$res->headers->clearCookie('anonyme_mdp');
+		if (null === $expiresAt || !ctype_digit((string) $expiresAt)){
+			$expiresAt = (new \DateTimeImmutable(self::ANONYME_COOKIE_DURATION))->getTimestamp();
+		}
 
-		// TODO - Réparer ce truc qui bloque
-		// $res->send();
+		$remainingSeconds = max(0, (int) $expiresAt - time());
 
-		return $res;
+		if ($remainingSeconds >= 86400){
+			$days = (int) ceil($remainingSeconds / 86400);
+
+			return $days.' jour'.($days > 1 ? 's' : '');
+		}
+
+		if ($remainingSeconds >= 3600){
+			$hours = (int) ceil($remainingSeconds / 3600);
+
+			return $hours.' heure'.($hours > 1 ? 's' : '');
+		}
+
+		if ($remainingSeconds >= 60){
+			$minutes = (int) ceil($remainingSeconds / 60);
+
+			return $minutes.' minute'.($minutes > 1 ? 's' : '');
+		}
+
+		return 'moins d\'une minute';
+	}
+
+	/**
+	 * Retire les cookies du visiteur anonyme sur la reponse renvoyee au navigateur.
+	 */
+	public function removeCookie(Response $response): Response
+	{
+		$response->headers->clearCookie('anonyme', '/');
+		$response->headers->clearCookie('anonyme_mdp', '/');
+		$response->headers->clearCookie(self::ANONYME_EXPIRES_AT_COOKIE, '/');
+
+		return $response;
 	}
 }
