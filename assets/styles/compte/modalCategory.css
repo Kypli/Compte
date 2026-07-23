@@ -80,6 +80,17 @@
 }
 
 /* ALERTE */
+.modal-category-error {
+	display: none;
+	margin: 0 0 10px;
+	padding: 10px 12px;
+	color: #7a1717;
+	background: #f8d7da;
+	border: 2px solid #b02a37;
+	border-radius: 6px;
+	font-weight: 700;
+	text-align: center;
+}
 .alerteCat {
 	border: 2px red solid!important;
 }

@@ -705,51 +705,72 @@ class CompteController extends AbstractController
 	public function category_save(Compte $compte, $year, Request $request): Response
 	{
 		// Control request
-		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['save' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
 
-		$datas = $request->request->get('datas');
+		$user = $this->getUser();
+		if (!$this->isGranted('ROLE_ADMIN') && !$compte->getUsers()->contains($user)){
+			return new JsonResponse(['save' => false, 'error' => 'Vous ne pouvez pas modifier ce compte.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$datas = $request->request->all('datas');
+		if (!isset($datas[0]) || !is_array($datas[0]) || ($datas[0]['type'] ?? null) !== 'cat'){
+			return new JsonResponse(['save' => false, 'error' => 'Donnees de categorie invalides.'], Response::HTTP_BAD_REQUEST);
+		}
 
 		// Categorie
 		$scs = [];
 		$datas_cat = $datas[0];
-		if ($datas_cat['type'] == 'cat'){
 
-			// Edit
-			if ($datas_cat['id'] != 'add'){
-				$cat = $this->catr->find($datas_cat['id']);
-				$scs = $this->scr->idsFromCat($cat->getId());
-
-			// Add
-			} else {
-				$cat = new Category();
-				$cat
-					->setCompte($compte)
-					->setSign($datas_cat['sign'])
-					->setYear($year)
-				;
+		// Edit
+		if (($datas_cat['id'] ?? null) != 'add'){
+			$cat = $this->catr->find($datas_cat['id'] ?? null);
+			if (null === $cat || $cat->getCompte()->getId() !== $compte->getId()){
+				return new JsonResponse(['save' => false, 'error' => 'Categorie introuvable pour ce compte.'], Response::HTTP_NOT_FOUND);
 			}
+			$scs = $this->scr->idsFromCat($cat->getId());
 
-			// Commun Edit
+		// Add
+		} else {
+			$cat = new Category();
 			$cat
-				->setLibelle($datas_cat['libelle'])
-				->setPosition($datas_cat['position'])
+				->setCompte($compte)
+				->setSign((bool) ($datas_cat['sign'] ?? true))
+				->setYear((int) $year)
 			;
-
-			// Save
-			$this->catr->add($cat, true);
-
-			// Corrige les autres positions
-			$this->orderCatPosition($compte->getId(), $cat->getId(), $datas_cat['sign'], $year,  $datas_cat['position']);
-
 		}
+
+		// Commun Edit
+		$cat
+			->setLibelle(trim((string) ($datas_cat['libelle'] ?? '')))
+			->setPosition((int) ($datas_cat['position'] ?? 1))
+		;
+
+		if ('' === $cat->getLibelle()){
+			return new JsonResponse(['save' => false, 'error' => 'Le libelle de la categorie est obligatoire.'], Response::HTTP_BAD_REQUEST);
+		}
+
+		// Save
+		$this->catr->add($cat, true);
+
+		// Corrige les autres positions
+		$this->orderCatPosition($compte->getId(), $cat->getId(), $cat->isSign(), $year, $cat->getPosition());
+
 		unset($datas[0]);
 
-		// Sub-catégories
+		// Sub-categories
 		foreach ($datas as $key => $datas_sc){
+			if (!is_array($datas_sc) || ($datas_sc['type'] ?? null) !== 'sc'){
+				return new JsonResponse(['save' => false, 'error' => 'Donnees de sous-categorie invalides.'], Response::HTTP_BAD_REQUEST);
+			}
 
 			// Edit
-			if ($datas_sc['id'] != ''){
+			if (($datas_sc['id'] ?? '') != ''){
 				$sc = $this->scr->find($datas_sc['id']);
+				if (null === $sc || $sc->getCategory()->getId() !== $cat->getId()){
+					return new JsonResponse(['save' => false, 'error' => 'Sous-categorie introuvable pour cette categorie.'], Response::HTTP_NOT_FOUND);
+				}
 				unset($scs[$datas_sc['id']]);
 
 			// Add
@@ -759,21 +780,26 @@ class CompteController extends AbstractController
 			}
 
 			$sc
-				->setPosition($key)
-				->setLibelle($datas_sc['libelle'])
+				->setPosition((int) $key)
+				->setLibelle(trim((string) ($datas_sc['libelle'] ?? '')))
 			;
+
+			if ('' === $sc->getLibelle()){
+				return new JsonResponse(['save' => false, 'error' => 'Le libelle des sous-categories est obligatoire.'], Response::HTTP_BAD_REQUEST);
+			}
 
 			$this->scr->add($sc, true);
 		}
 
 		// Delete SubCategories
 		foreach($scs as $key => $osef){
-			$this->scr->remove($this->scr->find($key), true);
+			$sc = $this->scr->find($key);
+			if (null !== $sc){
+				$this->scr->remove($sc, true);
+			}
 		}
 
-		return new JsonResponse([
-			'save' => true,
-		]);
+		return new JsonResponse(['save' => true]);
 	}
 
 	/**

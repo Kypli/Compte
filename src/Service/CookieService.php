@@ -60,13 +60,13 @@ class CookieService
 		}
 
 		if ($remainingSeconds >= 3600){
-			$hours = (int) ceil($remainingSeconds / 3600);
+			$hours = max(1, (int) floor($remainingSeconds / 3600));
 
 			return $hours.' heure'.($hours > 1 ? 's' : '');
 		}
 
 		if ($remainingSeconds >= 60){
-			$minutes = (int) ceil($remainingSeconds / 60);
+			$minutes = max(1, (int) floor($remainingSeconds / 60));
 
 			return $minutes.' minute'.($minutes > 1 ? 's' : '');
 		}

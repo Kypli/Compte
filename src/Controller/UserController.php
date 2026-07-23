@@ -178,6 +178,17 @@ class UserController extends AbstractController
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
+		$anonymousId = $request->cookies->get('anonyme');
+		if (null !== $anonymousId){
+			$anonymousUser = $this->ur->find($anonymousId);
+
+			if (null !== $anonymousUser && $this->isValidAnonymousCookie($request, $anonymousUser)){
+				$this->security->login($anonymousUser, 'form_login', 'main');
+
+				return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+			}
+		}
+
 		// Login anonyme
 		$last_anonyme = $this->ur->getLastAnonyme();
 		$login_ano_count = $last_anonyme == null ? 0 : (int) str_replace('Visiteur', '', $last_anonyme['userName']);

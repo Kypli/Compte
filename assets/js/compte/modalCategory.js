@@ -21,6 +21,18 @@ $(document).ready(function(){
 	getAddSc()
 	getAddSc(true)
 
+	function showCategoryError(message){
+		$('#cat_save_error')
+			.text(message || 'La sauvegarde de la catégorie a échoué.')
+			.show()
+	}
+
+	function hideCategoryError(){
+		$('#cat_save_error')
+			.text('')
+			.hide()
+	}
+
 	////////////
 	// ON EVENTS
 	////////////
@@ -29,6 +41,8 @@ $(document).ready(function(){
 
 	// Open Modal Category
 	$("body").on("click", ".td_category_libelle, .td_subcategory_libelle", function(e){
+		hideCategoryError()
+
 		let sign = $(this).parent().parent().parent().data('sign')
 		$('#cat_tab').data('sign', sign)
 
@@ -44,6 +58,8 @@ $(document).ready(function(){
 	})
 
 	$("body").on("click", ".other_actif", function(e){
+		hideCategoryError()
+
 		let id = $(this).data('id')
 		getCategory(id, $('#cat_tab').data('sign'), 'cat_' + id)
 	})
@@ -109,6 +125,8 @@ $(document).ready(function(){
 
 	// Add Cat from table
 	$("body").on("click", ".add_cat button", function(e){
+		hideCategoryError()
+
 		let sign = $(this).parents('.table ').data('sign')
 		$('#cat_tab').data('sign', sign)
 		getAddCategory(sign)
@@ -116,6 +134,8 @@ $(document).ready(function(){
 
 	// Add Cat from modal
 	$("body").on("click", "#add_cat", function(e){
+		hideCategoryError()
+
 		getAddCategory($('#cat_tab').data('sign'))
 		$('#modalCatSaveClose').prop('disabled', true)
 	})
@@ -745,6 +765,7 @@ $(document).ready(function(){
 	function sauvegarde(){
 
 		let	datas = []
+		hideCategoryError()
 
 		// Retire les add vides
 		$('#cat_tab .tr_subcategories_add').each(function(index, tr){
@@ -794,12 +815,15 @@ $(document).ready(function(){
 			success: function(response){
 				if (response.save == true){
 					console.log('ok')
+					updateTables()
+				} else {
+					showCategoryError(response.error)
 				}
-				updateTables()
 			},
 			error: function(error){
 				console.log('Erreur ajax:')
 				console.log(error)
+				showCategoryError(error.responseJSON?.error || 'La sauvegarde de la catégorie a échoué.')
 			}
 		})
 	}
