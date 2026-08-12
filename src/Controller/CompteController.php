@@ -13,8 +13,10 @@ use App\Repository\CompteRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
 use App\Repository\SubCategoryRepository;
+use App\Security\CompteVoter;
 
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +47,12 @@ class CompteController extends AbstractController
 		10 => 'octobre',
 		11 => 'novembre',
 		12 => 'décembre',
+	];
+	public const MONTH_DISPLAY_OPTIONS = [
+		'year' => ['label' => 'Année entière', 'radius' => null],
+		'three' => ['label' => '3 mois avant/après', 'radius' => 3],
+		'one' => ['label' => '1 mois avant/après', 'radius' => 1],
+		'current' => ['label' => 'Mois en cours', 'radius' => 0],
 	];
 
 	private $navigation_max_year;
@@ -120,16 +128,22 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}", name="_show", methods={"GET", "POST"})
+	 * @Route("/{id}", name="_show", methods={"GET"})
 	 * Montre un compte
 	 */
-	#[Route("/{id}", name: "_show", methods: ["GET", "POST"])]
+	#[Route("/{id}", name: "_show", methods: ["GET"])]
 	public function show(Compte $compte, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		// Current dates
 		$date = new \Datetime('now');
 		$current_year = $date->format('Y');
 		$current_month = $date->format('n');
+		[
+			$month_display,
+			$visible_months,
+		] = $this->resolveMonthDisplay($request, (int) $current_month);
 
 		// Year
 		$year = (int) $request->query->get('year');
@@ -176,6 +190,9 @@ class CompteController extends AbstractController
 			'year' => $year,
 			'months' => SELF::MONTHS,
 			'months_json' => json_encode(SELF::MONTHS),
+			'month_display' => $month_display,
+			'month_display_options' => SELF::MONTH_DISPLAY_OPTIONS,
+			'visible_months' => $visible_months,
 			'max_year' => $this->navigation_max_year,
 			'min_year' => $this->navigation_min_year,
 
@@ -197,13 +214,15 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}/tables", name="_tables", methods={"GET", "POST"})
+	 * @Route("/{id}/tables", name="_tables", methods={"POST"})
 	 * Renvoie le render des tables
 	 * Ajax only
 	 */
-	#[Route("/{id}/tables", name: "_tables", methods: ["GET", "POST"])]
+	#[Route("/{id}/tables", name: "_tables", methods: ["POST"])]
 	public function tables(Compte $compte, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
@@ -211,6 +230,10 @@ class CompteController extends AbstractController
 		$date = new \Datetime('now');
 		$current_year = $date->format('Y');
 		$current_month = $date->format('n');
+		[
+			$month_display,
+			$visible_months,
+		] = $this->resolveMonthDisplay($request, (int) $current_month);
 
 		// Year
 		$year = (int) $request->query->get('year');
@@ -252,6 +275,8 @@ class CompteController extends AbstractController
 
 			'year' => $year,
 			'months' => SELF::MONTHS,
+			'month_display' => $month_display,
+			'visible_months' => $visible_months,
 
 			'user' => $this->getUser(),
 			'current_year' => $current_year,
@@ -273,6 +298,23 @@ class CompteController extends AbstractController
 			'solde' => $solde,
 			'soldeFinMensuel' => $soldeFinMensuel,
 		]);
+	}
+
+	private function resolveMonthDisplay(Request $request, int $currentMonth): array
+	{
+		$requestedMode = $request->query->get('months', 'year');
+		$mode = is_string($requestedMode) && array_key_exists($requestedMode, self::MONTH_DISPLAY_OPTIONS)
+			? $requestedMode
+			: 'year'
+		;
+		$radius = self::MONTH_DISPLAY_OPTIONS[$mode]['radius'];
+
+		$visibleMonths = null === $radius
+			? array_keys(self::MONTHS)
+			: range(max(1, $currentMonth - $radius), min(12, $currentMonth + $radius))
+		;
+
+		return [$mode, $visibleMonths];
 	}
 
 	/**
@@ -408,6 +450,8 @@ class CompteController extends AbstractController
 	#[Route("/{id}/edit", name: "_edit", methods: ["GET", "POST"])]
 	public function edit(Compte $compte, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
 
@@ -437,11 +481,13 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{id}", name="_delete", methods={"GET", "POST"})
+	 * @Route("/{id}", name="_delete", methods={"POST"})
 	 */
-	#[Route("/{id}", name: "_delete", methods: ["GET", "POST"])]
+	#[Route("/{id}", name: "_delete", methods: ["POST"])]
 	public function delete(Compte $compte, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		if ($this->isCsrfTokenValid('delete'.$compte->getId(), $request->request->get('_token'))) {
 			$this->cr->remove($compte, true);
 		}
@@ -454,13 +500,15 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/operation/{sc}/{year}/{month}/{sign}", name="_operation", methods={"GET", "POST"})
+	 * @Route("/operation/{sc}/{year}/{month}/{sign}", name="_operation", methods={"POST"})
 	 * Renvoie les opérations selon la sc, l'année, le mois et le signe
 	 * Ajax only
 	 */
-	#[Route("/operation/{sc}/{year}/{month}/{sign}", name: "_operation", methods: ["GET", "POST"])]
+	#[Route("/operation/{sc}/{year}/{month}/{sign}", name: "_operation", methods: ["POST"])]
 	public function operation_datas(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $sc->getCategory()->getCompte());
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
@@ -476,21 +524,17 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/operation/save/{sc}/{year}/{month}/{sign}", name="_operation_save")
+	 * @Route("/operation/save/{sc}/{year}/{month}/{sign}", name="_operation_save", methods={"POST"})
 	 * Sauvegarde les opérations d'une sc
 	 * Ajax only
 	 */
-	#[Route("/operation/save/{sc}/{year}/{month}/{sign}", name: "_operation_save")]
+	#[Route("/operation/save/{sc}/{year}/{month}/{sign}", name: "_operation_save", methods: ["POST"])]
 	public function operation_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $sc->getCategory()->getCompte());
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		// Control Sc owner
-		$user = $this->getUser();
-		if (!$user->hasSubCategory($user, $sc)){
-			return new JsonResponse(['save' => "Pas propriétaire de la subcategorie."]);
-		}
 
 		// Datas from ajax
 		$datas = isset($request->request->all()['datas'])
@@ -503,23 +547,29 @@ class CompteController extends AbstractController
 	
 		// Save
 		foreach($datas as $ope){
+			$ope_ent = null;
+			if (!empty($ope['id'])){
+				$ope_ent = $this->or->find($ope['id']);
+				if (null === $ope_ent || $ope_ent->getSubcategory()->getId() !== $sc->getId()){
+					return new JsonResponse(['save' => false, 'error' => 'Operation introuvable pour cette sous-categorie.'], Response::HTTP_NOT_FOUND);
+				}
+			}
 
 			// Delete
 			if ((int) $ope['delete'] == 1){
-				$del = $this->or->find($ope['id']);
-				$del
+				if (null === $ope_ent){
+					return new JsonResponse(['save' => false, 'error' => 'Operation a supprimer manquante.'], Response::HTTP_BAD_REQUEST);
+				}
+				$ope_ent
 					->setActif(false)
 					->setLastAction('del')
 					->setDateLastAction($current_date)
 				;
-				$this->or->add($del, true);
+				$this->or->add($ope_ent, true);
 
 			// Edit
 			} elseif (!empty($ope['id'])){
 				$id = $ope['id'];
-				$ope_ent = $this->or->find($id);
-
-				if ($ope_ent == null){ return new JsonResponse(['save' => false]); }
 
 				// Edit ?
 				if (
@@ -642,13 +692,23 @@ class CompteController extends AbstractController
 	// ****************
 
 	/**
-	 * @Route("/cat/{id}/{cat}/{sign}", name="_category", methods={"GET", "POST"})
+	 * @Route("/cat/{id}/{cat}/{sign}", name="_category", methods={"POST"})
 	 * Récupère datas d'une catégorie
 	 * Ajax only
 	 */
-	#[Route("/cat/{id}/{cat}/{sign}", name: "_category", methods: ["GET", "POST"])]
-	public function category(Compte $compte, Category $cat, $sign, Request $request): Response
+	#[Route("/cat/{id}/{cat}/{sign}", name: "_category", methods: ["POST"])]
+	public function category(
+		#[MapEntity(id: 'id')] Compte $compte,
+		#[MapEntity(id: 'cat')] Category $cat,
+		$sign,
+		Request $request
+	): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		if ($cat->getCompte()->getId() !== $compte->getId()){
+			throw $this->createNotFoundException('Categorie introuvable pour ce compte.');
+		}
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
@@ -670,14 +730,16 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/caty/add/{id}/{sign}", name="_category_add", methods={"GET", "POST"})
+	 * @Route("/caty/add/{id}/{sign}", name="_category_add", methods={"POST"})
 	 * Renvoie le render d'une nouvelle catégorie
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
-	#[Route("/caty/add/{id}/{sign}", name: "_category_add", methods: ["GET", "POST"])]
+	#[Route("/caty/add/{id}/{sign}", name: "_category_add", methods: ["POST"])]
 	public function category_add(Compte $compte, $sign, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
@@ -696,22 +758,19 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{compte}/cat/save/{year}", name="_category_save", methods={"GET", "POST"})
+	 * @Route("/{compte}/cat/save/{year}", name="_category_save", methods={"POST"})
 	 * Edit tr_category / Edit tr_subcategories / Add tr_subcategories_add
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
-	#[Route("/{compte}/cat/save/{year}", name: "_category_save", methods: ["GET", "POST"])]
+	#[Route("/{compte}/cat/save/{year}", name: "_category_save", methods: ["POST"])]
 	public function category_save(Compte $compte, $year, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['save' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
-		}
-
-		$user = $this->getUser();
-		if (!$this->isGranted('ROLE_ADMIN') && !$compte->getUsers()->contains($user)){
-			return new JsonResponse(['save' => false, 'error' => 'Vous ne pouvez pas modifier ce compte.'], Response::HTTP_FORBIDDEN);
 		}
 
 		$datas = $request->request->all('datas');
@@ -803,22 +862,25 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/cat/delete/{id}/{cat}", name="_category_delete", methods={"GET", "POST"})
+	 * @Route("/cat/delete/{id}/{cat}", name="_category_delete", methods={"POST"})
 	 * Delete category
 	 * URL: Caty au lieu de cat a cause d'un bug ParamConverter
 	 * Ajax only
 	 */
-	#[Route("/cat/delete/{id}/{cat}", name: "_category_delete", methods: ["GET", "POST"])]
-	public function category_delete(Compte $compte, Category $cat, Request $request): Response
+	#[Route("/cat/delete/{id}/{cat}", name: "_category_delete", methods: ["POST"], priority: 10)]
+	public function category_delete(
+		#[MapEntity(id: 'id')] Compte $compte,
+		#[MapEntity(id: 'cat')] Category $cat,
+		Request $request
+	): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		if ($cat->getCompte()->getId() !== $compte->getId()){
+			throw $this->createNotFoundException('Categorie introuvable pour ce compte.');
+		}
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
-
-		// Control Cat owner
-		$user = $this->getUser();
-		if (!$this->isGranted('ROLE_ADMIN') && !$user->hasCategory($user, $cat)){
-			return new JsonResponse(['save' => "Pas propriétaire de la categorie."]);
-		}
 
 		// Delete SubCategories
 		$scs = $cat->getSubCategories();
@@ -845,13 +907,15 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/sc/{id}", name="_subcategory", methods={"GET", "POST"})
+	 * @Route("/sc/{id}", name="_subcategory", methods={"POST"})
 	 * Récupère render de tr_subcategorie_back
 	 * Ajax only
 	 */
-	#[Route("/sc/{id}", name: "_subcategory", methods: ["GET", "POST"])]
+	#[Route("/sc/{id}", name: "_subcategory", methods: ["POST"])]
 	public function subcategory(SubCategory $sc, Request $request): Response
 	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $sc->getCategory()->getCompte());
+
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
 
@@ -865,11 +929,11 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @Route("/sc/add/{addMod}", name="_subcategory_add", methods={"GET", "POST"})
+	 * @Route("/sc/add/{addMod}", name="_subcategory_add", methods={"POST"})
 	 * Récupère render de tr_subcategories_add
 	 * Ajax only
 	 */
-	#[Route("/sc/add/{addMod}", name: "_subcategory_add", methods: ["GET", "POST"])]
+	#[Route("/sc/add/{addMod}", name: "_subcategory_add", methods: ["POST"])]
 	public function subCategory_add($addMod, Request $request): Response
 	{
 		// Control request

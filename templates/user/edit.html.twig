@@ -26,12 +26,7 @@
 
 				{# FORM #}
 				{% if user.anonyme %}
-					{% include 'user/_form_add.html.twig' with {
-						'row_class': 'row center mt-4 justify-content-center',
-						'label_class': 'col-3 mb-4 alignRight',
-						'widget_class': 'col-3 mb-4 alignLeft',
-						'submit_class': 'col-12 d-flex justify-content-center'
-					} %}
+					{% include 'user/_form_register_anonymous.html.twig' %}
 				{% else %}
 					{% include 'user/_form_edit.html.twig' %}
 				{% endif %}

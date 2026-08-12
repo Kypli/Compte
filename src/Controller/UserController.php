@@ -16,9 +16,11 @@ use App\Form\UserPreferenceType;
 
 use App\Service\CompteService;
 use App\Service\CookieService;
+use App\Service\UserRegistrationValidator;
 
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -82,7 +84,10 @@ class UserController extends AbstractController
 		// Ne doit pas être membre ou alors être admin
 		if (null !== $this->getUser() && !$this->getUser()->getAnonyme() && !$this->isGranted('ROLE_ADMIN')){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire si vous êtes déjà membre.');
-			return $this->redirectToRoute('logout', [], Response::HTTP_SEE_OTHER);
+			return $coos->addRegisteredUserCookieForUser(
+				$this->redirectToRoute('logout', [], Response::HTTP_SEE_OTHER),
+				$this->getUser()
+			);
 		}
 
 		$removeAnonymousCookies = null !== $this->getUser() && $this->getUser()->getAnonyme();
@@ -103,6 +108,7 @@ class UserController extends AbstractController
 		;
 
 		$form->handleRequest($request);
+		$requestUser = $request->request->all('user');
 
 		// Valid form
 		if ($form->isSubmitted() && $form->isValid()){
@@ -126,7 +132,7 @@ class UserController extends AbstractController
 					->setCode($code)
 					->setPassword($this->passwordHasher->hashPassword(
 						$user,
-						$request->request->get('user')['password'],
+						$requestUser['password'],
 					))
 				;
 
@@ -156,7 +162,11 @@ class UserController extends AbstractController
 
 				$response = $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 
-				return $removeAnonymousCookies ? $coos->removeCookie($response) : $response;
+				if ($removeAnonymousCookies){
+					$response = $coos->removeAnonymousTestSessionCookies($response);
+				}
+
+				return $coos->addRegisteredUserCookie($response);
 			}
 		}
 
@@ -175,18 +185,22 @@ class UserController extends AbstractController
 		// Ne doit pas être membre
 		if (null !== $this->getUser()){
 			$this->addFlash('error', 'Vous ne pouvez pas vous inscrire à une session de test si vous êtes déjà membre.');
-			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+			$response = $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+
+			return $coos->addRegisteredUserCookieForUser($response, $this->getUser());
 		}
 
-		$anonymousId = $request->cookies->get('anonyme');
-		if (null !== $anonymousId){
-			$anonymousUser = $this->ur->find($anonymousId);
+		if (!$coos->canCreateAnonymousTestSession($request)){
+			$this->addFlash('login_error', $coos->getRegisteredUserTestSessionBlockedMessage());
 
-			if (null !== $anonymousUser && $this->isValidAnonymousCookie($request, $anonymousUser)){
-				$this->security->login($anonymousUser, 'form_login', 'main');
+			return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
+		}
 
-				return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
-			}
+		$anonymousUser = $coos->getAnonymousTestSessionUser($request, $this->ur);
+		if (null !== $anonymousUser){
+			$this->security->login($anonymousUser, 'form_login', 'main');
+
+			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
 		// Login anonyme
@@ -235,14 +249,14 @@ class UserController extends AbstractController
 		// Add Cookie
 		$response = $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 
-		return $coos->addCookie($response, $user->getId(), $user->getPassword());
+		return $coos->addAnonymousTestSessionCookies($response, $user->getId(), $user->getPassword());
 	}
 
 	/**
 	 * @Route("/anonyme/connect/{id}", name="_anonyme_connect", methods={"GET", "POST"})
 	 */
 	#[Route("/anonyme/connect/{id}", name: "_anonyme_connect", methods: ["GET", "POST"])]
-	public function add_anonyme_connect(Request $request, User $user): Response
+	public function add_anonyme_connect(Request $request, User $user, CookieService $coos): Response
 	{
 		// Ne doit pas être membre
 		if (null !== $this->getUser()){
@@ -251,7 +265,7 @@ class UserController extends AbstractController
 		}
 
 		// Connect
-		if ($user->getPassword() == $request->cookies->get('anonyme_mdp')){
+		if ($coos->isValidAnonymousTestSession($request, $user)){
 
 			// Authenticate user
 			$this->security->login($user, 'form_login', 'main');
@@ -275,13 +289,13 @@ class UserController extends AbstractController
 	 * @Route("/anonyme/dashboard/{id}", name="_anonyme_dashboard", methods={"GET"})
 	 */
 	#[Route("/anonyme/dashboard/{id}", name: "_anonyme_dashboard", methods: ["GET"])]
-	public function add_anonyme_dashboard(Request $request, User $user): Response
+	public function add_anonyme_dashboard(Request $request, User $user, CookieService $coos): Response
 	{
 		if (null !== $this->getUser()){
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 
-		if ($this->isValidAnonymousCookie($request, $user)){
+		if ($coos->isValidAnonymousTestSession($request, $user)){
 			$this->security->login($user, 'form_login', 'main');
 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
@@ -301,7 +315,8 @@ class UserController extends AbstractController
 		User $user,
 		CompteRepository $compteRepository,
 		CookieService $coos,
-		EntityManagerInterface $entityManager
+		EntityManagerInterface $entityManager,
+		TokenStorageInterface $tokenStorage
 	): Response
 	{
 		$isCurrentAnonymousUser = null !== $this->getUser()
@@ -311,13 +326,21 @@ class UserController extends AbstractController
 
 		if (
 			!$user->getAnonyme()
-			|| (!$isCurrentAnonymousUser && !$this->isValidAnonymousCookie($request, $user))
+			|| (!$isCurrentAnonymousUser && !$coos->isValidAnonymousTestSession($request, $user))
 			|| !$this->isCsrfTokenValid('delete_test_session'.$user->getId(), $request->request->get('_token'))
 		){
 			$this->addFlash('login_error', 'Impossible de supprimer cette session de test.');
 			$response = $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
 
-			return $coos->removeCookie($response);
+			return $coos->removeAnonymousTestSessionCookies($response);
+		}
+
+		if ($isCurrentAnonymousUser){
+			$tokenStorage->setToken(null);
+
+			if ($request->hasSession()){
+				$request->getSession()->invalidate();
+			}
 		}
 
 		foreach ($compteRepository->getComptesByUser($user) as $compte){
@@ -339,14 +362,10 @@ class UserController extends AbstractController
 		$entityManager->remove($user);
 		$entityManager->flush();
 
-		if ($isCurrentAnonymousUser && $request->hasSession()){
-			$request->getSession()->invalidate();
-		}
-
 		$this->addFlash('login_info', 'Votre session de test a été supprimée.');
 		$response = $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
 
-		return $coos->removeCookie($response);
+		return $coos->removeAnonymousTestSessionCookies($response);
 	}
 
 	/**
@@ -373,7 +392,7 @@ class UserController extends AbstractController
 	 */
 	#[IsGranted("ROLE_USER")]
 	#[Route("/edit/{id}", name: "_edit", methods: ["GET", "POST"])]
-	public function edit(Request $request, User $user, CookieService $coos): Response
+	public function edit(Request $request, User $user, CookieService $coos, UserRegistrationValidator $registrationValidator): Response
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
@@ -381,7 +400,7 @@ class UserController extends AbstractController
 		}
 
 		$form = $this->createForm(UserType::class, $user);
-		$req_user = $request->request->get('user');
+		$req_user = $request->request->all('user');
 
 		// Champs exclusif au anonyme
 		if ($user->getAnonyme()){
@@ -405,7 +424,7 @@ class UserController extends AbstractController
 		}
 
 		// Alimenter dans le request le champ password si inutilisé
-		if (null !== $request->request->get('user') && $request->request->get('user')['password'] == ''){
+		if ([] !== $req_user && ($req_user['password'] ?? '') == '' && !$user->getAnonyme()){
 			$noEditPassword = true;
 			$requestArray = $request->request->all();
 			$requestArray['user']['password'] = $form->getData()->getPassword();
@@ -413,8 +432,19 @@ class UserController extends AbstractController
 		}
 
 		$form->handleRequest($request);
+		$requestUser = $request->request->all('user');
 
 		if ($form->isSubmitted() && $form->isValid() && $this->formControl($user)){
+			$userNameAlreadyUsed = $this->ur->findOneBy(['userName' => $user->getUserName()]);
+			if (null !== $userNameAlreadyUsed && $userNameAlreadyUsed->getId() !== $user->getId()){
+				$this->addFlash('error', "Ce login est déjà pris. Merci d'en sélectionner un autre.");
+
+				return $this->render('user/edit.html.twig', [
+					'user' => $user,
+					'form' => $form->createView(),
+				]);
+			}
+
 			$removeAnonymousCookies = false;
 
 			// Profil
@@ -445,6 +475,37 @@ class UserController extends AbstractController
 
 			// Anonyme ?
 			if ($user->getAnonyme()){
+				$password = (string) ($requestUser['password'] ?? '');
+				$email = trim((string) ($requestUser['email'] ?? ''));
+				$passwordConfirm = (string) ($requestUser['passwordConfirm'] ?? '');
+
+				if (null !== $registrationError = $registrationValidator->getRegistrationError($user->getUserName(), $password)){
+					$this->addFlash('error', $registrationError);
+
+					return $this->render('user/edit.html.twig', [
+						'user' => $user,
+						'form' => $form->createView(),
+					]);
+				}
+
+				if (null !== $registrationCompletionError = $registrationValidator->getRegistrationCompletionError($email, $password, $passwordConfirm)){
+					$this->addFlash('error', $registrationCompletionError);
+
+					return $this->render('user/edit.html.twig', [
+						'user' => $user,
+						'form' => $form->createView(),
+					]);
+				}
+
+				$emailAlreadyUsed = $this->ur->findOneBy(['email' => $email]);
+				if (null !== $emailAlreadyUsed && $emailAlreadyUsed->getId() !== $user->getId()){
+					$this->addFlash('error', 'Cet email est déjà rattaché à un compte.');
+
+					return $this->render('user/edit.html.twig', [
+						'user' => $user,
+						'form' => $form->createView(),
+					]);
+				}
 
 				// Delete cookie
 				$removeAnonymousCookies = true;
@@ -457,6 +518,7 @@ class UserController extends AbstractController
 				$user
 					->setAnonyme(false)
 					->setCode($code)
+					->setEmail($email)
 				;
 			}
 
@@ -478,7 +540,16 @@ class UserController extends AbstractController
 
 			$response = $this->redirectToRoute('user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
 
-			return $removeAnonymousCookies ? $coos->removeCookie($response) : $response;
+			if ($removeAnonymousCookies){
+				$response = $this->security->login($user, 'form_login', 'main')
+					?? $response
+				;
+				$response = $coos->removeAnonymousTestSessionCookies($response);
+
+				return $coos->addRegisteredUserCookie($response);
+			}
+
+			return $response;
 		}
 
 		return $this->render('user/edit.html.twig', [
@@ -616,11 +687,4 @@ class UserController extends AbstractController
 		return implode($pass);
 	}
 
-	private function isValidAnonymousCookie(Request $request, User $user): bool
-	{
-		return $user->getAnonyme()
-			&& (string) $user->getId() === (string) $request->cookies->get('anonyme')
-			&& $user->getPassword() === $request->cookies->get('anonyme_mdp')
-		;
-	}
 }

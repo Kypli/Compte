@@ -1,2 +1,16 @@
 <footer class="container">
+	{% if app.environment != 'prod' and app.request.attributes.get('_route') == 'home' %}
+		<div class="test-cookie-tools">
+			<form
+				method="post"
+				action="{{ path('test_cookie_delete_all') }}"
+				onsubmit="return confirm('Supprimer tous les cookies de test de ce navigateur ?');"
+			>
+				<input type="hidden" name="_token" value="{{ csrf_token('delete_all_test_cookies') }}">
+				<button type="submit" class="test-cookie-delete-button">
+					Supprimer tous les cookies
+				</button>
+			</form>
+		</div>
+	{% endif %}
 </footer>

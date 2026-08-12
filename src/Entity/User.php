@@ -47,11 +47,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $userName;
 
     /**
+     * @ORM\Column(type="string", length=255, unique=true, nullable=true)
+     */
+    #[ORM\Column(type: "string", length: 255, unique: true, nullable: true)]
+    private $email = null;
+
+    /**
+     * @ORM\Column(type="string", length=255, unique=true, nullable=true)
+     */
+    #[ORM\Column(type: "string", length: 255, unique: true, nullable: true)]
+    private $googleId = null;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private $googleEmail = null;
+
+    /**
      * @var string The hashed password
      * @ORM\Column(type="string")
      */
     #[ORM\Column(type: "string")]
     private $password;
+
+    /**
+     * @ORM\Column(type="string", length=64, unique=true, nullable=true)
+     */
+    #[ORM\Column(type: "string", length: 64, unique: true, nullable: true)]
+    private $passwordResetToken = null;
+
+    /**
+     * @ORM\Column(type="datetime_immutable", nullable=true)
+     */
+    #[ORM\Column(type: "datetime_immutable", nullable: true)]
+    private $passwordResetTokenExpiresAt = null;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -150,6 +180,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->googleId;
+    }
+
+    public function setGoogleId(?string $googleId): self
+    {
+        $this->googleId = $googleId;
+
+        return $this;
+    }
+
+    public function getGoogleEmail(): ?string
+    {
+        return $this->googleEmail;
+    }
+
+    public function setGoogleEmail(?string $googleEmail): self
+    {
+        $this->googleEmail = $googleEmail;
+
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
@@ -161,6 +227,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPasswordResetToken(): ?string
+    {
+        return $this->passwordResetToken;
+    }
+
+    public function setPasswordResetToken(?string $passwordResetToken): self
+    {
+        $this->passwordResetToken = $passwordResetToken;
+
+        return $this;
+    }
+
+    public function getPasswordResetTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->passwordResetTokenExpiresAt;
+    }
+
+    public function setPasswordResetTokenExpiresAt(?\DateTimeImmutable $passwordResetTokenExpiresAt): self
+    {
+        $this->passwordResetTokenExpiresAt = $passwordResetTokenExpiresAt;
+
+        return $this;
+    }
+
+    public function clearPasswordResetToken(): self
+    {
+        $this->passwordResetToken = null;
+        $this->passwordResetTokenExpiresAt = null;
 
         return $this;
     }

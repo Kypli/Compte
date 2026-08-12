@@ -51,6 +51,8 @@
 		{% block footer %}{% include 'partiel/_footer.html.twig' %}{% endblock %}
 
 		{# TOASTER #}
-		<div id="toaster" class="pointer" data-toaster="{{ message_toaster is defined ? message_toaster : 'Action inconnue !' }}"></div>
+		{% set toaster_messages = app.flashes('toaster') %}
+		{% set toaster_message = toaster_messages|first|default(message_toaster is defined ? message_toaster : '') %}
+		<div id="toaster" class="pointer" role="status" aria-live="polite" aria-atomic="true" data-toaster="{{ toaster_message|e('html_attr') }}"></div>
 	</body>
 </html>

@@ -24,17 +24,9 @@ class HomeController extends AbstractController
 	#[Route("/", name: "")]
 	public function index(Request $request, AuthenticationUtils $authenticationUtils, UserRepository $userRepository, CookieService $cookieService){
 		$testUser = null;
-		$anonymousId = $request->cookies->get('anonyme');
 
-		if (null === $this->getUser() && null !== $anonymousId){
-			$user = $userRepository->find($anonymousId);
-			if (
-				null !== $user
-				&& $user->getAnonyme()
-				&& $user->getPassword() === $request->cookies->get('anonyme_mdp')
-			){
-				$testUser = $user;
-			}
+		if (null === $this->getUser()){
+			$testUser = $cookieService->getAnonymousTestSessionUser($request, $userRepository);
 		}
 
 		$currentUser = $this->getUser();
@@ -48,6 +40,7 @@ class HomeController extends AbstractController
 			'anonyme' => null !== $testUser ? $testUser->getId() : null,
 			'test_user' => $testUser,
 			'test_session_remaining' => $isAnonymousContext ? $cookieService->getAnonymousCookieRemainingTimeLabel($request) : null,
+			'can_create_anonymous_test_session' => $cookieService->canCreateAnonymousTestSession($request),
 		]);
 	}
 }

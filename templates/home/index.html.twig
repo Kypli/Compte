@@ -8,6 +8,7 @@
 {% block javascripts %}
 	{{ parent() }}
 	{{ encore_entry_script_tags('homeConfirm') }}
+	{{ encore_entry_script_tags('homeLoginForm') }}
 {% endblock %}
 
 {% block title %}A vos comptes{% endblock %}
@@ -16,9 +17,10 @@
 
 {% block body %}
 	{% set has_test_cookie = test_user is defined and test_user is not null %}
+	{% set show_test_button = not app.user and not has_test_cookie and anonyme is null and (can_create_anonymous_test_session is not defined or can_create_anonymous_test_session) %}
 
 	<div class="container">
-		<div class='row mb-3'>
+		<div class="row mb-3">
 
 			{# LOGO #}
 			<div id="logo" class="offset-4 col-4 mt-2 center">
@@ -35,8 +37,8 @@
 				Pour une meilleur vision de votre budget !
 			</h3>
 
-			<section class='section'>
-				<div class='row'>
+			<section class="section">
+				<div class="row">
 
 					{# MESSAGE D'ACCUEIL #}
 					<div class="offset-2 col-8 taille22 mt-2">
@@ -58,7 +60,7 @@
 						{# MESSAGES FLASH LOGIN ERROR #}
 						{% for message in app.flashes('login_error') %}
 							<div class="flash-notice mt-2 mb-1 bg-danger text-center">
-								Erreur : {{ message }}
+								Erreur : {{ message|raw }}
 							</div>
 						{% endfor %}
 
@@ -71,23 +73,20 @@
 					</div>
 
 					{# ESPACE MEMBRE - FORM LOGIN #}
-					<div class="{{ app.user or has_test_cookie ? 'col-12' : 'offset-1 col-4' }} mt-1">
+					<div class="{{ app.user or has_test_cookie ? 'col-12' : (show_test_button ? 'offset-1 col-4' : 'offset-4 col-4') }} mt-1">
 						{% include 'home/connexion/_index.html.twig' %}
 					</div>
 
-					{# TEST + INSCRIPTION #}
-					{% if not app.user and not has_test_cookie %}
-					<div class="offset-1 col-5 p-4">
-						<div class='row'>
-
-							{% if null == anonyme %}
-								{# TESTER #}
-								<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
-									<a href="{{ path('user_add_test')}}" class='p-1'>
+					{# TEST #}
+					{% if show_test_button %}
+						<div class="offset-1 col-5 p-4">
+							<div class="row">
+								<div class="offset-2 col-8 d-flex justify-content-center mb-0">
+									<a href="{{ path('user_add_test') }}" class="p-1">
 										<nav>
 											<ul>
-												<li class="pointeur taille20">
-													Tester l'application
+												<li class="pointeur taille20 home-test-button">
+													Tester l'application sans compte
 													<span></span>
 													<span></span>
 													<span></span>
@@ -97,50 +96,8 @@
 										</nav>
 									</a>
 								</div>
-
-								<hr>
-
-								{# S'INSCRIRE #}
-								<div class='offset-1 col-10 d-flex justify-content-center'>
-									<a href="{{ path('user_add')}}" class='p-1'>
-										<nav>
-											<ul>
-												<li class="pointeur taille20">
-													Créer un nouveau compte
-													<span></span><span></span><span></span><span></span>
-												</li>
-											</ul>
-										</nav>
-									</a>
-								</div>
-
-							{# ANONYME #}
-							{% else %}
-								<div class='offset-2 col-8 d-flex justify-content-center mb-0'>
-									<a href="{{ path('user_anonyme_connect', {'id': anonyme})}}" class='p-1'>
-										<nav>
-											<ul>
-												<li class="pointeur taille20">
-													Enregistrez-vous
-													<span></span>
-													<span></span>
-													<span></span>
-													<span></span>
-												</li>
-											</ul>
-										</nav>
-									</a>
-								</div>
-								<small>
-									Pour reprendre là où vous en étiez
-									<br/>
-									et sauvegarder sans risque votre travail,
-									<br/>
-									vous devez vous enregistrer.
-								</small>
-							{% endif %}
+							</div>
 						</div>
-					</div>
 					{% endif %}
 				</div>
 			</section>

@@ -1,4 +1,7 @@
-<table class="table compteTable center" data-sign="{{ signBool == 1 ? '1' : '0' }}">
+<table
+	class="table compteTable center month-display-{{ month_display }}{{ month_display in ['one', 'current'] ? ' month-display-compact' }}"
+	data-sign="{{ signBool == 1 ? '1' : '0' }}"
+>
 	<thead>
 		<tr class="tr_head">
 			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat col_start_top bck_{{ sign }}'>
@@ -12,7 +15,8 @@
 			</th>
 
 			{# MONTHS #}
-			{% for key, month in months %}
+			{% for key in visible_months %}
+				{% set month = months[key] %}
 				{% set done =
 						current_year > year or (current_year == year and key < current_month)
 							? 'done'
@@ -20,7 +24,7 @@
 								? 'current normal italique taille18'
 								: 'normal'
 				%}
-				<th colspan='2' id='month_{{ key }}' class="{{ done }}">{{ month|capitalize }}</th>
+				<th colspan='2' id='month_{{ key }}' class="month-visible {{ done }}">{{ month|capitalize }}</th>
 			{% endfor %}
 
 			{# TOTAL #}
@@ -30,7 +34,7 @@
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
-				{% for month in 01..12 %}
+				{% for month in visible_months %}
 
 					{% set done =
 							current_year > year or (current_year == year and month < current_month)

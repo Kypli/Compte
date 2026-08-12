@@ -1,11 +1,12 @@
-{% for month in 1..24 %}
+{% for month in visible_months %}
 
 	{% set done =
-			current_year > year or (current_year == year and month/2 < (current_month - 0.5))
+			current_year > year or (current_year == year and month < current_month)
 				? 'done'
-				: current_year == year and (month/2 == (current_month - 0.5) or month/2 == current_month)
+				: current_year == year and month == current_month
 					? 'current'
 					: ''
 	%}
+	<td class="total_month_detail_{{ sign }} {{ done }}">0</td>
 	<td class="total_month_detail_{{ sign }} {{ done }}">0</td>
 {% endfor %}

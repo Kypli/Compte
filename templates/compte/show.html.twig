@@ -20,6 +20,7 @@
 		data-year="{{ year }}"
 		data-decouvert="{{ (compte.decouvert * -1) }}"
 		data-months="{{ months_json }}"
+		data-monthdisplay="{{ month_display }}"
 		data-compteid="{{ compte.id }}"
 	>
 
@@ -34,7 +35,18 @@
 
 				{# LÉGENDE #}
 				<div class="offset-1 col-3 center">
-					<span class="button p-2">Légende</span>
+					<button
+						type="button"
+						id="legendButton"
+						class="legend-button"
+						data-toggle="modal"
+						data-target="#modalLegend"
+						aria-haspopup="dialog"
+						aria-controls="modalLegend"
+					>
+						<i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+						<span>Légende</span>
+					</button>
 					<span class="button p-2">Tutoriel</span>
 				</div>
 			</div>
@@ -63,19 +75,19 @@
 				</div>
 
 				{# SOLDE FIN DU MOIS #}
-				{% if false != current_monthEnd %}
+				{% if current_monthEnd is not same as(false) %}
 					<div class="col-4">
 						Solde du compte à la fin du mois:
 						<span
 							id='soldeFinMois'
-							class="soldeActuel total_month_full_{{ color_solde }}"
+							class="soldeActuel total_month_full_{{ color_soldeFinMois }}"
 						>
 							<span id='soldeFinMoisNb'>
 								{{ current_monthEnd|number_format(2, ',', ' ') }}
 							</span>
 							<span	
 								id="soldeFinMoisAlert"						
-								class="taille18 ml-2 pointeur_help float-left{{ color_solde != 'neg' ? ' hide' }}"
+								class="taille18 ml-2 pointeur_help float-left{{ color_soldeFinMois != 'neg' ? ' hide' }}"
 								title="Attention, vous allez dépasser votre autorisation de découvert"
 							>
 								<i class="red fas fa-exclamation"></i>
@@ -92,25 +104,37 @@
 				</div>
 
 				{# LAST ACTIONS #}
-				<div id='last-actions-div' class="col-2">
+				<div id='last-actions-div' class="col-1">
 					{{ include('compte/_last_actions.html.twig') }}
 				</div>
 				
 				{# NAVIGATION YEAR #}
-				<div class="{{ false == current_monthEnd ? 'offset-4 ' }}col-2 center pt-0">
+				<div class="{{ false == current_monthEnd ? 'offset-4 ' }}col-3 center pt-0">
 					{% if year != 'now'|date('Y') %}
-						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y') }) }}">
+						<a href="{{ path('compte_show', { 'id': compte.id, 'year': 'now'|date('Y'), 'months': month_display }) }}">
 							<span class='button'>Retour {{ 'now'|date('Y') }}</span>
 						</a>
 					{% endif %}
-					<div>
-						{% if year > min_year %}
-							<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year - 1) }) }}"><i class="fa-solid fa-arrow-left pointer black" title="Limite année min {{ min_year }}"></i></a>
-						{% endif %}
-						<span class='navigation_elem'>{{ year }}</span>
-						{% if year < max_year %}
-							<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year + 1) }) }}"><i class="fa-solid fa-arrow-right pointer black" title="Limite année max {{ max_year }}"></i></a>
-						{% endif %}
+					<div class="month-navigation-controls">
+						<div class="year-navigation">
+							{% if year > min_year %}
+								<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year - 1), 'months': month_display }) }}"><i class="fa-solid fa-arrow-left pointer black" title="Limite année min {{ min_year }}"></i></a>
+							{% endif %}
+							<span class='navigation_elem'>{{ year }}</span>
+							{% if year < max_year %}
+								<a href="{{ path('compte_show', { 'id': compte.id, 'year': (year + 1), 'months': month_display }) }}"><i class="fa-solid fa-arrow-right pointer black" title="Limite année max {{ max_year }}"></i></a>
+							{% endif %}
+						</div>
+						<form method="get" action="{{ path('compte_show', { 'id': compte.id }) }}" class="month-display-form">
+							<input type="hidden" name="year" value="{{ year }}">
+							<label for="monthDisplay" class="sr-only">Mois affichés</label>
+							<select id="monthDisplay" name="months" class="form-control form-control-sm month-display-select" aria-label="Mois affichés">
+								{% for value, option in month_display_options %}
+									<option value="{{ value }}"{{ value == month_display ? ' selected' }}>{{ option['label'] }}</option>
+								{% endfor %}
+							</select>
+							<button type="submit" class="sr-only">Appliquer</button>
+						</form>
 					</div>
 				</div>
 			</div>
@@ -123,6 +147,7 @@
 
 		{# MODAL GESTION #}
 		{{ include('compte/modal/operations/index.html.twig') }}
+		{{ include('compte/modal/legend/index.html.twig') }}
 
 		{# MODAL CATEGORY #}
 		{{ include('compte/modal/category/index.html.twig') }}

@@ -6,6 +6,8 @@ use App\Entity\User;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
@@ -25,7 +27,7 @@ class UserRepository extends ServiceEntityRepository
 	/**
 	 * Used to upgrade (rehash) the user's password automatically over time.
 	 */
-	public function upgradePassword(UserInterface $user, string $newEncodedPassword): void
+	public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
 	{
 		if (!$user instanceof User) {
 			throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
@@ -91,6 +93,31 @@ class UserRepository extends ServiceEntityRepository
 			->select('u.userName')
 			->setMaxResults(1)
 			->orderBy('u.id', 'DESC')
+			->getQuery()
+			->getOneOrNullResult()
+		;
+	}
+
+	public function findOneForPasswordReset(string $identifier): ?User
+	{
+		return $this->createQueryBuilder('u')
+			->andWhere('u.userName = :identifier OR u.email = :identifier')
+			->andWhere('u.anonyme = FALSE')
+			->setParameter('identifier', $identifier)
+			->setMaxResults(1)
+			->getQuery()
+			->getOneOrNullResult()
+		;
+	}
+
+	public function findOneByValidPasswordResetToken(string $token, \DateTimeImmutable $now): ?User
+	{
+		return $this->createQueryBuilder('u')
+			->andWhere('u.passwordResetToken = :token')
+			->andWhere('u.passwordResetTokenExpiresAt > :now')
+			->setParameter('token', $token)
+			->setParameter('now', $now)
+			->setMaxResults(1)
 			->getQuery()
 			->getOneOrNullResult()
 		;

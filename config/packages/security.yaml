@@ -44,6 +44,12 @@ security:
                 # always_use_default_target_path: true
                 # csrf_token_generator: security.csrf.token_manager
 
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 2592000
+                path: /
+                remember_me_parameter: _remember_me
+
             logout:
                 path: /logout
                 target: logout_alert

@@ -7,8 +7,8 @@
 
 	{% set operationsBySc = operations[subcategory.id] %}
 
-	{# 12 MOIS #}
-	{% for month in 1..12 %}
+	{# MOIS AFFICHES #}
+	{% for month in visible_months %}
 
 		{# VAR #}
 		{% set reel = '0' %}

@@ -15,6 +15,21 @@ $main-color: #8FB4A3;
 	background-color: $main-color;
 	padding: 0px;
 }
+.navbar-logo-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: auto;
+	padding: 8px 18px;
+}
+.navbar-logo-placeholder img {
+	display: block;
+	width: 96px;
+	height: 42px;
+	object-fit: cover;
+	border: 2px solid rgba(255, 255, 255, 0.75);
+	border-radius: 4px;
+}
 #navbarSupportedContent{
 	overflow: hidden;
 	position: relative;
@@ -171,6 +186,14 @@ $main-color: #8FB4A3;
 
 
 @media (max-width: 991px){
+	.navbar-logo-placeholder {
+		margin-left: 0;
+		padding: 8px 14px;
+	}
+	.navbar-logo-placeholder img {
+		width: 82px;
+		height: 36px;
+	}
 	#navbarSupportedContent ul li a{
 		padding: 12px 30px;
 	}

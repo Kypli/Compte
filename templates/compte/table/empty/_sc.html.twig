@@ -1,4 +1,4 @@
-{% for month in 1..12 %}
+{% for month in visible_months %}
 	{% set done =
 			current_year > year or (current_year == year and month < current_month)
 				? 'done'

@@ -1,7 +1,7 @@
 {# EMPTY TR #}
 <tr class="collabo">
 	<td colspan="2" class="col_start_middle bck_{{ sign }}"></td>
-	<td colspan="24" class="bck_{{ sign }}"></td>
+	<td colspan="{{ visible_months|length * 2 }}" class="bck_{{ sign }}"></td>
 	<td colspan="3" class="td_total bck_black"></td>
 </tr>
 
@@ -12,7 +12,7 @@
 		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
-			{% for month in 1..12 %}
+			{% for month in visible_months %}
 
 				{% set done =
 					current_year > year or (current_year == year and month < current_month)
@@ -49,7 +49,7 @@
 		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
-			{% for month in 1..12 %}
+			{% for month in visible_months %}
 
 				{% set done =
 						current_year > year or (current_year == year and month < current_month)

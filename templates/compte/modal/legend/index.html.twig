@@ -1,0 +1,111 @@
+<div
+	id="modalLegend"
+	class="modal fade"
+	tabindex="-1"
+	role="dialog"
+	aria-labelledby="modalLegendTitle"
+	aria-hidden="true"
+>
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+		<div class="modal-content legend-modal-content">
+			<div class="modal-header">
+				<h4 id="modalLegendTitle" class="modal-title">Légende des couleurs</h4>
+				<button
+					type="button"
+					class="legend-close-button"
+					data-dismiss="modal"
+					aria-label="Fermer"
+					title="Fermer"
+				>
+					<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+				</button>
+			</div>
+
+			<div class="modal-body">
+				<div class="legend-grid">
+					<section class="legend-section" aria-labelledby="legendBackgroundTitle">
+						<h5 id="legendBackgroundTitle" class="legend-section-title">Couleurs de fond</h5>
+						<ul class="legend-list">
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample bck_pos" aria-hidden="true"></span>
+								<span>Zone des revenus.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample bck_neg" aria-hidden="true"></span>
+								<span>Zone des dépenses.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample bck_solde" aria-hidden="true"></span>
+								<span>Zone des gains et des soldes.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample done" aria-hidden="true"></span>
+								<span>Mois terminé.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample legend-background-current" aria-hidden="true"></span>
+								<span>Mois en cours.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample legend-background-future" aria-hidden="true"></span>
+								<span>Mois à venir.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample legend-background-edit" aria-hidden="true"></span>
+								<span>Cellule modifiable survolée.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-background-sample bck_black" aria-hidden="true"></span>
+								<span>Zone sans calcul applicable.</span>
+							</li>
+						</ul>
+					</section>
+
+					<section class="legend-section" aria-labelledby="legendTextTitle">
+						<h5 id="legendTextTitle" class="legend-section-title">Couleurs du texte</h5>
+						<ul class="legend-list">
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_detail_pos">123,45 €</span>
+								<span>Détail d'un revenu.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_detail_neg">123,45 €</span>
+								<span>Détail d'une dépense.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_full_pos">123,45 €</span>
+								<span>Total, gain ou solde positif.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_full_neg">-123,45 €</span>
+								<span>Total, gain ou solde négatif.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_full_dec">-123,45 €</span>
+								<span>Solde négatif couvert par le découvert autorisé.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample anticipe">123,45 €</span>
+								<span>Opération anticipée, clignotante si sa date est dépassée.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-text-sample total_month_full_neutre">0,00 €</span>
+								<span>Solde neutre.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-alert-sample" aria-hidden="true">
+									<i class="red fas fa-exclamation"></i>
+								</span>
+								<span>Découvert autorisé dépassé, ou risque de dépassement à la fin du mois.</span>
+							</li>
+						</ul>
+					</section>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-dark" data-dismiss="modal">Fermer</button>
+			</div>
+		</div>
+	</div>
+</div>

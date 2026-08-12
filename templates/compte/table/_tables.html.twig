@@ -2,16 +2,22 @@
 
 	{# TABLE + #}
 	<div class="col-12 pt-2 bck_pos">
-		{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true } %}
+		<div class="compte-table-viewport">
+			{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true } %}
+		</div>
 	</div>
 
 	{# TABLE - #}
 	<div class="col-12 pt-2 bck_neg">
-		{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
+		<div class="compte-table-viewport">
+			{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false } %}
+		</div>
 	</div>
 
 	{# SOLDE #}
 	<div class="col-12 mb-5 pt-3 bck_solde">
-		{{ include('compte/table/_table_gains.html.twig') }}
+		<div class="compte-table-viewport">
+			{{ include('compte/table/_table_gains.html.twig') }}
+		</div>
 	</div>
 </div>

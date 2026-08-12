@@ -46,6 +46,160 @@ a:link {
   justify-content: center;
 }
 
+.user-anonymous-register-panel {
+  --user-register-field-width: 330px;
+  max-width: 430px;
+  margin: 20px auto 0;
+}
+
+.user-anonymous-register-panel .form_login {
+  align-items: center;
+}
+
+.user-anonymous-register-panel input {
+  width: 100%;
+  max-width: var(--user-register-field-width);
+  box-sizing: border-box;
+  color: #30742A;
+  background-color: #CFE9CD;
+  border: 2px solid black;
+}
+
+.user-anonymous-register-panel .home-google-connect {
+  width: 100%;
+  max-width: var(--user-register-field-width);
+  min-height: 42px;
+  box-sizing: border-box;
+  color: #1f1f1f;
+  background: #fff;
+  border: 1px solid #747775;
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.user-anonymous-register-panel .home-google-connect:hover,
+.user-anonymous-register-panel .home-google-connect:focus {
+  color: #1f1f1f;
+  background: #f7f8f8;
+  border-color: #747775;
+  box-shadow: none;
+}
+
+.user-anonymous-register-panel .user-google-icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.user-anonymous-register-panel .home-register-choice {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.user-anonymous-register-panel .home-login-separator {
+  width: 100%;
+  margin: 14px 0 12px;
+  color: #e9f5db;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.user-anonymous-register-panel .home-login-submit {
+  display: inline-block;
+  min-width: 150px;
+  max-width: 100%;
+  color: #30742A;
+  background-color: #d9efc2;
+  border-color: #173f1f;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .55);
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.25;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+  white-space: normal;
+}
+
+.user-anonymous-register-panel .home-login-submit:hover,
+.user-anonymous-register-panel .home-login-submit:focus {
+  color: #111;
+  background-color: #f6d56b;
+  border-color: #735012;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .55);
+  outline: none;
+  transform: translateY(1px);
+}
+
+.user-anonymous-register-panel .home-login-submit:active {
+  box-shadow: none;
+  transform: translateY(2px);
+}
+
+.user-anonymous-register-panel .home-password-field {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: var(--user-register-field-width);
+}
+
+.user-anonymous-register-panel .home-password-field input {
+  max-width: 100%;
+  padding-right: 48px !important;
+}
+
+.user-anonymous-register-panel .home-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  color: #295935;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.user-anonymous-register-panel .home-password-toggle:hover,
+.user-anonymous-register-panel .home-password-toggle:focus {
+  color: #111;
+  background: transparent;
+  outline: none;
+}
+
+.user-anonymous-register-panel .home-password-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.user-anonymous-register-panel .home-password-slash {
+  display: none;
+  stroke-width: 2.6;
+}
+
+.user-anonymous-register-panel .home-password-toggle-visible .home-password-slash {
+  display: block;
+}
+
 #td_solde a:visited {
   text-decoration: none;
 }

@@ -25,6 +25,7 @@ Encore
     // Home
     .addStyleEntry('home', './assets/styles/home/home.css')
     .addEntry('homeConfirm', './assets/js/home/confirm.js')
+    .addEntry('homeLoginForm', './assets/js/home/login-form.js')
 
     // NavBar
     .addEntry('navbar', './assets/js/navbar/navbar.js')

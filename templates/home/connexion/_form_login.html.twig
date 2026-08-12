@@ -1,38 +1,125 @@
-<form action="{{ path('login') }}" method="post">
+<form action="{{ path('login_or_register') }}" method="post" data-login-register-form>
 	<div class="row form_login">
 
+		<div class="col-12 d-flex justify-content-center home-register-choice">
+			<a class="home-google-connect" href="{{ path('connect_google_start') }}">
+				<svg class="home-google-icon" viewBox="0 0 18 18" aria-hidden="true">
+					<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.08-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.87 2.69-6.62Z"></path>
+					<path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33C2.44 15.98 5.48 18 9 18Z"></path>
+					<path fill="#FBBC05" d="M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9.01 9.01 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33Z"></path>
+					<path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3 2.33C4.67 5.17 6.66 3.58 9 3.58Z"></path>
+				</svg>
+				Continuer avec Google
+			</a>
+		</div>
+
+		<div class="col-12 home-register-choice">
+			<div class="home-login-separator">OU</div>
+		</div>
+
 		{# USERNAME #}
-		<div class="col-12 mt-2">
+		<div class="col-12">
 			<input
 				class="p-2 taille20"
 				type="text"
 				id="username"
 				name="_username"
-        		placeholder="Login ou Pseudo"
+				placeholder="Login, Email ou Pseudo"
 				value="{{ last_username }}"
 				required="required"
+				minlength="5"
+				data-register-username
+			/>
+		</div>
+
+		<div class="col-12 mt-3 home-register-fields" hidden data-register-fields>
+			<input
+				class="p-2 taille20"
+				type="email"
+				id="email"
+				name="_email"
+				placeholder="Email"
+				disabled
+				data-register-email
 			/>
 		</div>
 
 		{# MDP #}
-		<div class="col-12 mt-3 mb-3">
-			<input
-				class="p-2 taille20 gg"
-				type="password"
-				id="password"
-				name="_password"
-        		placeholder="Mot de passe"
-				required="required"
-			/>
+		<div class="col-12 mt-4">
+			<div class="home-password-field">
+				<input
+					class="p-2 taille20 gg"
+					type="password"
+					id="password"
+					name="_password"
+					placeholder="Mot de passe"
+					required="required"
+					minlength="6"
+					pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}"
+					title="Minimum 6 caractères, avec au moins 1 majuscule, 1 minuscule et 1 chiffre."
+					data-password-input
+				/>
+				<button type="button" class="home-password-toggle" aria-label="Afficher le mot de passe" data-password-toggle>
+					<svg class="home-password-icon" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+						<circle cx="12" cy="12" r="3"></circle>
+						<path class="home-password-slash" d="M4 4l16 16"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div class="col-12 mt-3 mb-3 home-register-fields" hidden data-register-fields>
+			<div class="home-password-field">
+				<input
+					class="p-2 taille20 gg"
+					type="password"
+					id="password_confirm"
+					name="_password_confirm"
+					placeholder="Confirmer le MdP"
+					minlength="6"
+					pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}"
+					title="Minimum 6 caractères, avec au moins 1 majuscule, 1 minuscule et 1 chiffre."
+					disabled
+					data-password-input
+					data-register-password-confirm
+				/>
+				<button type="button" class="home-password-toggle" aria-label="Afficher le mot de passe" data-password-toggle>
+					<svg class="home-password-icon" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+						<circle cx="12" cy="12" r="3"></circle>
+						<path class="home-password-slash" d="M4 4l16 16"></path>
+					</svg>
+				</button>
+			</div>
 		</div>
 
 		{# If you want to control the URL the user is redirected to on success #}
 		<input type="hidden" name="home" value="/account"/>
 		<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
+		<div class="col-12 d-flex justify-content-center home-remember-row">
+			<label class="home-remember-me">
+				<input type="checkbox" name="_remember_me" value="1">
+				<span>Se souvenir de moi</span>
+			</label>
+		</div>
+
 		{# VALID #}
-		<div class="offset-2 col-8">
-			<button class='p-2 m-2 mt-0 floatleft radius-button taille22' type="submit">&nbsp;&nbsp;Se connecter&nbsp;&nbsp;</button>
+		<div class="col-12">
+			<div class="home-login-actions">
+				<div class="home-login-primary-action">
+					<button class="p-2 m-2 mt-0 taille22 home-login-submit" type="submit" name="login_action" value="login" formnovalidate data-login-submit>
+						Se connecter
+					</button>
+					<a class="home-forgot-password home-login-only" href="{{ path('forgot_password_request') }}">
+						Mot de passe oublie ?
+					</a>
+				</div>
+				<button class="p-2 m-2 mt-0 taille22 home-login-submit home-login-create" type="submit" name="login_action" value="register" data-register-submit>
+					Créer un compte
+				</button>
+			</div>
 		</div>
 	</div>
 </form>

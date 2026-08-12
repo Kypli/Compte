@@ -1,12 +1,15 @@
-<table class="table compteTable center">
+<table class="table compteTable center month-display-{{ month_display }}{{ month_display in ['one', 'current'] ? ' month-display-compact' }}">
 
 	{# GAIN MENSUEL #}
 	<tr class='tr_head'>
 		<th colspan="4" class="th_solde_cache col_start_top alignRight centerHor">Gain mensuel</th>
 
 		{% set revenuAnnuel = 0 %}
+		{% for gain in gains %}
+			{% set revenuAnnuel = gain['cumule'] %}
+		{% endfor %}
 
-		{% for month in 1..12 %}
+		{% for month in visible_months %}
 
 			{% set done =
 				current_year > year or (current_year == year and month < current_month)
@@ -19,14 +22,13 @@
 			{# DATAS #}
 			{% if gains[month] is defined %}
 				{% set number = gains[month]['gain'] %}
-				{% set revenuAnnuel = gains[month]['cumule'] %}
 
-				<th	colspan='2' class="{{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+				<th	colspan='2' class="month-visible {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number|number_format(2, ',', ' ') }}
 				</th>
 
 			{% else %}
-				<th colspan='2' class="total_month_full_pos {{ done }}">0</th>
+				<th colspan='2' class="month-visible total_month_full_pos {{ done }}">0</th>
 			{% endif %}
 		{% endfor %}
 		<th colspan="3" class="col_end_top_solde th_solde_cache_2 souligne">Gain annuel</th>
@@ -37,7 +39,7 @@
 		<th class="th_solde_cache"></th>
 		<th colspan="3" class="th_solde_cache alignRight centerHor">Gain mensuel cumulé</th>
 
-		{% for month in 1..12 %}
+		{% for month in visible_months %}
 
 			{% set done =
 					current_year > year or (current_year == year and month < current_month)
@@ -51,12 +53,12 @@
 			{% if gains[month] is defined %}
 				{% set number = gains[month]['cumule'] %}
 
-				<th colspan='2' class="centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+				<th colspan='2' class="month-visible centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number|number_format(2, ',', ' ') }}
 				</th>
 
 			{% else %}
-				<th colspan='2' class="centerHor {{ done }} total_month_full_pos">0</th>
+				<th colspan='2' class="month-visible centerHor {{ done }} total_month_full_pos">0</th>
 			{% endif %}
 		{% endfor %}
 		<td
