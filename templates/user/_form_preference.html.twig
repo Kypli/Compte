@@ -1,33 +1,56 @@
-{{ form_start(form) }}
+{{ form_start(form, {'attr': {'class': 'user-preference-form', 'data-preference-autosave': 'true'}}) }}
+	<section id="tableau-de-bord" class="preference-page-section" data-preference-panel="tableau-de-bord" role="tabpanel">
+		<header class="preference-section-heading">
+			<i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+			<h3>Tableau de bord</h3>
+		</header>
+		<section class="preference-section" aria-labelledby="dashboardBackgroundTitle">
+			<h4 id="dashboardBackgroundTitle">Couleur de fond de la page</h4>
+			<div class="page-color-choice-grid">
+				{% for choice in form.dashboardBackground %}
+					<label class="page-color-choice page-color-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
+						{{ form_widget(choice, {'attr': {'class': 'page-color-choice-input'}}) }}
+						<span class="page-color-choice-content">
+							<span class="page-color-preview" aria-hidden="true"></span>
+							<span class="preference-choice-heading">
+								<span class="page-color-choice-title">{{ choice.vars.label }}</span>
+								{% if loop.first %}
+									<span class="preference-default-label">Par d&eacute;faut</span>
+								{% endif %}
+							</span>
+						</span>
+					</label>
+				{% endfor %}
+			</div>
+		</section>
+	</section>
 
-	{% set label = 'col-5 offset-1 mb-4 alignRight' %}
-	{% set widget = 'p-1 col-1 mb-4' %}
-	{% set widget_check = 'p-1 col-1 mb-4' %}
+	<section id="comptes" class="preference-page-section" data-preference-panel="comptes" role="tabpanel" hidden>
+		<header class="preference-section-heading">
+			<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+			<h3>Comptes</h3>
+		</header>
+		{% include 'user/_account_preference_fields.html.twig' with {'form': form, 'title_prefix': 'account'} %}
+	</section>
 
-	{# PRÉFÉRENCES #}
-	<div class="row center mt-5">
-		<div class="col-4 offset-4 mb-4 souligne">
-			Préférences
-		</div>
-	</div>
+	{% set dashboard_sections = [
+		{'id': 'credit', 'icon': 'fa-credit-card', 'title': 'Cr&eacute;dit'},
+		{'id': 'immobilier', 'icon': 'fa-building', 'title': 'Immobilier'},
+		{'id': 'mobilier', 'icon': 'fa-couch', 'title': 'Mobilier'},
+		{'id': 'investissement', 'icon': 'fa-chart-line', 'title': 'Investissement'},
+		{'id': 'total', 'icon': 'fa-calculator', 'title': 'TOTAL'}
+	] %}
+	{% for preference_section in dashboard_sections %}
+		<section id="{{ preference_section.id }}" class="preference-page-section" data-preference-panel="{{ preference_section.id }}" role="tabpanel" hidden>
+			<header class="preference-section-heading">
+				<i class="fa-solid {{ preference_section.icon }}" aria-hidden="true"></i>
+				<h3>{{ preference_section.title|raw }}</h3>
+			</header>
+			<section class="preference-section preference-section-empty" aria-label="{{ preference_section.title|raw }}">
+				<span class="preference-empty-mark" aria-hidden="true"></span>
+			</section>
+		</section>
+	{% endfor %}
 
-	{# PRÉFÉRENCES FORM #}
-	<div class="row center mt-4 mb-5">
-
-		{# COMPTE GENRE SHOW #}
-		<div class="{{ label }}">
-			{{ form_label(form.compteGenreShow) }}
-		</div>
-		<div class="{{ widget_check }}">
-			{{ form_widget(form.compteGenreShow) }}
-		</div>
-	</div>
-
-	{{ form_widget(form) }}
-
-	<div class="offset-6 col-2 mt-5">
-		<button class="m-2 mt-0 floatleft radius-button taille22">
-			&nbsp;&nbsp;{{ button_label|default("Modifier") }}&nbsp;&nbsp;
-		</button>
-	</div>
+	{{ form_rest(form) }}
 {{ form_end(form) }}

@@ -1,6 +1,13 @@
 {# EMPTY TR #}
 <tr class="collabo">
-	<td colspan="2" class="col_start_middle bck_{{ sign }}"></td>
+	<td
+		colspan="2"
+		class="col_start_middle bck_{{ sign }} category-drop-end"
+		data-category-drop-end="true"
+		tabindex="-1"
+	>
+		<span class="category-drop-end-label">Dernière position</span>
+	</td>
 	<td colspan="{{ visible_months|length * 2 }}" class="bck_{{ sign }}"></td>
 	<td colspan="3" class="td_total bck_black"></td>
 </tr>
@@ -26,16 +33,16 @@
 
 					{% set ope = operations['totaux_mois'][month] %}
 
-					<td class="{{ done }} total_month_detail_{{ sign }}">
+					<td class="month-cell-start {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}">
 						{{ ope['reel'] is defined ? ope['reel'] : '0' }}
 					</td>
-					<td class="{{ done }} total_month_detail_{{ sign }}">
+					<td class="month-cell-end {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}">
 						{{ ope['anticipe'] is defined ? ope['anticipe'] : '0' }}
 					</td>
 
 				{% else %}
-					<td class="{{ done }} total_month_detail_{{ sign }}">0</td>
-					<td class="{{ done }} total_month_detail_{{ sign }}">0</td>
+					<td class="month-cell-start {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}">0</td>
+					<td class="month-cell-end {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}">0</td>
 				{% endif %}
 			{% endfor %}
 		{% else %}
@@ -60,17 +67,17 @@
 				%}
 
 				{% if operations['totaux_mois'][month] is defined %}
-					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">
+					<td colspan="2" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}">
 						{{ operations['totaux_mois'][month]['total']|number_format(2, ',', ' ') }}
 					</td>
 				{% else %}
-					<td colspan="2" class="{{ done }} total_month_full_{{ sign }}">0</td>
+					<td colspan="2" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}">0</td>
 				{% endif %}
 			{% endfor %}
 		{% else %}
 			{{ include('compte/table/empty/_totaux_mois_full.html.twig') }}
 		{% endif %}
-		<td class="td_total souligne done">{{ operations['total_final'] }}</td>
-		<td class="done">{{ (operations['total_final'] / 12)|number_format(2, ',', ' ') }}</td>
-		<td class="done">{{ operations['totaux_mois'] is defined ? 100 : 0 }}</td>
+		<td class="year-total td_total souligne done">{{ operations['total_final'] }}</td>
+		<td class="year-total done">{{ (operations['total_final'] / 12)|number_format(2, ',', ' ') }}</td>
+		<td class="year-total done">{{ operations['totaux_mois'] is defined ? 100 : 0 }}</td>
 	</tr>

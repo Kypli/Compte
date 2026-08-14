@@ -2,6 +2,8 @@
 
 {% block title %}Tableau de bord{% endblock %}
 
+{% block body_class %}dashboard-background-{{ app.user.preferences.dashboardBackground|default('green') }}{% endblock %}
+
 {% block stylesheets %}
 	{{ parent() }}
 	{{ encore_entry_link_tags('dashboard') }}

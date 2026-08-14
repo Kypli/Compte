@@ -1,0 +1,57 @@
+<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}DisplayTitle">
+	<h4 id="{{ title_prefix|default('account') }}DisplayTitle">Tableau</h4>
+	<div class="preference-toggle-row">
+		{{ form_label(form.compteGenreShow) }}
+		{{ form_widget(form.compteGenreShow, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+	</div>
+	<div class="preference-toggle-row">
+		{{ form_label(form.showEditableBorder) }}
+		{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+	</div>
+</section>
+
+<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}BackgroundTitle">
+	<h4 id="{{ title_prefix|default('account') }}BackgroundTitle">Couleur de fond de la page</h4>
+	<div class="page-color-choice-grid">
+		{% for choice in form.accountBackground %}
+			<label class="page-color-choice page-color-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
+				{{ form_widget(choice, {'attr': {'class': 'page-color-choice-input'}}) }}
+				<span class="page-color-choice-content">
+					<span class="page-color-preview" aria-hidden="true"></span>
+					<span class="preference-choice-heading">
+						<span class="page-color-choice-title">{{ choice.vars.label }}</span>
+						{% if loop.first %}
+							<span class="preference-default-label">Par d&eacute;faut</span>
+						{% endif %}
+					</span>
+				</span>
+			</label>
+		{% endfor %}
+	</div>
+</section>
+
+<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}TablePaletteTitle">
+	<h4 id="{{ title_prefix|default('account') }}TablePaletteTitle">Couleurs du tableau</h4>
+	<div class="palette-choice-grid">
+		{% for choice in form.tablePalette %}
+			<label class="palette-choice palette-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
+				{{ form_widget(choice, {'attr': {'class': 'palette-choice-input'}}) }}
+				<span class="palette-choice-content">
+					<span class="preference-choice-heading">
+						<span class="palette-choice-title">{{ choice.vars.label }}</span>
+						{% if loop.first %}
+							<span class="preference-default-label">Par d&eacute;faut</span>
+						{% endif %}
+					</span>
+					<span class="palette-swatches" aria-hidden="true">
+						<span class="palette-swatch palette-category" title="Categorie et sous-categorie"></span>
+						<span class="palette-swatch palette-past" title="Mois passe"></span>
+						<span class="palette-swatch palette-current" title="Mois en cours"></span>
+						<span class="palette-swatch palette-future" title="Mois a venir"></span>
+						<span class="palette-swatch palette-total" title="Total"></span>
+					</span>
+				</span>
+			</label>
+		{% endfor %}
+	</div>
+</section>

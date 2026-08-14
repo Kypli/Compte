@@ -92,6 +92,28 @@ class OperationRepository extends ServiceEntityRepository
 	}
 
 	/**
+	 * @return Operation[]
+	 */
+	public function findOverdueAnticipatedForCompte(int $compteId): array
+	{
+		return $this->createQueryBuilder('x')
+			->addSelect('sc', 'ca')
+			->leftJoin('x.subcategory', 'sc')
+			->leftJoin('sc.category', 'ca')
+			->where('ca.compte = :compte')
+			->andWhere('x.anticipe = true')
+			->andWhere('x.actif = true')
+			->andWhere('x.date < :today')
+			->setParameter('compte', $compteId)
+			->setParameter('today', new \DateTimeImmutable('today'))
+			->orderBy('x.date', 'ASC')
+			->addOrderBy('x.id', 'ASC')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
 	 * Renvoie les opérations d'une SC pour un mois
 	 */
 	public function gestion($sc, $year, $month, $sign, $daysInMonth): ?array
@@ -153,34 +175,4 @@ class OperationRepository extends ServiceEntityRepository
 		;
 	}
 
-	/**
-	 * Renvoie les x dernières actions
-	 */
-	public function lastAction($compte_id, $nb_actions)
-	{
-		return $this->createQueryBuilder('x')
-			->leftjoin('x.subcategory', 'sc')
-			->leftjoin('sc.category', 'cat')
-			->leftjoin('cat.compte', 'c')
-
-			->select([
-				'x.dateLastAction',
-				'x.lastAction',
-				'x.number',
-				'x.date',
-				'sc.libelle as sc_libelle',
-				'cat.libelle as cat_libelle',
-				'cat.sign as sign',
-			])
-
-			->where('c.id = :compte_id')
-			->setParameter('compte_id', $compte_id)
-
-			->orderBy('x.dateLastAction', 'DESC')
-			->setMaxResults($nb_actions)
-
-			->getQuery()
-			->getArrayResult()
-		;
-	}
 }

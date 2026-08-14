@@ -35,7 +35,7 @@
 
 		{# REEL #}
 		<td
-			class="{{ done|trim }}"
+			class="month-cell-start {{ done|trim }}"
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
 			data-anticipe="0"
@@ -47,7 +47,7 @@
 
 		{# ANTICIPE #}
 		<td
-			class='{{ done }}{{ blink }}anticipe'
+			class='month-cell-end {{ done }}{{ blink }}anticipe'
 			data-month="{{ month }}"
 			data-scid="{{ subcategory.id }}"
 			data-anticipe="1"
@@ -59,7 +59,7 @@
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="counterEdit done td_total_border">{{ operationsBySc['total'] }}</td>
-	<td class="counterEdit done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
-	<td class="counterEdit done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
+	<td class="year-total counterEdit done td_total_border">{{ operationsBySc['total'] }}</td>
+	<td class="year-total counterEdit done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
+	<td class="year-total counterEdit done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
 {% endif %}

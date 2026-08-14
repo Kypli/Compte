@@ -1,10 +1,19 @@
+{% set displayed_categories = compte.categories
+	|filter(category => category.sign == signBool and category.year == year)
+	|sort((a, b) => a.position <=> b.position)
+%}
+
 <table
 	class="table compteTable center month-display-{{ month_display }}{{ month_display in ['one', 'current'] ? ' month-display-compact' }}"
 	data-sign="{{ signBool == 1 ? '1' : '0' }}"
+	data-category-reorder-url="{{ path('compte_category_reorder', {'id': compte.id}) }}"
+	data-category-reorder-token="{{ csrf_token('reorder-categories' ~ compte.id) }}"
+	data-subcategory-reorder-url="{{ path('compte_subcategory_reorder', {'id': compte.id}) }}"
+	data-subcategory-reorder-token="{{ csrf_token('reorder-subcategories' ~ compte.id) }}"
 >
 	<thead>
 		<tr class="tr_head">
-			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat col_start_top bck_{{ sign }}'>
+			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat category-header col_start_top bck_{{ sign }}'>
 				<button data-target="#modalCategory" data-toggle="modal">Ajout catégorie</button>
 				{{ 
 					sign == 'pos'
@@ -24,13 +33,22 @@
 								? 'current normal italique taille18'
 								: 'normal'
 				%}
-				<th colspan='2' id='month_{{ key }}' class="month-visible {{ done }}">{{ month|capitalize }}</th>
+				<th
+					colspan='2'
+					id='month_{{ key }}'
+					class="month-visible month-selector month-cell-span {{ done }}"
+					data-month="{{ key }}"
+					role="button"
+					tabindex="0"
+					aria-pressed="false"
+					title="Mettre ce mois en évidence"
+				>{{ month|capitalize }}</th>
 			{% endfor %}
 
 			{# TOTAL #}
-			<th id='total' class="td_total_border done col_end_top">Total</th>
-			<th id='totalByMonth' class="done col_end_top">X€ / mois</th>
-			<th id='percent' class="done col_end_top">%</th>
+			<th id='total' class="year-total td_total_border done col_end_top">Total</th>
+			<th id='totalByMonth' class="year-total done col_end_top">X€ / mois</th>
+			<th id='percent' class="year-total done col_end_top">%</th>
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
@@ -43,49 +61,82 @@
 									? 'current'
 									: ''
 					%}
-					<td class="{{ done }}">Fait</td>
-					<td class="{{ done }}">A ven.</td>
+					<td class="month-cell-start {{ done }}" data-month="{{ month }}">Fait</td>
+					<td class="month-cell-end {{ done }}" data-month="{{ month }}">A ven.</td>
 				{% endfor %}
-				<th colspan="3" class="td_total_border done"></th>
+				<th colspan="3" class="year-total td_total_border done"></th>
 			</tr>
 		{% endif %}
 	</thead>
 	<tbody>
-		{% for category in compte.categories|sort((a, b) => a.position <=> b.position) %}
-			{% if category.sign == signBool and category.year == year %}
-				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
-					<tr class='{{ loop.first ? "tr_operation_first" }} edit'>
+		{% for category in displayed_categories %}
+			{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
+				<tr class='{{ loop.first ? "tr_operation_first" }} edit' data-category-row="{{ category.id }}">
 
-						{# CAT #}
-						{% if loop.first %}
-							<td
-								data-target="#modalCategory"
-								data-toggle="modal"
-								data-id="{{ category.id }}"
-								data-focusa="cat_{{ category.id }}"
-								class='td_category_libelle'
-								rowspan='{{ category.subcategories|length }}'
-							>
-								{{ category.libelle|capitalize }}
-							<td/>
-						{% endif %}
-
-						{# SC #}
+					{# CAT #}
+					{% if loop.first %}
 						<td
 							data-target="#modalCategory"
 							data-toggle="modal"
 							data-id="{{ category.id }}"
-							data-focusa="sc_{{ subcategory.id }}"
-							class='td_subcategory_libelle'
+							data-focusa="cat_{{ category.id }}"
+							data-category-drop-before="{{ category.id }}"
+							class='td_category_libelle'
+							rowspan='{{ category.subcategories|length }}'
 						>
-							{{ subcategory.libelle|capitalize }}
+							<span class="category-label-content">
+								<span class="category-label-text">{{ category.libelle|capitalize }}</span>
+								{% if displayed_categories|length > 1 %}
+									<button
+										type="button"
+										class="category-drag-handle"
+										draggable="true"
+										data-category-id="{{ category.id }}"
+										aria-grabbed="false"
+										aria-label="Déplacer la catégorie {{ category.libelle }}"
+										title="Déplacer cette catégorie"
+									>
+										<i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+									</button>
+								{% endif %}
+							</span>
 						</td>
+					{% endif %}
 
-						{# OPE #}
-						{{ include('compte/table/_sc_operations.html.twig') }}
-					</tr>
-				{% endfor %}
-			{% endif %}
+					{# SC #}
+					<td
+						data-target="#modalCategory"
+						data-toggle="modal"
+						data-id="{{ category.id }}"
+						data-focusa="sc_{{ subcategory.id }}"
+						data-subcategory-drop-before="{{ subcategory.id }}"
+						data-subcategory-category-id="{{ category.id }}"
+						{% if loop.last %}data-subcategory-drop-end="{{ category.id }}"{% endif %}
+						class='td_subcategory_libelle'
+					>
+						<span class="subcategory-label-content">
+							<span class="subcategory-label-text">{{ subcategory.libelle|capitalize }}</span>
+							{% if category.subcategories|length > 1 %}
+								<button
+									type="button"
+									class="subcategory-drag-handle"
+									draggable="true"
+									data-subcategory-id="{{ subcategory.id }}"
+									data-subcategory-category-id="{{ category.id }}"
+									aria-grabbed="false"
+									aria-label="D&eacute;placer la sous-cat&eacute;gorie {{ subcategory.libelle }}"
+									title="D&eacute;placer cette sous-cat&eacute;gorie"
+								>
+									<i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+								</button>
+							{% endif %}
+						</span>
+					</td>
+
+					{# OPE #}
+					{{ include('compte/table/_sc_operations.html.twig') }}
+				</tr>
+			{% endfor %}
 		{% endfor %}
 		{{ include('compte/table/_table_totaux_mensuel.html.twig') }}
 	</tbody>

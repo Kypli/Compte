@@ -9,7 +9,7 @@
 	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
 		<div class="modal-content legend-modal-content">
 			<div class="modal-header">
-				<h4 id="modalLegendTitle" class="modal-title">Légende des couleurs</h4>
+				<h4 id="modalLegendTitle" class="modal-title">L&eacute;gende des couleurs</h4>
 				<button
 					type="button"
 					class="legend-close-button"
@@ -32,7 +32,7 @@
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample bck_neg" aria-hidden="true"></span>
-								<span>Zone des dépenses.</span>
+								<span>Zone des d&eacute;penses.</span>
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample bck_solde" aria-hidden="true"></span>
@@ -40,7 +40,7 @@
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample done" aria-hidden="true"></span>
-								<span>Mois terminé.</span>
+								<span>Mois termin&eacute;.</span>
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample legend-background-current" aria-hidden="true"></span>
@@ -48,11 +48,11 @@
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample legend-background-future" aria-hidden="true"></span>
-								<span>Mois à venir.</span>
+								<span>Mois &agrave; venir.</span>
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample legend-background-edit" aria-hidden="true"></span>
-								<span>Cellule modifiable survolée.</span>
+								<span>Bordure jaune d'une zone modifiable.</span>
 							</li>
 							<li class="legend-item">
 								<span class="legend-color-sample legend-background-sample bck_black" aria-hidden="true"></span>
@@ -65,38 +65,44 @@
 						<h5 id="legendTextTitle" class="legend-section-title">Couleurs du texte</h5>
 						<ul class="legend-list">
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_detail_pos">123,45 €</span>
-								<span>Détail d'un revenu.</span>
+								<span class="legend-color-sample legend-text-sample total_month_detail_pos">123,45 &euro;</span>
+								<span>D&eacute;tail d'un revenu.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_detail_neg">123,45 €</span>
-								<span>Détail d'une dépense.</span>
+								<span class="legend-color-sample legend-text-sample total_month_detail_neg">123,45 &euro;</span>
+								<span>D&eacute;tail d'une d&eacute;pense.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_pos">123,45 €</span>
+								<span class="legend-color-sample legend-text-sample total_month_full_pos">123,45 &euro;</span>
 								<span>Total, gain ou solde positif.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_neg">-123,45 €</span>
+								<span class="legend-color-sample legend-text-sample total_month_full_neg">-123,45 &euro;</span>
 								<span>Total, gain ou solde négatif.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_dec">-123,45 €</span>
-								<span>Solde négatif couvert par le découvert autorisé.</span>
+								<span class="legend-color-sample legend-text-sample total_month_full_dec">-123,45 &euro;</span>
+								<span>Solde n&eacute;gatif couvert par le d&eacute;couvert autoris&eacute;.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample anticipe">123,45 €</span>
-								<span>Opération anticipée, clignotante si sa date est dépassée.</span>
+								<span class="legend-color-sample legend-text-sample anticipe">123,45 &euro;</span>
+								<span>Op&eacute;ration anticip&eacute;e, clignotante si sa date est d&eacute;pass&eacute;e.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_neutre">0,00 €</span>
+								<span class="legend-color-sample legend-text-sample total_month_full_neutre">0,00 &euro;</span>
 								<span>Solde neutre.</span>
 							</li>
 							<li class="legend-item">
-								<span class="legend-color-sample legend-alert-sample" aria-hidden="true">
-									<i class="red fas fa-exclamation"></i>
+								<span class="legend-color-sample legend-alert-sample balance-alert-current" aria-hidden="true">
+									<i class="fas fa-exclamation"></i>
 								</span>
-								<span>Découvert autorisé dépassé, ou risque de dépassement à la fin du mois.</span>
+								<span>Le solde actuel d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
+							</li>
+							<li class="legend-item">
+								<span class="legend-color-sample legend-alert-sample balance-alert-projected" aria-hidden="true">
+									<i class="fas fa-exclamation-triangle"></i>
+								</span>
+								<span>Triangle blanc avec un ! rouge : le solde pr&eacute;vu &agrave; la fin du mois d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
 							</li>
 						</ul>
 					</section>

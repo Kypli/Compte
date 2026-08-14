@@ -1,27 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Préférences{% endblock %}
+{% block title %}Pr&eacute;f&eacute;rences{% endblock %}
 
 {% block stylesheets %}
 	{{ parent() }}
 	{{ encore_entry_link_tags('user') }}
 {% endblock %}
 
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('user') }}
+{% endblock %}
+
 {% block body %}
 
-	<div class="container">
-		<div class='row mb-3'>
-
-			{# TITRE #}
-			<h2 class="radius-long offset-4 col-4">Préférences</h2>
-
-			{# MODIFIER PREFERENCES #}
-			<section class='form'>
-
-				{# FORM #}
+	<div class="container user-preference-page">
+		<header class="user-preference-heading">
+			<h2 class="user-preference-title">Pr&eacute;f&eacute;rences</h2>
+			<span id="preferenceSaveStatus" class="preference-save-status is-saved is-idle" role="status" aria-live="polite">
+				<span class="preference-save-mascot" aria-hidden="true"></span>
+				<span>Enregistr&eacute;</span>
+			</span>
+		</header>
+		<div class="user-preference-layout">
+			<nav class="preference-page-navigation" aria-label="Pages &agrave; configurer" role="tablist">
+				<a href="#tableau-de-bord" class="preference-page-link" data-preference-section="tableau-de-bord" role="tab">
+					<i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+					<span>Tableau de bord</span>
+				</a>
+				<a href="#comptes" class="preference-page-link" data-preference-section="comptes" role="tab">
+					<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+					<span>Comptes</span>
+				</a>
+				<a href="#credit" class="preference-page-link" data-preference-section="credit" role="tab">
+					<i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+					<span class="preference-credit-label">Cr&eacute;dit</span>
+				</a>
+				<a href="#immobilier" class="preference-page-link" data-preference-section="immobilier" role="tab">
+					<i class="fa-solid fa-building" aria-hidden="true"></i>
+					<span>Immobilier</span>
+				</a>
+				<a href="#mobilier" class="preference-page-link" data-preference-section="mobilier" role="tab">
+					<i class="fa-solid fa-couch" aria-hidden="true"></i>
+					<span>Mobilier</span>
+				</a>
+				<a href="#investissement" class="preference-page-link" data-preference-section="investissement" role="tab">
+					<i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+					<span>Investissement</span>
+				</a>
+				<a href="#total" class="preference-page-link" data-preference-section="total" role="tab">
+					<i class="fa-solid fa-calculator" aria-hidden="true"></i>
+					<span>TOTAL</span>
+				</a>
+			</nav>
+			<div class="user-preference-panel">
 				{% include 'user/_form_preference.html.twig' %}
-
-			</section>
+			</div>
 		</div>
 	</div>
 {% endblock %}

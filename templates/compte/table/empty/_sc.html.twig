@@ -9,7 +9,7 @@
 
 	{# REEL #}
 	<td
-		class='{{ done|trim }}'
+		class='month-cell-start {{ done|trim }}'
 		data-month="{{ month }}"
 		data-scid="{{ subcategory.id }}"
 		data-sign="{{ sign }}"
@@ -22,7 +22,7 @@
 
 	{# ANTICIPE #}
 	<td
-		class='{{ done|trim }} anticipe'
+		class='month-cell-end {{ done|trim }} anticipe'
 		data-month="{{ month }}"
 		data-scid="{{ subcategory.id }}"
 		data-sign="{{ sign }}"
@@ -31,6 +31,6 @@
 		data-toggle="modal"
 	></td>
 {% endfor %}
-<td class="done counterEdit td_total_border">0</td>
-<td class="done counterEdit">0</td>
-<td class="done counterEdit">0</td>
+<td class="year-total done counterEdit td_total_border">0</td>
+<td class="year-total done counterEdit">0</td>
+<td class="year-total done counterEdit">0</td>

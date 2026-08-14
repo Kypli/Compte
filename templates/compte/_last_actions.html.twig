@@ -1,27 +1,94 @@
-Dernières actions
-<select class='select-last-actions{# form-select #}'>
-	{% for la in lastActions %}
+{% set action_labels = {'create': 'Création', 'edit': 'Modification', 'del': 'Suppression', 'move': 'Déplacement'} %}
+{% set action_count = lastActions|length %}
+{% set latest = lastActions|first %}
 
-		{% if date_select is defined and la.dateLastAction|date('d/m/Y') != date_select %}
-			</optgroup>
+<div class="last-actions{{ latest ? '' : ' is-empty' }}">
+	{% if latest %}
+		{% set latest_is_subcategory_move = latest.subCategoryMove %}
+		{% set latest_is_move = latest.actionType == 'move' and latest.category %}
+		{% set latest_operation = latest.operation %}
+		{% set latest_category = latest_is_move ? latest.category : latest_operation.subcategory.category %}
+	{% endif %}
+
+	<div class="last-action-preview">
+		<span class="control-label">{{ action_count >= 2 ? 'Dernières actions' : 'Dernière action' }}</span>
+		{% if latest %}
+			<div class="last-action-current">
+				<button
+					type="button"
+					class="last-action-trigger"
+					aria-controls="lastActionsPopover"
+					aria-expanded="false"
+				>
+					<span class="action-kind action-kind-{{ latest.actionType }}">{{ action_labels[latest.actionType] }}</span>
+					<span class="last-action-summary action-zone-{{ latest_category.sign ? 'pos' : 'neg' }}">
+						{% if latest_is_subcategory_move %}
+							{{ latest.beforeSnapshot.categoryLabel|capitalize }} / {{ latest.beforeSnapshot.subcategoryLabel|capitalize }}
+						{% elseif latest_is_move %}
+							{{ latest_category.libelle|capitalize }}
+						{% else %}
+							{{ latest_category.libelle|capitalize }} / {{ latest_operation.subcategory.libelle|capitalize }}
+						{% endif %}
+					</span>
+				</button>
+			</div>
+		{% else %}
+			<span class="last-actions-empty">Aucune action récente</span>
 		{% endif %}
+	</div>
 
-		{% if loop.first or (date_select is defined and la.dateLastAction|date('d/m/Y') != date_select) %}
-			{% set date_select = la.dateLastAction|date('d/m/Y') %}
-			<optgroup label="Date de l'action: {{ date_select }}">
-		{% endif %}
-
-			{% set color = la.lastAction == 'del' ? 'select_del' : la.lastAction == 'edit' ? 'select_edit' : 'select_cre' %}
-			<option class='{{ color }}{{ la.sign ? ' bck_pos' : ' bck_neg' }}'>
-				{{ la.lastAction == 'create' ? 'Création' : la.lastAction == 'edit' ? 'Édition' : 'Suppression' }}:
-				{{ la.cat_libelle|capitalize }}/{{ la.sc_libelle|capitalize }} au
-				{{ la.date|date('d/m/Y') }}
-				({{ la.number|number_format(2, ',', ' ') }} €)
-				&nbsp;&nbsp;&nbsp;&nbsp;
-			</option>
-
-		{% if loop.last %}
-			</optgroup>
-		{% endif %}
-	{% endfor %}
-</select>
+	{% if latest %}
+		<div id="lastActionsPopover" class="last-actions-popover" role="tooltip">
+			<div class="last-actions-popover-title">
+				<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+				<span>15 dernières actions</span>
+			</div>
+			<ol class="last-actions-list">
+				{% for action in lastActions %}
+					{% set is_subcategory_move = action.subCategoryMove %}
+					{% set is_move = action.actionType == 'move' and action.category %}
+					{% set operation = action.operation %}
+					{% set category = is_move ? action.category : operation.subcategory.category %}
+					{% set reverts_undo = action.cancelled %}
+					<li
+						class="last-actions-item{{ action.cancelled ? ' is-cancelled' }}"
+						{% if action.cancelled %}title="Cette action est annulée"{% endif %}
+					>
+						<span class="action-kind action-kind-{{ action.actionType }}">{{ action_labels[action.actionType] }}</span>
+						<span class="last-actions-description">
+							<strong class="action-zone-{{ category.sign ? 'pos' : 'neg' }}">
+								{% if is_subcategory_move %}
+									{{ action.beforeSnapshot.categoryLabel|capitalize }} / {{ action.beforeSnapshot.subcategoryLabel|capitalize }}
+								{% elseif is_move %}
+									{{ category.libelle|capitalize }}
+								{% else %}
+									{{ category.libelle|capitalize }} / {{ operation.subcategory.libelle|capitalize }}
+								{% endif %}
+							</strong>
+							<small>
+								{% if is_move %}
+									Position {{ action.beforeSnapshot.position }} → {{ action.afterSnapshot.position }}
+								{% else %}
+									{{ action.displayDate|date('d/m/Y') }} · {{ action.displayNumber|number_format(2, ',', ' ') }} €
+								{% endif %}
+							</small>
+						</span>
+						<time datetime="{{ action.actionAt|date('c') }}">{{ action.actionAt|date('d/m H:i') }}</time>
+						<button
+							type="button"
+							class="undo-last-action {{ reverts_undo ? 'undo-revert-action' : 'undo-action' }}"
+							data-action-id="{{ action.id }}"
+							data-url="{{ path('compte_operation_action_undo', {'id': compte.id, 'action': action.id}) }}"
+							data-token="{{ csrf_token('undo-operation-action' ~ action.id) }}"
+							aria-label="{{ action.undoable ? (reverts_undo ? 'Restaurer cette action' : 'Annuler cette action') : 'Ancienne action non annulable' }}"
+							title="{{ action.cancelled ? 'Restaurer cette action' : (action.undoable ? 'Annuler cette action' : 'Valeur précédente indisponible pour cette ancienne action') }}"
+							{{ action.undoable ? '' : ' disabled' }}
+						>
+							<i class="fa-solid fa-rotate-left{{ reverts_undo ? ' action-restore-icon' : '' }}" aria-hidden="true"></i>
+						</button>
+					</li>
+				{% endfor %}
+			</ol>
+		</div>
+	{% endif %}
+</div>

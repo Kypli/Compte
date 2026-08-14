@@ -1,4 +1,13 @@
 a { color:#e9f5db; }
+body.dashboard-background-green {
+	background-color: #D6E5C9;
+}
+body.dashboard-background-light {
+	background-color: #F5F7F4;
+}
+body.dashboard-background-grey {
+	background-color: #E5E9EA;
+}
 a:hover { 
 	color:#29843B;
 	text-decoration: none;

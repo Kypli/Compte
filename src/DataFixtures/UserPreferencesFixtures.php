@@ -15,6 +15,10 @@ class UserPreferencesFixtures extends Fixture implements FixtureGroupInterface
 		// Admin
 		$entity = new Entity();
 		$entity
+			->setDashboardBackground('green')
+			->setAccountBackground('green')
+			->setTablePalette('classic')
+			->setShowEditableBorder(true)
 			->setUser($this->getReference(UserFixtures::USER_ADMIN))
 		;
 		$manager->persist($entity);
@@ -22,6 +26,10 @@ class UserPreferencesFixtures extends Fixture implements FixtureGroupInterface
 		// User
 		$entity = new Entity();
 		$entity
+			->setDashboardBackground('green')
+			->setAccountBackground('green')
+			->setTablePalette('classic')
+			->setShowEditableBorder(true)
 			->setUser($this->getReference(UserFixtures::USER_USER))
 		;
 		$manager->persist($entity);

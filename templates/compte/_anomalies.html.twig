@@ -1,0 +1,19 @@
+{% set anomaly_count = anomalies|length %}
+
+<div class="anomalies-preview">
+	<span class="control-label">Anomalies</span>
+	<button
+		type="button"
+		id="anomaliesButton"
+		class="anomalies-button{{ anomaly_count > 0 ? ' has-anomalies' }}"
+		data-toggle="modal"
+		data-target="#modalAnomalies"
+		aria-haspopup="dialog"
+		aria-controls="modalAnomalies"
+		aria-label="Ouvrir les anomalies"
+		title="Ouvrir les anomalies"
+	>
+		<i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+		<span class="anomalies-count" aria-label="{{ anomaly_count }} anomalie{{ anomaly_count > 1 ? 's' }}">{{ anomaly_count }}</span>
+	</button>
+</div>

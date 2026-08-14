@@ -79,4 +79,20 @@ class SubCategoryRepository extends ServiceEntityRepository
 
 		return array_flip(array_map('current', $q));
 	}
+
+	/**
+	 * @return SubCategory[]
+	 */
+	public function findOrderedForCategory(int $categoryId): array
+	{
+		return $this->createQueryBuilder('subcategory')
+			->innerJoin('subcategory.category', 'category')
+			->andWhere('category.id = :categoryId')
+			->setParameter('categoryId', $categoryId)
+			->orderBy('subcategory.position', 'ASC')
+			->addOrderBy('subcategory.id', 'ASC')
+			->getQuery()
+			->getResult()
+		;
+	}
 }

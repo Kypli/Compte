@@ -5,13 +5,16 @@ namespace App\Controller;
 use App\Entity\Compte;
 use App\Entity\Category;
 use App\Entity\Operation;
+use App\Entity\OperationAction;
 use App\Entity\SubCategory;
 
 use App\Form\CompteType;
+use App\Form\UserPreferenceType;
 
 use App\Repository\CompteRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
+use App\Repository\OperationActionRepository;
 use App\Repository\SubCategoryRepository;
 use App\Security\CompteVoter;
 
@@ -60,19 +63,22 @@ class CompteController extends AbstractController
 
 	private $cr;
 	private $or;
+	private $oar;
 	private $catr;
 	private $scr;
 
 	public function __construct(
 		CompteRepository $cr,
 		OperationRepository $or,
+		OperationActionRepository $oar,
 		CategoryRepository $catr,
 		SubCategoryRepository $scr
 	){
-		$this->navigation_max_year = ((int)date('Y') + 40);
-		$this->navigation_min_year = ((int)date('Y') - 40);
+		$this->navigation_max_year = 9999;
+		$this->navigation_min_year = 1000;
 		$this->cr = $cr;
 		$this->or = $or;
+		$this->oar = $oar;
 		$this->catr = $catr;
 		$this->scr = $scr;
 	}
@@ -138,7 +144,7 @@ class CompteController extends AbstractController
 
 		// Current dates
 		$date = new \Datetime('now');
-		$current_year = $date->format('Y');
+		$current_year = (int) $date->format('Y');
 		$current_month = $date->format('n');
 		[
 			$month_display,
@@ -146,14 +152,13 @@ class CompteController extends AbstractController
 		] = $this->resolveMonthDisplay($request, (int) $current_month);
 
 		// Year
-		$year = (int) $request->query->get('year');
-		$year =
-			0 != $year &&
-			$year >= $this->navigation_min_year &&
-			$year <= $this->navigation_max_year
-				? $year
-				: date('Y')
-		;
+		$year = $this->resolveYear($request, $current_year);
+		$year_options = $this->yearOptions($compte->getId(), $current_year);
+		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
+		$other_comptes = array_values(array_filter(
+			$this->cr->getComptesByUser($this->getUser()),
+			fn (Compte $userCompte): bool => $userCompte->getId() !== $compte->getId()
+		));
 
 		// Opérations
 		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
@@ -183,6 +188,9 @@ class CompteController extends AbstractController
 		// Color solde
 		$color_solde = $this->colorSolde($current_solde, $compte->getDecouvert());
 		$color_soldeFinMois = $this->colorSolde($soldeFinMensuel, $compte->getDecouvert());
+		$preferenceForm = $this->createForm(UserPreferenceType::class, $this->getUser()->getPreferences(), [
+			'action' => $this->generateUrl('user_preference', ['id' => $this->getUser()->getId()]),
+		]);
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
@@ -193,6 +201,9 @@ class CompteController extends AbstractController
 			'month_display' => $month_display,
 			'month_display_options' => SELF::MONTH_DISPLAY_OPTIONS,
 			'visible_months' => $visible_months,
+			'future_year_options' => $year_options['future'],
+			'past_budget_year_options' => $year_options['past'],
+			'other_comptes' => $other_comptes,
 			'max_year' => $this->navigation_max_year,
 			'min_year' => $this->navigation_min_year,
 
@@ -209,7 +220,9 @@ class CompteController extends AbstractController
 			'current_monthEnd' => $soldeFinMensuel, // Solde courant du compte à la fin du mois
 			'gains' => $this->gains($operations_pos, $operations_neg),
 
-			'lastActions' => $this->or->lastAction($compte->getId(), 10), // Last actions
+			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()), // Last actions
+			'anomalies' => $anomalies,
+			'account_preference_form' => $preferenceForm->createView(),
 		]);
 	}
 
@@ -228,7 +241,7 @@ class CompteController extends AbstractController
 
 		// Current dates
 		$date = new \Datetime('now');
-		$current_year = $date->format('Y');
+		$current_year = (int) $date->format('Y');
 		$current_month = $date->format('n');
 		[
 			$month_display,
@@ -236,20 +249,14 @@ class CompteController extends AbstractController
 		] = $this->resolveMonthDisplay($request, (int) $current_month);
 
 		// Year
-		$year = (int) $request->query->get('year');
-		$year =
-			0 != $year &&
-			$year >= $this->navigation_min_year &&
-			$year <= $this->navigation_max_year
-				? $year
-				: date('Y')
-		;
+		$year = $this->resolveYear($request, $current_year);
 
 		// Opérations
 		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
 		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
 		$operations_pos_datas = $this->operations($operations_pos);
 		$operations_neg_datas = $this->operations($operations_neg, false);
+		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
 
 		// Solde
 		$solde = round(
@@ -289,14 +296,79 @@ class CompteController extends AbstractController
 		])->getContent();
 
 		$render_last_actions = $this->render('compte/_last_actions.html.twig', [
-			'lastActions' => $this->or->lastAction($compte->getId(), 10),
+			'compte' => $compte,
+			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()),
+		])->getContent();
+		$render_anomalies = $this->render('compte/_anomalies.html.twig', [
+			'compte' => $compte,
+			'anomalies' => $anomalies,
+		])->getContent();
+		$render_anomalies_modal = $this->render('compte/modal/anomalies/index.html.twig', [
+			'compte' => $compte,
+			'anomalies' => $anomalies,
 		])->getContent();
 
 		return new JsonResponse([
 			'render' => $render,
 			'render_last_actions' => $render_last_actions,
+			'render_anomalies' => $render_anomalies,
+			'render_anomalies_modal' => $render_anomalies_modal,
 			'solde' => $solde,
 			'soldeFinMensuel' => $soldeFinMensuel,
+		]);
+	}
+
+	#[Route('/{id}/anomaly/{operation}/resolve', name: '_anomaly_resolve', methods: ['POST'])]
+	public function resolveAnomaly(Compte $compte, Operation $operation, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['resolved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if ($operation->getSubcategory()->getCategory()->getCompte()->getId() !== $compte->getId()){
+			return new JsonResponse(['resolved' => false, 'error' => 'Anomalie introuvable pour ce compte.'], Response::HTTP_NOT_FOUND);
+		}
+		if (!$this->isCsrfTokenValid('resolve-operation-anomaly'.$operation->getId(), (string) $request->request->get('_token'))){
+			return new JsonResponse(['resolved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+		if (!$operation->isActif() || !$operation->isAnticipe() || $operation->getDate() >= new \DateTimeImmutable('today')){
+			return new JsonResponse(['resolved' => false, 'error' => "Cette operation n'est plus une anomalie."], Response::HTTP_CONFLICT);
+		}
+		$resolution = (string) $request->request->get('resolution');
+		if (!in_array($resolution, ['realize', 'delete'], true)){
+			return new JsonResponse(['resolved' => false, 'error' => 'Solution de correction invalide.'], Response::HTTP_BAD_REQUEST);
+		}
+
+		$beforeSnapshot = $this->createOperationSnapshot($operation);
+		$actionDate = $this->nextOperationActionDate($compte->getId());
+		$actionType = 'delete' === $resolution ? 'del' : 'edit';
+		$reusableAction = $this->oar->findReusableAnomalyResolution($operation, $resolution);
+		$operation
+			->setAnticipe('realize' === $resolution ? false : $operation->isAnticipe())
+			->setActif('delete' !== $resolution)
+			->setLastAction($actionType)
+			->setDateLastAction(clone $actionDate)
+		;
+
+		if (null !== $reusableAction){
+			$this->or->add($operation);
+			$reusableAction
+				->setActionAt(clone $actionDate)
+				->setAfterSnapshot($this->createOperationSnapshot($operation))
+				->setCancelled(false)
+				->setUndoSnapshot(null)
+			;
+			$this->oar->add($reusableAction, true);
+		} else {
+			$this->or->add($operation, true);
+			$this->recordOperationAction($operation, $actionType, $actionDate, $beforeSnapshot);
+		}
+
+		return new JsonResponse([
+			'resolved' => true,
+			'resolution' => $resolution,
+			'reusedAction' => null !== $reusableAction,
 		]);
 	}
 
@@ -315,6 +387,40 @@ class CompteController extends AbstractController
 		;
 
 		return [$mode, $visibleMonths];
+	}
+
+	private function resolveYear(Request $request, int $currentYear): int
+	{
+		$requestedYear = $request->query->get('year');
+		if (!is_scalar($requestedYear)){
+			return $currentYear;
+		}
+
+		$year = filter_var((string) $requestedYear, FILTER_VALIDATE_INT, [
+			'options' => [
+				'min_range' => $this->navigation_min_year,
+				'max_range' => $this->navigation_max_year,
+			],
+		]);
+
+		return false === $year ? $currentYear : $year;
+	}
+
+	/**
+	 * @return array{future: int[], past: int[]}
+	 */
+	private function yearOptions(int $compteId, int $currentYear): array
+	{
+		$futureYears = range($currentYear, min($currentYear + 10, $this->navigation_max_year));
+		$pastBudgetYears = array_filter(
+			$this->catr->yearsWithBudgetForCompte($compteId, $currentYear),
+			fn (int $year): bool => $year >= $this->navigation_min_year
+		);
+
+		return [
+			'future' => $futureYears,
+			'past' => array_values($pastBudgetYears),
+		];
 	}
 
 	/**
@@ -542,8 +648,7 @@ class CompteController extends AbstractController
 			: []
 		;
 
-		// Date
-		$current_date = new \Datetime('now');
+		$current_date = $this->nextOperationActionDate($sc->getCategory()->getCompte()->getId());
 	
 		// Save
 		foreach($datas as $ope){
@@ -556,106 +661,487 @@ class CompteController extends AbstractController
 			}
 
 			// Delete
-			if ((int) $ope['delete'] == 1){
+			if ((int) ($ope['delete'] ?? 0) == 1){
 				if (null === $ope_ent){
 					return new JsonResponse(['save' => false, 'error' => 'Operation a supprimer manquante.'], Response::HTTP_BAD_REQUEST);
 				}
+				$beforeSnapshot = $this->createOperationSnapshot($ope_ent);
 				$ope_ent
 					->setActif(false)
 					->setLastAction('del')
-					->setDateLastAction($current_date)
+					->setDateLastAction(clone $current_date)
 				;
 				$this->or->add($ope_ent, true);
+				$this->recordOperationAction($ope_ent, 'del', $current_date, $beforeSnapshot);
+				$current_date->modify('+1 second');
+				continue;
+			}
+
+			$numberValue = $ope['number'] ?? null;
+			$anticipatedValue = $ope['anticipe'] ?? null;
+			$hasNumber = $this->isOperationAmount($numberValue);
+			$hasAnticipated = $this->isOperationAmount($anticipatedValue);
+			if (!$hasNumber && !$hasAnticipated){
+				continue;
+			}
+
+			$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
+			$number = $hasNumber ? (float) $numberValue : (float) $anticipatedValue;
+			$anticipe = !$hasNumber;
+			$comment = $ope['comment'] ?? null;
 
 			// Edit
-			} elseif (!empty($ope['id'])){
-				$id = $ope['id'];
-
-				// Edit ?
-				if (
-					$ope['number'] != (string) $ope_ent->getNumber() ||
-					$ope['day'] != $ope_ent->getDate()->format('j') ||
-					$ope['month'] != $ope_ent->getDate()->format('n') ||
-					$ope['year'] != $ope_ent->getDate()->format('Y') ||
-					$ope['comment'] != $ope_ent->getComment()
-				){
-					$ope_ent
-						->setLastAction('edit')
-						->setDateLastAction($current_date)
-					;
+			if (!empty($ope['id'])){
+				$beforeSnapshot = $this->createOperationSnapshot($ope_ent);
+				$changed =
+					$number !== (float) $ope_ent->getNumber() ||
+					$anticipe !== $ope_ent->isAnticipe() ||
+					$date->format('Y-m-d') !== $ope_ent->getDate()->format('Y-m-d') ||
+					$comment !== $ope_ent->getComment()
+				;
+				if (!$changed){
+					continue;
 				}
+				$actionType = 'edit';
 
 			// Add
 			} else {
-				$id = null;
-				$ope_ent = new operation();
-				$ope_ent
-					->setSubcategory($sc)
-					->setLastAction('create')
-					->setDateLastAction($current_date)
-				;
+				$beforeSnapshot = null;
+				$actionType = 'create';
+				$ope_ent = (new Operation())->setSubcategory($sc);
 			}
 
-			// Save ?
-			if (
-				// Pas supprimé
-				!$ope['delete'] &&
-
-				// Nombre valide
-				(
-					(
-						$ope['number'] != null &&
-						$ope['number'] != 0 &&
-						$ope['number'] != '0' &&
-						$ope['number'] != '' &&
-						$ope['number'] != 'NaN'
-					) ||
-					(
-						$ope['anticipe'] != null &&
-						$ope['anticipe'] != 0 &&
-						$ope['anticipe'] != '0' &&
-						$ope['anticipe'] != '' &&
-						$ope['anticipe'] != 'NaN'
-					)
-				) &&
-				(
-					// Add
-					$id == null ||
-
-					// Edit
-					$ope_ent->hasSubCategory($ope_ent, $sc)
-				)
-			){
-				$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
-				$number = 
-					$ope['number'] == null ||
-					$ope['number'] == 0 ||
-					$ope['number'] == '0' ||
-					$ope['number'] == '' ||
-					$ope['number'] == 'Nan'
-						? (float) $ope['anticipe']
-						: (float) $ope['number']
-				;
-				$anticipe =
-					$ope['number'] == null ||
-					$ope['number'] == 0 ||
-					$ope['number'] == '0' ||
-					$ope['number'] == '' ||
-					$ope['number'] == 'Nan'
-						? true
-						: false
-				;
-				$ope_ent
-					->setNumber($number)
-					->setDate($date)
-					->setComment($ope['comment'])
-					->setAnticipe($anticipe)
-				;
-				$this->or->add($ope_ent, true);
-			}
+			$ope_ent
+				->setNumber($number)
+				->setDate($date)
+				->setComment($comment)
+				->setAnticipe($anticipe)
+				->setActif(true)
+				->setLastAction($actionType)
+				->setDateLastAction(clone $current_date)
+			;
+			$this->or->add($ope_ent, true);
+			$this->recordOperationAction($ope_ent, $actionType, $current_date, $beforeSnapshot);
+			$current_date->modify('+1 second');
 		}
 
 		return new JsonResponse(['save' => true]);
+	}
+
+	#[Route('/{id}/categories/reorder', name: '_category_reorder', methods: ['POST'])]
+	public function reorderCategories(Compte $compte, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['moved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('reorder-categories'.$compte->getId(), (string) $request->request->get('_token'))){
+			return new JsonResponse(['moved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$categoryId = filter_var($request->request->get('category'), FILTER_VALIDATE_INT);
+		$beforeId = filter_var($request->request->get('before'), FILTER_VALIDATE_INT);
+		$category = false === $categoryId ? null : $this->catr->find($categoryId);
+		if (null === $category || $category->getCompte()->getId() !== $compte->getId()){
+			return new JsonResponse(['moved' => false, 'error' => 'Categorie introuvable pour ce compte.'], Response::HTTP_NOT_FOUND);
+		}
+
+		$beforeCategory = false === $beforeId ? null : $this->catr->find($beforeId);
+		if (null !== $beforeCategory && $beforeCategory->getId() === $category->getId()){
+			return new JsonResponse(['moved' => false, 'unchanged' => true]);
+		}
+		if (null !== $beforeCategory && (
+			$beforeCategory->getCompte()->getId() !== $compte->getId() ||
+			$beforeCategory->isSign() !== $category->isSign() ||
+			$beforeCategory->getYear() !== $category->getYear()
+		)){
+			return new JsonResponse(['moved' => false, 'error' => 'Zone de destination invalide.'], Response::HTTP_CONFLICT);
+		}
+
+		$categories = $this->catr->findOrderedForBudget(
+			$compte->getId(),
+			(bool) $category->isSign(),
+			(int) $category->getYear()
+		);
+		$beforeSnapshot = $this->createCategoryOrderSnapshot($categories);
+		$beforeSnapshot['position'] = $category->getPosition();
+		$orderedCategories = array_values(array_filter(
+			$categories,
+			static fn (Category $candidate): bool => $candidate->getId() !== $category->getId()
+		));
+
+		$targetIndex = count($orderedCategories);
+		if (null !== $beforeCategory){
+			foreach ($orderedCategories as $index => $candidate){
+				if ($candidate->getId() === $beforeCategory->getId()){
+					$targetIndex = $index;
+					break;
+				}
+			}
+		}
+		array_splice($orderedCategories, $targetIndex, 0, [$category]);
+
+		$nextOrder = array_map(static fn (Category $candidate): int => $candidate->getId(), $orderedCategories);
+		if ($nextOrder === $beforeSnapshot['order']){
+			return new JsonResponse(['moved' => false, 'unchanged' => true]);
+		}
+
+		foreach ($orderedCategories as $index => $candidate){
+			$candidate->setPosition($index + 1);
+			$this->catr->add($candidate);
+		}
+		$afterSnapshot = $this->createCategoryOrderSnapshot($orderedCategories);
+		$afterSnapshot['position'] = $category->getPosition();
+		$action = (new OperationAction())
+			->setCategory($category)
+			->setActionType('move')
+			->setActionAt($this->nextOperationActionDate($compte->getId()))
+			->setBeforeSnapshot($beforeSnapshot)
+			->setAfterSnapshot($afterSnapshot)
+		;
+		$this->oar->add($action, true);
+
+		return new JsonResponse(['moved' => true]);
+	}
+
+	#[Route('/{id}/subcategories/reorder', name: '_subcategory_reorder', methods: ['POST'])]
+	public function reorderSubCategories(Compte $compte, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['moved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('reorder-subcategories'.$compte->getId(), (string) $request->request->get('_token'))){
+			return new JsonResponse(['moved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$subCategoryId = filter_var($request->request->get('subcategory'), FILTER_VALIDATE_INT);
+		$beforeId = filter_var($request->request->get('before'), FILTER_VALIDATE_INT);
+		$categoryId = filter_var($request->request->get('category'), FILTER_VALIDATE_INT);
+		$subCategory = false === $subCategoryId ? null : $this->scr->find($subCategoryId);
+		if (null === $subCategory || $subCategory->getCategory()->getCompte()->getId() !== $compte->getId()){
+			return new JsonResponse(['moved' => false, 'error' => 'Sous-categorie introuvable pour ce compte.'], Response::HTTP_NOT_FOUND);
+		}
+
+		$category = $subCategory->getCategory();
+		if (false !== $categoryId && $categoryId !== $category->getId()){
+			return new JsonResponse(['moved' => false, 'error' => 'Zone de destination invalide.'], Response::HTTP_CONFLICT);
+		}
+
+		$beforeSubCategory = false === $beforeId ? null : $this->scr->find($beforeId);
+		if (null !== $beforeSubCategory && $beforeSubCategory->getId() === $subCategory->getId()){
+			return new JsonResponse(['moved' => false, 'unchanged' => true]);
+		}
+		if (null !== $beforeSubCategory && $beforeSubCategory->getCategory()->getId() !== $category->getId()){
+			return new JsonResponse(['moved' => false, 'error' => 'Zone de destination invalide.'], Response::HTTP_CONFLICT);
+		}
+
+		$subCategories = $this->scr->findOrderedForCategory($category->getId());
+		$beforeSnapshot = $this->createSubCategoryOrderSnapshot($category, $subCategories, $subCategory);
+		$orderedSubCategories = array_values(array_filter(
+			$subCategories,
+			static fn (SubCategory $candidate): bool => $candidate->getId() !== $subCategory->getId()
+		));
+
+		$targetIndex = count($orderedSubCategories);
+		if (null !== $beforeSubCategory){
+			foreach ($orderedSubCategories as $index => $candidate){
+				if ($candidate->getId() === $beforeSubCategory->getId()){
+					$targetIndex = $index;
+					break;
+				}
+			}
+		}
+		array_splice($orderedSubCategories, $targetIndex, 0, [$subCategory]);
+
+		$nextOrder = array_map(static fn (SubCategory $candidate): int => $candidate->getId(), $orderedSubCategories);
+		if ($nextOrder === $beforeSnapshot['order']){
+			return new JsonResponse(['moved' => false, 'unchanged' => true]);
+		}
+
+		foreach ($orderedSubCategories as $index => $candidate){
+			$candidate->setPosition($index + 1);
+			$this->scr->add($candidate);
+		}
+		$afterSnapshot = $this->createSubCategoryOrderSnapshot($category, $orderedSubCategories, $subCategory);
+		$action = (new OperationAction())
+			->setCategory($category)
+			->setActionType('move')
+			->setActionAt($this->nextOperationActionDate($compte->getId()))
+			->setBeforeSnapshot($beforeSnapshot)
+			->setAfterSnapshot($afterSnapshot)
+		;
+		$this->oar->add($action, true);
+
+		return new JsonResponse(['moved' => true]);
+	}
+
+	#[Route('/{id}/operation/action/{action}/undo', name: '_operation_action_undo', methods: ['POST'])]
+	public function undoOperationAction(Compte $compte, int $action, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['undo' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('undo-operation-action'.$action, (string) $request->request->get('_token'))){
+			return new JsonResponse(['undo' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$operationAction = $this->oar->find($action);
+		$actionCompteId = $operationAction?->getCategory()?->getCompte()?->getId()
+			?? $operationAction?->getOperation()?->getSubcategory()?->getCategory()?->getCompte()?->getId()
+		;
+		if (null === $operationAction || $actionCompteId !== $compte->getId()){
+			return new JsonResponse(['undo' => false, 'error' => 'Action introuvable pour ce compte.'], Response::HTTP_NOT_FOUND);
+		}
+		if (!$operationAction->isUndoable()){
+			return new JsonResponse(['undo' => false, 'error' => "Cette action n'est pas annulable."], Response::HTTP_CONFLICT);
+		}
+		if ($operationAction->isSubCategoryMove()){
+			return $this->undoSubCategoryMoveAction($compte, $operationAction);
+		}
+		if ($operationAction->isCategoryMove()){
+			return $this->undoCategoryMoveAction($compte, $operationAction);
+		}
+
+		$operation = $operationAction->getOperation();
+		if ($operationAction->isCancelled()){
+			$this->restoreOperationSnapshot($operation, $operationAction->getUndoSnapshot());
+			$operationAction
+				->setCancelled(false)
+				->setUndoSnapshot(null)
+			;
+			$this->or->add($operation);
+			$this->oar->add($operationAction, true);
+
+			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+		}
+
+		$beforeUndo = $this->createOperationSnapshot($operation);
+		if ('create' === $operationAction->getActionType()){
+			$operation->setActif(false);
+		} else {
+			$this->restoreOperationSnapshot($operation, $operationAction->getBeforeSnapshot());
+		}
+
+		$actionDate = $this->nextOperationActionDate($compte->getId());
+		$operation
+			->setLastAction('undo')
+			->setDateLastAction($actionDate)
+		;
+		$operationAction
+			->setCancelled(true)
+			->setUndoSnapshot($beforeUndo)
+		;
+		$this->or->add($operation);
+		$this->oar->add($operationAction, true);
+
+		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+	}
+
+	private function recordOperationAction(
+		Operation $operation,
+		string $actionType,
+		\DateTimeInterface $actionAt,
+		?array $beforeSnapshot
+	): void
+	{
+		$action = (new OperationAction())
+			->setOperation($operation)
+			->setActionType($actionType)
+			->setActionAt(clone $actionAt)
+			->setBeforeSnapshot($beforeSnapshot)
+			->setAfterSnapshot($this->createOperationSnapshot($operation))
+		;
+		$this->oar->add($action, true);
+	}
+
+	private function undoCategoryMoveAction(Compte $compte, OperationAction $action): JsonResponse
+	{
+		$category = $action->getCategory();
+		$categories = $this->catr->findOrderedForBudget(
+			$compte->getId(),
+			(bool) $category->isSign(),
+			(int) $category->getYear()
+		);
+		$currentSnapshot = $this->createCategoryOrderSnapshot($categories);
+
+		if ($action->isCancelled()){
+			$this->restoreCategoryOrderSnapshot($compte, $action->getUndoSnapshot());
+			$action
+				->setCancelled(false)
+				->setUndoSnapshot(null)
+			;
+			$this->oar->add($action, true);
+
+			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+		}
+
+		$this->restoreCategoryOrderSnapshot($compte, $action->getBeforeSnapshot());
+		$action
+			->setCancelled(true)
+			->setUndoSnapshot($currentSnapshot)
+		;
+		$this->oar->add($action, true);
+
+		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+	}
+
+	private function undoSubCategoryMoveAction(Compte $compte, OperationAction $action): JsonResponse
+	{
+		$category = $action->getCategory();
+		$subCategories = $this->scr->findOrderedForCategory($category->getId());
+		$currentSnapshot = $this->createSubCategoryOrderSnapshot($category, $subCategories);
+
+		if ($action->isCancelled()){
+			$this->restoreSubCategoryOrderSnapshot($compte, $action->getUndoSnapshot());
+			$action
+				->setCancelled(false)
+				->setUndoSnapshot(null)
+			;
+			$this->oar->add($action, true);
+
+			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+		}
+
+		$this->restoreSubCategoryOrderSnapshot($compte, $action->getBeforeSnapshot());
+		$action
+			->setCancelled(true)
+			->setUndoSnapshot($currentSnapshot)
+		;
+		$this->oar->add($action, true);
+
+		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+	}
+
+	/**
+	 * @param Category[] $categories
+	 */
+	private function createCategoryOrderSnapshot(array $categories): array
+	{
+		$firstCategory = $categories[0] ?? null;
+
+		return [
+			'order' => array_map(static fn (Category $category): int => $category->getId(), $categories),
+			'year' => $firstCategory?->getYear(),
+			'sign' => $firstCategory?->isSign(),
+		];
+	}
+
+	/**
+	 * @param SubCategory[] $subCategories
+	 */
+	private function createSubCategoryOrderSnapshot(Category $category, array $subCategories, ?SubCategory $movedSubCategory = null): array
+	{
+		return [
+			'scope' => 'subcategory',
+			'categoryId' => $category->getId(),
+			'categoryLabel' => $category->getLibelle(),
+			'subcategoryId' => $movedSubCategory?->getId(),
+			'subcategoryLabel' => $movedSubCategory?->getLibelle(),
+			'position' => $movedSubCategory?->getPosition(),
+			'order' => array_map(static fn (SubCategory $subCategory): int => $subCategory->getId(), $subCategories),
+		];
+	}
+
+	private function restoreCategoryOrderSnapshot(Compte $compte, array $snapshot): void
+	{
+		$categories = $this->catr->findOrderedForBudget(
+			$compte->getId(),
+			(bool) ($snapshot['sign'] ?? false),
+			(int) ($snapshot['year'] ?? 0)
+		);
+		$categoriesById = [];
+		foreach ($categories as $category){
+			$categoriesById[$category->getId()] = $category;
+		}
+
+		$orderedCategories = [];
+		foreach (($snapshot['order'] ?? []) as $categoryId){
+			if (isset($categoriesById[$categoryId])){
+				$orderedCategories[] = $categoriesById[$categoryId];
+				unset($categoriesById[$categoryId]);
+			}
+		}
+		array_push($orderedCategories, ...array_values($categoriesById));
+
+		foreach ($orderedCategories as $index => $category){
+			$category->setPosition($index + 1);
+			$this->catr->add($category);
+		}
+	}
+
+	private function restoreSubCategoryOrderSnapshot(Compte $compte, array $snapshot): void
+	{
+		$category = $this->catr->find($snapshot['categoryId'] ?? null);
+		if (null === $category || $category->getCompte()->getId() !== $compte->getId()){
+			return;
+		}
+
+		$subCategories = $this->scr->findOrderedForCategory($category->getId());
+		$subCategoriesById = [];
+		foreach ($subCategories as $subCategory){
+			$subCategoriesById[$subCategory->getId()] = $subCategory;
+		}
+
+		$orderedSubCategories = [];
+		foreach (($snapshot['order'] ?? []) as $subCategoryId){
+			if (isset($subCategoriesById[$subCategoryId])){
+				$orderedSubCategories[] = $subCategoriesById[$subCategoryId];
+				unset($subCategoriesById[$subCategoryId]);
+			}
+		}
+		array_push($orderedSubCategories, ...array_values($subCategoriesById));
+
+		foreach ($orderedSubCategories as $index => $subCategory){
+			$subCategory->setPosition($index + 1);
+			$this->scr->add($subCategory);
+		}
+	}
+
+	private function createOperationSnapshot(Operation $operation): array
+	{
+		return [
+			'number' => $operation->getNumber(),
+			'anticipe' => $operation->isAnticipe(),
+			'date' => $operation->getDate()->format(DATE_ATOM),
+			'comment' => $operation->getComment(),
+			'actif' => $operation->isActif(),
+			'lastAction' => $operation->getLastAction(),
+			'dateLastAction' => $operation->getDateLastAction()->format(DATE_ATOM),
+		];
+	}
+
+	private function restoreOperationSnapshot(Operation $operation, array $snapshot): void
+	{
+		$operation
+			->setNumber((float) $snapshot['number'])
+			->setAnticipe((bool) $snapshot['anticipe'])
+			->setDate(new \DateTime($snapshot['date']))
+			->setComment($snapshot['comment'])
+			->setActif((bool) $snapshot['actif'])
+			->setLastAction($snapshot['lastAction'])
+			->setDateLastAction(new \DateTime($snapshot['dateLastAction']))
+		;
+	}
+
+	private function nextOperationActionDate(int $compteId): \DateTime
+	{
+		$actionDate = new \DateTime(date('Y-m-d H:i:s'));
+		$lastAction = $this->oar->findLatestForCompte($compteId);
+		if (null !== $lastAction && $lastAction->getActionAt() >= $actionDate){
+			$actionDate = (clone $lastAction->getActionAt())->modify('+1 second');
+		}
+
+		return $actionDate;
+	}
+
+	private function isOperationAmount($value): bool
+	{
+		return null !== $value && !in_array((string) $value, ['', '0', 'NaN', 'Nan'], true);
 	}
 
 	/**

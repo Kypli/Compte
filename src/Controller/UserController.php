@@ -605,7 +605,7 @@ class UserController extends AbstractController
 	 */
 	#[IsGranted("ROLE_USER")]
 	#[Route("/preference/{id}", name: "_preference")]
-	public function preference(Request $request, User $user): Response
+	public function preference(Request $request, User $user, EntityManagerInterface $entityManager): Response
 	{
 		// Acces control
 		if ($this->accesControl($user->getId()) == false){
@@ -618,6 +618,21 @@ class UserController extends AbstractController
 
 		// Valid form
 		if ($form->isSubmitted() && $form->isValid()){
+			$entityManager->flush();
+			if ($request->isXmlHttpRequest()){
+				$preferences = $user->getPreferences();
+
+				return $this->json([
+					'saved' => true,
+					'preferences' => [
+						'dashboardBackground' => $preferences->getDashboardBackground(),
+						'accountBackground' => $preferences->getAccountBackground(),
+						'tablePalette' => $preferences->getTablePalette(),
+						'showEditableBorder' => $preferences->isShowEditableBorder(),
+						'compteGenreShow' => $preferences->isCompteGenreShow(),
+					],
+				]);
+			}
 
 			$this->addFlash(
 				'success',
@@ -625,6 +640,9 @@ class UserController extends AbstractController
 			);
 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
+		}
+		if ($form->isSubmitted() && $request->isXmlHttpRequest()){
+			return $this->json(['saved' => false], Response::HTTP_UNPROCESSABLE_ENTITY);
 		}
 
 		return $this->render('user/preference.html.twig', [

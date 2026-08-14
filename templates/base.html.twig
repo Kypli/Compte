@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{% block title %}Bienvenue{% endblock %}</title>
 
 		{% block stylesheets %}
@@ -22,7 +23,7 @@
 			{{ encore_entry_script_tags('navbar') }}
 		{% endblock %}
 	</head>
-	<body>
+	<body class="{% block body_class %}{% endblock %}">
 
 		{# HEADER #}
 		{% block header %}{% include 'partiel/_header.html.twig' %}{% endblock %}

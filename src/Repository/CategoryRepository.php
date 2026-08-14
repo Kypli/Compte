@@ -41,6 +41,26 @@ class CategoryRepository extends ServiceEntityRepository
 	}
 
 	/**
+	 * @return int[]
+	 */
+	public function yearsWithBudgetForCompte(int $compteId, int $beforeYear): array
+	{
+		$rows = $this->createQueryBuilder('category')
+			->select('DISTINCT category.year AS year')
+			->innerJoin('category.compte', 'compte')
+			->where('compte.id = :compteId')
+			->andWhere('category.year < :beforeYear')
+			->setParameter('compteId', $compteId)
+			->setParameter('beforeYear', $beforeYear)
+			->orderBy('category.year', 'DESC')
+			->getQuery()
+			->getArrayResult()
+		;
+
+		return array_map(static fn (array $row): int => (int) $row['year'], $rows);
+	}
+
+	/**
 	 * Renvoie libellés, position et id des catégories d'un compte avant la position d'une categorie
 	 */
 	public function mycategoriesBefore($compte_id, $sign, $cat_pos): ?array
@@ -151,6 +171,25 @@ class CategoryRepository extends ServiceEntityRepository
 
 			->getQuery()
 			->getArrayResult()
+		;
+	}
+
+	/**
+	 * @return Category[]
+	 */
+	public function findOrderedForBudget(int $compteId, bool $sign, int $year): array
+	{
+		return $this->createQueryBuilder('category')
+			->andWhere('category.compte = :compteId')
+			->andWhere('category.sign = :sign')
+			->andWhere('category.year = :year')
+			->setParameter('compteId', $compteId)
+			->setParameter('sign', $sign)
+			->setParameter('year', $year)
+			->orderBy('category.position', 'ASC')
+			->addOrderBy('category.id', 'ASC')
+			->getQuery()
+			->getResult()
 		;
 	}
 }

@@ -1,5 +1,3 @@
-php bin/console make:reset-password
-
 Home
 	Trouver un logo
 
@@ -39,7 +37,6 @@ Compte
 
 		Tableau
 			Limiter le nombre de character, si dépasse => ... + reste en prop title
-			Colorier bordure en jaune de la zone éditable
 			Pop-up de suggestion de correction d'erreur
 			Entité operation rajouter date_action_utilisateur pour historique
 			Si ajout ope fait, ne pas proposer > date du jour
