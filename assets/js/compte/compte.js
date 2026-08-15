@@ -381,8 +381,18 @@ $(document).ready(function(){
 	const accountPreferencesPanel = document.getElementById('accountPreferencesPanel')
 	const accountPreferencesForm = document.querySelector('[data-account-preference-autosave]')
 	const accountPreferencesStatus = document.querySelector('[data-account-preference-status]')
+	const datasElement = document.getElementById('datas')
+	const tutorialButton = document.getElementById('tutorialButton')
+	const tutorialModal = document.getElementById('modalAccountTutorial')
+	const startAccountTourButton = document.getElementById('startAccountTourButton')
 	let accountPreferencesSaveTimer
 	let accountPreferencesRequest
+	let accountTourIndex = 0
+	let accountTourSteps = []
+	let accountTourTarget = null
+	let accountTourOverlay = null
+	let accountTourPopover = null
+	let accountTourRenderToken = 0
 
 	const setAccountPreferenceStatus = function(label, state = 'saved'){
 		if (!accountPreferencesStatus) {
@@ -505,6 +515,442 @@ $(document).ready(function(){
 			window.clearTimeout(accountPreferencesSaveTimer)
 			accountPreferencesSaveTimer = window.setTimeout(saveAccountPreferences, 160)
 		})
+	}
+	const markAccountTutorialSeen = function(){
+		if (!datasElement || datasElement.dataset.accountTutorialSeen === '1') {
+			return
+		}
+
+		const formData = new FormData()
+		formData.append('_token', datasElement.dataset.accountTutorialSeenToken || '')
+
+		fetch(datasElement.dataset.accountTutorialSeenUrl, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest'
+			}
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Tutorial seen save failed')
+				}
+
+				datasElement.dataset.accountTutorialSeen = '1'
+			})
+			.catch(() => {})
+	}
+
+	const openAccountTutorial = function(markSeen = false){
+		if (!tutorialModal) {
+			return
+		}
+
+		if (window.bootstrap?.Modal) {
+			window.bootstrap.Modal.getOrCreateInstance(tutorialModal).show()
+		} else if (window.$ && typeof $(tutorialModal).modal === 'function') {
+			$(tutorialModal).modal('show')
+		} else {
+			tutorialModal.classList.add('show')
+			tutorialModal.style.display = 'block'
+			tutorialModal.removeAttribute('aria-hidden')
+		}
+
+		if (markSeen) {
+			markAccountTutorialSeen()
+		}
+	}
+
+	const closeAccountTutorial = function(){
+		if (!tutorialModal) {
+			return
+		}
+
+		if (window.bootstrap?.Modal) {
+			window.bootstrap.Modal.getOrCreateInstance(tutorialModal).hide()
+		} else if (window.$ && typeof $(tutorialModal).modal === 'function') {
+			$(tutorialModal).modal('hide')
+		} else {
+			tutorialModal.classList.remove('show')
+			tutorialModal.style.display = 'none'
+			tutorialModal.setAttribute('aria-hidden', 'true')
+		}
+	}
+
+	const accountTourEditableCellSelector = '.compteTable .edit td[data-scid][data-month]:not(.counterEdit):not(.td_category_libelle):not(.td_subcategory_libelle)'
+
+	const accountTourDefinitions = [
+		{
+			selector: '.account-header-actions',
+			title: 'Aide et réglages',
+			text: "Les préférences règlent l'apparence, la légende explique les codes visuels, et le bouton Tutoriel relance cette aide quand tu veux."
+		},
+		{
+			selector: '.balance-summary',
+			title: 'Soldes du compte',
+			text: "Cette zone donne le solde actuel, le solde prévu en fin de mois et le découvert autorisé. Les alertes apparaissent quand le découvert est dépassé."
+		},
+		{
+			selector: '#anomalies-div',
+			title: 'Anomalies à corriger',
+			text: "Le compteur d'anomalies signale les opérations anticipées en retard. Le bouton ouvre les actions de correction disponibles."
+		},
+		{
+			selector: '#last-actions-div',
+			title: 'Dernières actions',
+			text: "Cette zone garde l'historique récent et propose l'annulation ou la restauration des dernières modifications disponibles."
+		},
+		{
+			selector: '.account-view-controls',
+			title: 'Période et affichage',
+			text: "Change l'année affichée, puis choisis la largeur de lecture: année complète, période compacte ou mois courant."
+		},
+		{
+			selector: '.compteTable',
+			title: 'Tableaux revenus et dépenses',
+			text: "Les tableaux regroupent le budget par catégorie, sous-catégorie et mois. Les couleurs séparent le passé, le mois courant et les mois à venir."
+		},
+		{
+			selector: '.month-selector.current, .month-selector',
+			title: 'Focus sur un mois',
+			text: "Clique sur un mois pour le mettre en évidence dans toutes les zones du tableau et comparer plus vite les lignes."
+		},
+		{
+			selector: accountTourEditableCellSelector,
+			title: 'Cellules modifiables',
+			text: "Les cellules des zones modifiables ouvrent la saisie des opérations. Les montants anticipés permettent de prévoir avant validation réelle."
+		},
+		{
+			selector: '#modalOperation .modal-content',
+			title: "Fenêtre d'opérations",
+			text: "Après le clic sur une cellule, cette fenêtre liste les opérations du mois pour la sous-catégorie choisie. Le tutoriel l'ouvre ici sans enregistrer de changement.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '#modalOperation .inputNumber, #modalOperation .inputAnticipe',
+			title: 'Montants réel et anticipé',
+			text: "Le montant réel correspond à une opération confirmée. Le montant anticipé sert à préparer une dépense ou un revenu prévu avant sa validation.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '#modalOperation .inputDay',
+			title: "Date de l'opération",
+			text: "Le jour rattache l'opération au bon moment du mois. Il permet aussi de repérer les opérations anticipées devenues en retard.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '#modalOperation .inputComment',
+			title: 'Commentaire',
+			text: "Le commentaire sert de repère lisible: bénéficiaire, facture, précision personnelle ou toute information utile pour retrouver l'opération.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '#modalOperation .td_actions',
+			title: 'Actions de ligne',
+			text: "Les actions de ligne permettent de revenir en affichage simple, annuler une modification, supprimer une opération ou réactiver une ligne supprimée.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '#modalOperation .modal-footer',
+			title: 'Enregistrer ou fermer',
+			text: "Le bouton d'enregistrement apparaît seulement quand une modification est détectée. Fermer sans enregistrer permet de sortir de la fenêtre sans toucher aux données.",
+			before: () => openOperationModalForTour(),
+			modal: true
+		},
+		{
+			selector: '.category-drag-handle, .subcategory-drag-handle',
+			title: 'Réordonner le budget',
+			text: "Les poignées de déplacement servent à réorganiser les catégories et sous-catégories. Après un déplacement, l'action peut être annulée."
+		}
+	]
+	const ensureAccountTourElements = function(){
+		if (!accountTourOverlay) {
+			accountTourOverlay = document.createElement('div')
+			accountTourOverlay.className = 'account-tour-overlay'
+			accountTourOverlay.setAttribute('aria-hidden', 'true')
+			document.body.appendChild(accountTourOverlay)
+		}
+		if (!accountTourPopover) {
+			accountTourPopover = document.createElement('section')
+			accountTourPopover.className = 'account-tour-popover'
+			accountTourPopover.setAttribute('role', 'dialog')
+			accountTourPopover.setAttribute('aria-live', 'polite')
+			document.body.appendChild(accountTourPopover)
+		}
+	}
+
+	const getVisibleTourElement = function(selector){
+		return Array.from(document.querySelectorAll(selector)).find(element => {
+			const rect = element.getBoundingClientRect()
+
+			return rect.width > 0 && rect.height > 0
+		})
+	}
+
+	const waitForTourElement = function(selector, timeout = 2400){
+		const startedAt = Date.now()
+
+		return new Promise(resolve => {
+			const findElement = function(){
+				const element = getVisibleTourElement(selector)
+				if (element || Date.now() - startedAt >= timeout) {
+					resolve(element || null)
+					return
+				}
+
+				window.setTimeout(findElement, 80)
+			}
+
+			findElement()
+		})
+	}
+
+	const closeOperationModalForTour = function(){
+		const operationModal = document.getElementById('modalOperation')
+		if (!operationModal) {
+			return
+		}
+
+		operationModal.classList.remove('account-tour-modal-active')
+		if (!operationModal.classList.contains('show') && operationModal.style.display !== 'block') {
+			return
+		}
+
+		if (window.$ && typeof $(operationModal).modal === 'function') {
+			$(operationModal).modal('hide')
+		} else if (window.bootstrap?.Modal) {
+			window.bootstrap.Modal.getOrCreateInstance(operationModal).hide()
+		} else {
+			operationModal.classList.remove('show')
+			operationModal.style.display = 'none'
+			operationModal.setAttribute('aria-hidden', 'true')
+		}
+
+		window.setTimeout(function(){
+			operationModal.classList.remove('account-tour-modal-active')
+			if (!operationModal.classList.contains('show') && operationModal.style.display !== 'block') {
+				return
+			}
+
+			operationModal.classList.remove('show')
+			operationModal.style.display = 'none'
+			operationModal.setAttribute('aria-hidden', 'true')
+			operationModal.removeAttribute('aria-modal')
+			if (!document.querySelector('.modal.show')) {
+				document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove())
+				document.body.classList.remove('modal-open')
+				document.body.style.removeProperty('padding-right')
+			}
+		}, 180)
+	}
+
+	const openOperationModalForTour = async function(){
+		let operationModal = document.getElementById('modalOperation')
+		if (!operationModal) {
+			return
+		}
+
+		const hasOperationContent = getVisibleTourElement('#modalOperation .tr_ope, #modalOperation .tr_add')
+		if (!hasOperationContent) {
+			const editableCell = getVisibleTourElement(accountTourEditableCellSelector)
+			if (!editableCell) {
+				return
+			}
+
+			editableCell.click()
+			await waitForTourElement('#modalOperation .tr_ope, #modalOperation .tr_add', 3200)
+		}
+
+		operationModal = document.getElementById('modalOperation')
+		operationModal?.classList.add('account-tour-modal-active')
+
+		if (!getVisibleTourElement('#modalOperation .inputDay')) {
+			const fullEditButton = document.querySelector('#modalOperation #butFullToggleFormMod')
+			if (fullEditButton && !fullEditButton.disabled && fullEditButton.value !== '1') {
+				fullEditButton.click()
+			} else {
+				const editableOperationCell = getVisibleTourElement('#modalOperation .tr_ope .td_number, #modalOperation .tr_ope .td_anticipe, #modalOperation .tr_ope .td_date, #modalOperation .tr_ope .td_comment')
+				editableOperationCell?.click()
+			}
+
+			await waitForTourElement('#modalOperation .inputDay', 1200)
+		}
+	}
+
+	const buildAccountTourSteps = function(){
+		return accountTourDefinitions
+			.map(step => ({
+				...step,
+				target: getVisibleTourElement(step.selector)
+			}))
+			.filter(step => step.target || step.before)
+	}
+
+	const clearAccountTourTarget = function(){
+		if (!accountTourTarget) {
+			return
+		}
+
+		accountTourTarget.classList.remove('account-tour-highlight')
+		accountTourTarget = null
+	}
+
+	const stopAccountTour = function(){
+		accountTourRenderToken++
+		clearAccountTourTarget()
+		closeOperationModalForTour()
+		document.body.classList.remove('account-tour-active')
+		accountTourOverlay?.remove()
+		accountTourPopover?.remove()
+		accountTourOverlay = null
+		accountTourPopover = null
+		accountTourSteps = []
+		window.removeEventListener('resize', positionAccountTourPopover)
+		window.removeEventListener('scroll', positionAccountTourPopover, true)
+		document.removeEventListener('keydown', stopAccountTourOnEscape)
+	}
+
+	function stopAccountTourOnEscape(event){
+		if ('Escape' === event.key) {
+			stopAccountTour()
+		}
+	}
+
+	function positionAccountTourPopover(){
+		if (!accountTourTarget || !accountTourPopover) {
+			return
+		}
+
+		const rect = accountTourTarget.getBoundingClientRect()
+		const gap = 14
+		const popoverWidth = Math.min(360, window.innerWidth - 24)
+		const measuredHeight = accountTourPopover.offsetHeight || 220
+		let top = rect.bottom + gap
+		let left = rect.left + (rect.width / 2) - (popoverWidth / 2)
+
+		if (top + measuredHeight > window.innerHeight - 12) {
+			top = rect.top - measuredHeight - gap
+		}
+		if (top < 12) {
+			top = 12
+		}
+
+		left = Math.max(12, Math.min(left, window.innerWidth - popoverWidth - 12))
+		accountTourPopover.style.width = `${popoverWidth}px`
+		accountTourPopover.style.top = `${top}px`
+		accountTourPopover.style.left = `${left}px`
+	}
+
+	const renderAccountTourStep = async function(direction = 1){
+		const renderToken = ++accountTourRenderToken
+		const step = accountTourSteps[accountTourIndex]
+		if (!step) {
+			stopAccountTour()
+			return
+		}
+
+		clearAccountTourTarget()
+		if (!step.modal) {
+			closeOperationModalForTour()
+		}
+		if (step.before) {
+			await step.before()
+		}
+		if (renderToken !== accountTourRenderToken) {
+			return
+		}
+
+		step.target = getVisibleTourElement(step.selector)
+		if (!step.target) {
+			accountTourSteps.splice(accountTourIndex, 1)
+			if (direction < 0) {
+				accountTourIndex = Math.max(0, accountTourIndex - 1)
+			}
+			if (accountTourIndex >= accountTourSteps.length) {
+				stopAccountTour()
+				return
+			}
+
+			renderAccountTourStep(direction)
+			return
+		}
+
+		accountTourTarget = step.target
+		accountTourTarget.classList.add('account-tour-highlight')
+		accountTourTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+
+		const isLastStep = accountTourIndex === accountTourSteps.length - 1
+		accountTourPopover.innerHTML = `
+			<div class="account-tour-progress">Étape ${accountTourIndex + 1} / ${accountTourSteps.length}</div>
+			<h5>${step.title}</h5>
+			<p>${step.text}</p>
+			<div class="account-tour-actions">
+				<button type="button" class="account-tour-stop">Arrêter</button>
+				<div class="account-tour-navigation">
+					<button type="button" class="account-tour-previous"${accountTourIndex === 0 ? ' disabled' : ''}>Précédent</button>
+					<button type="button" class="account-tour-next">${isLastStep ? 'Terminer' : 'Suivant'}</button>
+				</div>
+			</div>
+		`
+		accountTourPopover.querySelector('.account-tour-stop').addEventListener('click', stopAccountTour)
+		accountTourPopover.querySelector('.account-tour-previous').addEventListener('click', function(){
+			if (accountTourIndex === 0) {
+				return
+			}
+
+			accountTourIndex--
+			renderAccountTourStep(-1)
+		})
+		accountTourPopover.querySelector('.account-tour-next').addEventListener('click', function(){
+			if (isLastStep) {
+				stopAccountTour()
+				return
+			}
+
+			accountTourIndex++
+			renderAccountTourStep(1)
+		})
+
+		window.setTimeout(positionAccountTourPopover, 220)
+	}
+
+	const startAccountTour = function(){
+		accountTourSteps = buildAccountTourSteps()
+		if (!accountTourSteps.length) {
+			return
+		}
+
+		closeAccountTutorial()
+		ensureAccountTourElements()
+		document.body.classList.add('account-tour-active')
+		accountTourIndex = 0
+		renderAccountTourStep(1)
+		window.addEventListener('resize', positionAccountTourPopover)
+		window.addEventListener('scroll', positionAccountTourPopover, true)
+		document.addEventListener('keydown', stopAccountTourOnEscape)
+	}
+
+	if (tutorialButton) {
+		tutorialButton.addEventListener('click', function(){
+			openAccountTutorial(false)
+		})
+	}
+
+	if (startAccountTourButton) {
+		startAccountTourButton.addEventListener('click', function(){
+			window.setTimeout(startAccountTour, 180)
+		})
+	}
+
+	if (datasElement?.dataset.accountTutorialSeen === '0') {
+		window.setTimeout(function(){
+			openAccountTutorial(true)
+		}, 250)
 	}
 	const budgetSwitcher = document.querySelector('.budget-switcher')
 	if (budgetSwitcher) {

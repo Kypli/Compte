@@ -1,0 +1,81 @@
+<div
+	id="modalAccountTutorial"
+	class="modal fade account-tutorial-modal"
+	tabindex="-1"
+	role="dialog"
+	aria-labelledby="modalAccountTutorialTitle"
+	aria-hidden="true"
+>
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+		<div class="modal-content account-tutorial-content">
+			<div class="modal-header">
+				<div class="account-tutorial-title-group">
+					<span class="account-tutorial-kicker">Tutoriel</span>
+					<h4 id="modalAccountTutorialTitle" class="modal-title">Prendre en main la page compte</h4>
+				</div>
+				<button
+					type="button"
+					class="account-tutorial-close"
+					data-dismiss="modal"
+					data-bs-dismiss="modal"
+					aria-label="Fermer"
+					title="Fermer"
+				>
+					<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+				</button>
+			</div>
+
+			<div class="modal-body">
+				<div class="account-tutorial-grid">
+					<section class="account-tutorial-step" aria-labelledby="accountTutorialBalances">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-scale-balanced"></i>
+						</span>
+						<div>
+							<h5 id="accountTutorialBalances">Les soldes</h5>
+							<p>Le solde actuel indique l'argent disponible maintenant. Le solde de fin de mois ajoute les opérations prévues pour repérer un découvert avant qu'il arrive.</p>
+						</div>
+					</section>
+
+					<section class="account-tutorial-step" aria-labelledby="accountTutorialMonths">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-table-columns"></i>
+						</span>
+						<div>
+							<h5 id="accountTutorialMonths">L'affichage</h5>
+							<p>Le sélecteur d'année et le menu d'affichage changent la période visible. Cliquer sur un mois le met en évidence dans tous les tableaux.</p>
+						</div>
+					</section>
+
+					<section class="account-tutorial-step" aria-labelledby="accountTutorialOperations">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-pen-to-square"></i>
+						</span>
+						<div>
+							<h5 id="accountTutorialOperations">Les opérations</h5>
+							<p>Les cellules modifiables ouvrent la saisie des opérations. Les montants anticipés signalent ce qui est prévu mais pas encore réellement passé.</p>
+						</div>
+					</section>
+
+					<section class="account-tutorial-step" aria-labelledby="accountTutorialTools">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-sliders"></i>
+						</span>
+						<div>
+							<h5 id="accountTutorialTools">Les outils</h5>
+							<p>Les préférences règlent l'apparence du compte. La légende explique les couleurs, et le bouton Tutoriel permet de revoir cette aide à tout moment.</p>
+						</div>
+					</section>
+				</div>
+			</div>
+
+			<div class="modal-footer account-tutorial-footer">
+				<button type="button" id="startAccountTourButton" class="btn btn-success account-tutorial-tour-start" data-dismiss="modal" data-bs-dismiss="modal">
+					<i class="fa-solid fa-route" aria-hidden="true"></i>
+					<span>D&eacute;marrer l'accompagnement</span>
+				</button>
+				<button type="button" class="btn btn-dark" data-dismiss="modal" data-bs-dismiss="modal">C'est compris</button>
+			</div>
+		</div>
+	</div>
+</div>

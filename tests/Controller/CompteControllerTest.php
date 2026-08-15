@@ -129,6 +129,13 @@ class CompteControllerTest extends WebTestCase
 		self::assertSelectorExists('#legendButton.header-action-button');
 		self::assertSelectorExists('#tutorialButton.header-action-button');
 		self::assertSelectorExists('#legendButton + #tutorialButton');
+		self::assertSame('0', $this->client->getCrawler()->filter('#datas')->attr('data-account-tutorial-seen'));
+		self::assertStringContainsString('/user/preference/'.$this->owner->getId().'/account-tutorial-seen', $this->client->getCrawler()->filter('#datas')->attr('data-account-tutorial-seen-url'));
+		self::assertNotSame('', $this->client->getCrawler()->filter('#datas')->attr('data-account-tutorial-seen-token'));
+		self::assertSelectorExists('#modalAccountTutorial.account-tutorial-modal');
+		self::assertSelectorExists('#startAccountTourButton.account-tutorial-tour-start');
+		self::assertSelectorTextContains('#modalAccountTutorialTitle', 'Prendre en main la page compte');
+		self::assertSelectorTextContains('#modalAccountTutorial', 'le bouton Tutoriel permet de revoir cette aide à tout moment.');
 		self::assertSelectorExists('.balance-summary #soldeActuel');
 		self::assertSelectorExists('.balance-summary #soldeFinMois');
 		self::assertSelectorTextSame('#overdraftAuthorization', '0,00 €');
@@ -165,6 +172,18 @@ class CompteControllerTest extends WebTestCase
 		self::assertSelectorExists('#modalLegend .legend-alert-sample.balance-alert-projected .fa-exclamation-triangle');
 		self::assertSelectorTextContains('#modalLegend', 'Le solde actuel');
 		self::assertSelectorTextContains('#modalLegend', 'Triangle blanc avec un ! rouge');
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			$this->client->getCrawler()->filter('#datas')->attr('data-account-tutorial-seen-url'),
+			['_token' => $this->client->getCrawler()->filter('#datas')->attr('data-account-tutorial-seen-token')]
+		);
+		self::assertResponseIsSuccessful();
+		$tutorialResponse = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($tutorialResponse['saved']);
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$entityManager->clear();
+		self::assertTrue($entityManager->find(User::class, $this->owner->getId())->getPreferences()->isAccountTutorialSeen());
 
 		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/tables?year='.date('Y'));
 		self::assertResponseIsSuccessful();
@@ -873,6 +892,13 @@ class CompteControllerTest extends WebTestCase
 			['_token' => 'invalid']
 		);
 		self::assertResponseStatusCodeSame(403);
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/user/preference/'.$this->owner->getId().'/account-tutorial-seen',
+			['_token' => 'invalid']
+		);
+		self::assertResponseStatusCodeSame(403);
 	}
 
 	public function testAnotherUserCannotReadOrMutateAccountResources(): void
@@ -926,6 +952,9 @@ class CompteControllerTest extends WebTestCase
 		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/subcategories/reorder');
 		self::assertResponseStatusCodeSame(403);
 
+		$this->client->xmlHttpRequest('POST', '/user/preference/'.$this->owner->getId().'/account-tutorial-seen');
+		self::assertResponseStatusCodeSame(403);
+
 		$this->client->xmlHttpRequest('POST', sprintf(
 			'/compte/operation/%d/%s/%s/1',
 			$this->positiveSubCategory->getId(),
@@ -960,6 +989,9 @@ class CompteControllerTest extends WebTestCase
 		self::assertResponseStatusCodeSame(405);
 
 		$this->client->request('GET', '/compte/'.$this->compte->getId().'/subcategories/reorder');
+		self::assertResponseStatusCodeSame(405);
+
+		$this->client->request('GET', '/user/preference/'.$this->owner->getId().'/account-tutorial-seen');
 		self::assertResponseStatusCodeSame(405);
 	}
 

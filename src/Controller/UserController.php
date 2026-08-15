@@ -651,6 +651,23 @@ class UserController extends AbstractController
 		]);
 	}
 
+	#[IsGranted("ROLE_USER")]
+	#[Route("/preference/{id}/account-tutorial-seen", name: "_preference_account_tutorial_seen", methods: ["POST"])]
+	public function accountTutorialSeen(Request $request, User $user, EntityManagerInterface $entityManager): Response
+	{
+		if ($this->accesControl($user->getId()) == false){
+			return $this->json(['saved' => false], Response::HTTP_FORBIDDEN);
+		}
+		if (!$this->isCsrfTokenValid('account-tutorial-seen'.$user->getId(), (string) $request->request->get('_token'))){
+			return $this->json(['saved' => false], Response::HTTP_FORBIDDEN);
+		}
+
+		$user->getPreferences()->setAccountTutorialSeen(true);
+		$entityManager->flush();
+
+		return $this->json(['saved' => true]);
+	}
+
 	/**
 	 * Vérifie si user à accès
 	 */

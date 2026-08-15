@@ -39,6 +39,9 @@ class UserPreference
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $showEditableBorder = true;
 
+    #[ORM\Column(type: "boolean", options: ["default" => false])]
+    private $accountTutorialSeen = false;
+
     /**
      * @ORM\OneToOne(targetEntity=User::class, inversedBy="preferences", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
@@ -111,6 +114,18 @@ class UserPreference
     public function setShowEditableBorder(bool $showEditableBorder): self
     {
         $this->showEditableBorder = $showEditableBorder;
+
+        return $this;
+    }
+
+    public function isAccountTutorialSeen(): bool
+    {
+        return $this->accountTutorialSeen;
+    }
+
+    public function setAccountTutorialSeen(bool $accountTutorialSeen): self
+    {
+        $this->accountTutorialSeen = $accountTutorialSeen;
 
         return $this;
     }
