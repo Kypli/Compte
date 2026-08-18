@@ -60,15 +60,33 @@
 					{% include('partiel/_h1.html.twig') with {'text': compte.libelle} %}
 				</div>
 				<div class="account-header-actions">
-					<a
-						id="accountPreferencesButton"
-						class="header-action-button account-preferences-button"
-						href="#accountPreferencesPanel"
-						title="Ouvrir les pr&eacute;f&eacute;rences des comptes"
-					>
-						<i class="fa-solid fa-sliders" aria-hidden="true"></i>
-						<span class="account-preferences-button-label">Pr&eacute;f&eacute;rences</span>
-					</a>
+					<div class="account-header-action-buttons">
+						<a
+							id="accountPreferencesButton"
+							class="header-action-button account-preferences-button"
+							href="#accountPreferencesPanel"
+							title="Ouvrir les pr&eacute;f&eacute;rences des comptes"
+						>
+							<i class="fa-solid fa-sliders" aria-hidden="true"></i>
+							<span class="account-preferences-button-label">Pr&eacute;f&eacute;rences</span>
+						</a>
+						<button
+							type="button"
+							id="legendButton"
+							class="header-action-button legend-button"
+							data-toggle="modal"
+							data-target="#modalLegend"
+							aria-haspopup="dialog"
+							aria-controls="modalLegend"
+						>
+							<i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+							<span>L&eacute;gende</span>
+						</button>
+						<button type="button" id="tutorialButton" class="header-action-button" title="Ouvrir le tutoriel">
+							<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+							<span>Tutoriel</span>
+						</button>
+					</div>
 					<div id="accountPreferencesPanel" class="account-preferences-panel" hidden>
 						<div class="account-preferences-panel-title">
 							<span class="account-preferences-panel-heading">
@@ -83,22 +101,6 @@
 							{{ form_widget(account_preference_form._token) }}
 						{{ form_end(account_preference_form, {'render_rest': false}) }}
 					</div>
-					<button
-						type="button"
-						id="legendButton"
-						class="header-action-button legend-button"
-						data-toggle="modal"
-						data-target="#modalLegend"
-						aria-haspopup="dialog"
-						aria-controls="modalLegend"
-					>
-						<i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-						<span>L&eacute;gende</span>
-					</button>
-					<button type="button" id="tutorialButton" class="header-action-button" title="Ouvrir le tutoriel">
-						<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-						<span>Tutoriel</span>
-					</button>
 				</div>
 			</div>
 

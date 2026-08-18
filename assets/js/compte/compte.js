@@ -390,9 +390,19 @@ $(document).ready(function(){
 	let accountTourIndex = 0
 	let accountTourSteps = []
 	let accountTourTarget = null
+	let accountTourHighlightedElements = []
 	let accountTourOverlay = null
 	let accountTourPopover = null
 	let accountTourRenderToken = 0
+	let accountTourOriginalOperationContent = null
+	let accountTourOriginalOperationClassName = null
+	let accountTourOperationDemoActive = false
+	let accountTourOriginalCategoryContent = null
+	let accountTourOriginalCategoryClassName = null
+	let accountTourCategoryDemoActive = false
+	let accountTourOriginalLastActionsContent = null
+	let accountTourLastActionsDemoActive = false
+	let accountTourModalToken = 0
 
 	const setAccountPreferenceStatus = function(label, state = 'saved'){
 		if (!accountPreferencesStatus) {
@@ -578,10 +588,11 @@ $(document).ready(function(){
 	}
 
 	const accountTourEditableCellSelector = '.compteTable .edit td[data-scid][data-month]:not(.counterEdit):not(.td_category_libelle):not(.td_subcategory_libelle)'
+	const accountTourCategoryCellSelector = '.td_category_libelle, .td_subcategory_libelle'
 
 	const accountTourDefinitions = [
 		{
-			selector: '.account-header-actions',
+			selector: '.account-header-action-buttons',
 			title: 'Aide et réglages',
 			text: "Les préférences règlent l'apparence, la légende explique les codes visuels, et le bouton Tutoriel relance cette aide quand tu veux."
 		},
@@ -592,8 +603,15 @@ $(document).ready(function(){
 		},
 		{
 			selector: '#anomalies-div',
-			title: 'Anomalies à corriger',
-			text: "Le compteur d'anomalies signale les opérations anticipées en retard. Le bouton ouvre les actions de correction disponibles."
+			title: 'Bouton des anomalies',
+			text: "Ce bouton signale les opérations anticipées en retard. Il donne accès à la fenêtre de correction."
+		},
+		{
+			selector: '#modalAnomalies .modal-content',
+			title: 'Fenêtre des anomalies',
+			html: "<p>La fenêtre détaille chaque opération prévue dont la date est dépassée.</p><ul><li>Valider l'opération la passe en montant réel.</li><li>Supprimer l'opération retire une prévision qui n'est plus utile.</li></ul>",
+			before: () => openAnomaliesModalForTour(),
+			modal: 'anomalies'
 		},
 		{
 			selector: '#last-actions-div',
@@ -601,14 +619,31 @@ $(document).ready(function(){
 			text: "Cette zone garde l'historique récent et propose l'annulation ou la restauration des dernières modifications disponibles."
 		},
 		{
+			selector: '#lastActionsPopover',
+			title: 'Historique des actions',
+			html: "<p>Ce panneau liste les dernières modifications du compte.</p><ul><li>Chaque ligne précise le type d'action, la zone concernée, la date et le montant.</li><li>Le bouton de retour permet d'annuler ou de restaurer une action récente.</li></ul>",
+			before: () => openLastActionsPopoverForTour(),
+			modal: 'lastActions'
+		},
+		{
 			selector: '.account-view-controls',
 			title: 'Période et affichage',
 			text: "Change l'année affichée, puis choisis la largeur de lecture: année complète, période compacte ou mois courant."
 		},
 		{
-			selector: '.compteTable',
-			title: 'Tableaux revenus et dépenses',
-			text: "Les tableaux regroupent le budget par catégorie, sous-catégorie et mois. Les couleurs séparent le passé, le mois courant et les mois à venir."
+			selector: '.bck_pos .compteTable',
+			title: 'Tableau des recettes',
+			text: "Ce tableau regroupe les recettes par catégorie, sous-catégorie et mois. Les totaux permettent de suivre ce qui rentre sur la période."
+		},
+		{
+			selector: '.bck_neg .compteTable',
+			title: 'Tableau des dépenses',
+			text: "Ce tableau regroupe les dépenses. Les montants négatifs et anticipés aident à préparer les sorties avant qu'elles soient réellement passées."
+		},
+		{
+			selector: '.gains-table',
+			title: 'Tableau des gains',
+			text: "Ce tableau compare recettes et dépenses, puis affiche le gain mensuel et le cumul de solde mois après mois."
 		},
 		{
 			selector: '.month-selector.current, .month-selector',
@@ -621,46 +656,60 @@ $(document).ready(function(){
 			text: "Les cellules des zones modifiables ouvrent la saisie des opérations. Les montants anticipés permettent de prévoir avant validation réelle."
 		},
 		{
+			selector: accountTourCategoryCellSelector,
+			title: 'Catégories et sous-catégories',
+			text: "Les cellules de libellé ouvrent la gestion des catégories. Elles servent à structurer le budget avant de saisir les opérations mensuelles."
+		},
+		{
+			selector: '#modalCategory .modal-content',
+			title: 'Gestion des catégories',
+			html: "<p>Cette fenêtre permet de modifier la catégorie sélectionnée et ses sous-catégories.</p><ul><li>Renommer une catégorie ou une sous-catégorie.</li><li>Ajouter une nouvelle sous-catégorie.</li><li>Préparer un déplacement ou une suppression avant enregistrement.</li></ul>",
+			before: () => openCategoryModalForTour(),
+			modal: 'category'
+		},
+		{
 			selector: '#modalOperation .modal-content',
 			title: "Fenêtre d'opérations",
-			text: "Après le clic sur une cellule, cette fenêtre liste les opérations du mois pour la sous-catégorie choisie. Le tutoriel l'ouvre ici sans enregistrer de changement.",
+			html: "<p>Cette démonstration montre plusieurs cas sans enregistrer de changement.</p><ul><li>Une opération réelle déjà confirmée.</li><li>Une opération anticipée prévue plus tard.</li><li>Une ligne ajoutée, une ligne modifiée et une ligne marquée pour suppression.</li></ul>",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
 			selector: '#modalOperation .inputNumber, #modalOperation .inputAnticipe',
 			title: 'Montants réel et anticipé',
 			text: "Le montant réel correspond à une opération confirmée. Le montant anticipé sert à préparer une dépense ou un revenu prévu avant sa validation.",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
 			selector: '#modalOperation .inputDay',
 			title: "Date de l'opération",
 			text: "Le jour rattache l'opération au bon moment du mois. Il permet aussi de repérer les opérations anticipées devenues en retard.",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
 			selector: '#modalOperation .inputComment',
 			title: 'Commentaire',
 			text: "Le commentaire sert de repère lisible: bénéficiaire, facture, précision personnelle ou toute information utile pour retrouver l'opération.",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
-			selector: '#modalOperation .td_actions',
+			selector: '#modalOperation .trButStopFormMod, #modalOperation .trButCancelEdit, #modalOperation .trButDelAdd, #modalOperation .trButRevive',
+			highlightSelector: '#modalOperation .trButStopFormMod, #modalOperation .trButCancelEdit, #modalOperation .trButDelAdd, #modalOperation .trButRevive',
 			title: 'Actions de ligne',
-			text: "Les actions de ligne permettent de revenir en affichage simple, annuler une modification, supprimer une opération ou réactiver une ligne supprimée.",
+			html: "<p>Les croix colorées indiquent l'action disponible sur la ligne.</p><ul><li><strong>Vert</strong> : retire une ligne ajoutée.</li><li><strong>Noir</strong> : ferme le mode édition.</li><li><strong>Bleu</strong> : annule les modifications.</li><li><strong>Rouge</strong> : annule une suppression.</li></ul>",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
-			selector: '#modalOperation .modal-footer',
+			selector: '#modalOperation #modalOperationSaveClose, #modalOperation #modalOperationClose',
+			highlightSelector: '#modalOperation #modalOperationSaveClose, #modalOperation #modalOperationClose',
 			title: 'Enregistrer ou fermer',
 			text: "Le bouton d'enregistrement apparaît seulement quand une modification est détectée. Fermer sans enregistrer permet de sortir de la fenêtre sans toucher aux données.",
 			before: () => openOperationModalForTour(),
-			modal: true
+			modal: 'operation'
 		},
 		{
 			selector: '.category-drag-handle, .subcategory-drag-handle',
@@ -684,12 +733,16 @@ $(document).ready(function(){
 		}
 	}
 
-	const getVisibleTourElement = function(selector){
-		return Array.from(document.querySelectorAll(selector)).find(element => {
+	const getVisibleTourElements = function(selector){
+		return Array.from(document.querySelectorAll(selector)).filter(element => {
 			const rect = element.getBoundingClientRect()
 
 			return rect.width > 0 && rect.height > 0
 		})
+	}
+
+	const getVisibleTourElement = function(selector){
+		return getVisibleTourElements(selector)[0] || null
 	}
 
 	const waitForTourElement = function(selector, timeout = 2400){
@@ -710,37 +763,190 @@ $(document).ready(function(){
 		})
 	}
 
+	const restoreOperationModalAfterTour = function(){
+		const operationContent = document.querySelector('#modalOperation .modal-content')
+		if (operationContent && accountTourOriginalOperationContent !== null) {
+			operationContent.innerHTML = accountTourOriginalOperationContent
+		}
+		accountTourOriginalOperationContent = null
+		accountTourOperationDemoActive = false
+	}
+
+	const restoreCategoryModalAfterTour = function(){
+		const categoryContent = document.querySelector('#modalCategory .modal-content')
+		if (categoryContent && accountTourOriginalCategoryContent !== null) {
+			categoryContent.innerHTML = accountTourOriginalCategoryContent
+		}
+		accountTourOriginalCategoryContent = null
+		accountTourCategoryDemoActive = false
+	}
+
 	const closeOperationModalForTour = function(){
+		hideModalForTour(document.getElementById('modalOperation'), restoreOperationModalAfterTour)
+	}
+
+	const closeCategoryModalForTour = function(){
+		hideModalForTour(document.getElementById('modalCategory'), restoreCategoryModalAfterTour)
+	}
+
+	const closeAnomaliesModalForTour = function(){
+		hideModalForTour(document.getElementById('modalAnomalies'))
+	}
+
+	const restoreLastActionsAfterTour = function(){
+		const lastActionsContainer = document.getElementById('last-actions-div')
+		lastActionsContainer?.classList.remove('account-tour-last-actions-host')
+		if (lastActionsContainer && accountTourOriginalLastActionsContent !== null) {
+			lastActionsContainer.innerHTML = accountTourOriginalLastActionsContent
+		}
+		accountTourOriginalLastActionsContent = null
+		accountTourLastActionsDemoActive = false
+	}
+
+	const closeLastActionsPopoverForTour = function(){
+		document.querySelectorAll('.last-actions.is-locked, .last-actions.account-tour-last-actions-active').forEach(lastActions => {
+			lastActions.classList.remove('is-locked', 'account-tour-last-actions-active')
+			lastActions.querySelector('.last-action-trigger')?.setAttribute('aria-expanded', 'false')
+		})
+		restoreLastActionsAfterTour()
+	}
+
+	const closeTourModals = function(keepModal = null){
+		if (keepModal !== 'operation') {
+			closeOperationModalForTour()
+		}
+		if (keepModal !== 'category') {
+			closeCategoryModalForTour()
+		}
+		if (keepModal !== 'anomalies') {
+			closeAnomaliesModalForTour()
+		}
+		if (keepModal !== 'lastActions') {
+			closeLastActionsPopoverForTour()
+		}
+	}
+
+	const openLastActionsPopoverForTour = async function(){
+		const lastActionsContainer = document.getElementById('last-actions-div')
+		if (!lastActionsContainer) {
+			return
+		}
+		if (!accountTourLastActionsDemoActive) {
+			accountTourOriginalLastActionsContent = lastActionsContainer.innerHTML
+			lastActionsContainer.innerHTML = getAccountTourLastActionsDemoHtml()
+			accountTourLastActionsDemoActive = true
+		}
+
+		lastActionsContainer.classList.add('account-tour-last-actions-host')
+		const lastActions = lastActionsContainer.querySelector('.last-actions')
+		const trigger = lastActions?.querySelector('.last-action-trigger')
+		if (!lastActions || !trigger) {
+			return
+		}
+
+		trigger.setAttribute('aria-expanded', 'false')
+		trigger.dispatchEvent(new MouseEvent('click', {
+			bubbles: true,
+			cancelable: true,
+			view: window
+		}))
+		if (!lastActions.classList.contains('is-locked')) {
+			lastActions.classList.add('is-locked')
+			trigger.setAttribute('aria-expanded', 'true')
+		}
+		lastActions.classList.add('account-tour-last-actions-active')
+		await waitForTourElement('#lastActionsPopover', 1200)
+	}
+
+	const openAnomaliesModalForTour = async function(){
+		await showModalForTour(document.getElementById('modalAnomalies'), '#modalAnomalies .modal-content')
+	}
+
+	const openCategoryModalForTour = async function(){
+		const categoryModal = document.getElementById('modalCategory')
+		const categoryContent = categoryModal?.querySelector('.modal-content')
+		if (!categoryModal || !categoryContent) {
+			return
+		}
+
+		if (!accountTourCategoryDemoActive) {
+			accountTourOriginalCategoryContent = categoryContent.innerHTML
+			categoryContent.innerHTML = getAccountTourCategoryDemoHtml()
+			accountTourCategoryDemoActive = true
+		}
+
+		await showModalForTour(categoryModal, '#modalCategory #cat_tab input')
+	}
+
+	const openOperationModalForTour = async function(){
 		const operationModal = document.getElementById('modalOperation')
-		if (!operationModal) {
+		const operationContent = operationModal?.querySelector('.modal-content')
+		if (!operationModal || !operationContent) {
 			return
 		}
 
-		operationModal.classList.remove('account-tour-modal-active')
-		if (!operationModal.classList.contains('show') && operationModal.style.display !== 'block') {
+		if (!accountTourOperationDemoActive) {
+			accountTourOriginalOperationContent = operationContent.innerHTML
+			operationContent.innerHTML = getAccountTourOperationDemoHtml()
+			accountTourOperationDemoActive = true
+		}
+
+		await showModalForTour(operationModal, '#modalOperation .inputDay')
+	}
+
+	const showModalForTour = async function(modal, selectorToWait){
+		if (!modal) {
 			return
 		}
 
-		if (window.$ && typeof $(operationModal).modal === 'function') {
-			$(operationModal).modal('hide')
+		modal.classList.add('account-tour-modal-active')
+		modal.dataset.accountTourToken = String(++accountTourModalToken)
+		if (window.$ && typeof $(modal).modal === 'function') {
+			$(modal).modal('show')
 		} else if (window.bootstrap?.Modal) {
-			window.bootstrap.Modal.getOrCreateInstance(operationModal).hide()
+			window.bootstrap.Modal.getOrCreateInstance(modal).show()
 		} else {
-			operationModal.classList.remove('show')
-			operationModal.style.display = 'none'
-			operationModal.setAttribute('aria-hidden', 'true')
+			modal.classList.add('show')
+			modal.style.display = 'block'
+			modal.removeAttribute('aria-hidden')
+			modal.setAttribute('aria-modal', 'true')
+			document.body.classList.add('modal-open')
+		}
+
+		await waitForTourElement(selectorToWait, 1200)
+	}
+
+	const hideModalForTour = function(modal, afterHide){
+		if (!modal) {
+			return
+		}
+
+		const hideToken = modal.dataset.accountTourToken || ''
+		modal.classList.remove('account-tour-modal-active')
+		if (modal.classList.contains('show') || modal.style.display === 'block') {
+			if (window.$ && typeof $(modal).modal === 'function') {
+				$(modal).modal('hide')
+			} else if (window.bootstrap?.Modal) {
+				window.bootstrap.Modal.getOrCreateInstance(modal).hide()
+			} else {
+				modal.classList.remove('show')
+				modal.style.display = 'none'
+				modal.setAttribute('aria-hidden', 'true')
+				modal.removeAttribute('aria-modal')
+			}
 		}
 
 		window.setTimeout(function(){
-			operationModal.classList.remove('account-tour-modal-active')
-			if (!operationModal.classList.contains('show') && operationModal.style.display !== 'block') {
+			if (modal.dataset.accountTourToken !== hideToken && modal.classList.contains('account-tour-modal-active')) {
 				return
 			}
 
-			operationModal.classList.remove('show')
-			operationModal.style.display = 'none'
-			operationModal.setAttribute('aria-hidden', 'true')
-			operationModal.removeAttribute('aria-modal')
+			modal.classList.remove('account-tour-modal-active')
+			modal.classList.remove('show')
+			modal.style.display = 'none'
+			modal.setAttribute('aria-hidden', 'true')
+			modal.removeAttribute('aria-modal')
+			afterHide?.()
 			if (!document.querySelector('.modal.show')) {
 				document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove())
 				document.body.classList.remove('modal-open')
@@ -749,39 +955,109 @@ $(document).ready(function(){
 		}, 180)
 	}
 
-	const openOperationModalForTour = async function(){
-		let operationModal = document.getElementById('modalOperation')
-		if (!operationModal) {
-			return
-		}
-
-		const hasOperationContent = getVisibleTourElement('#modalOperation .tr_ope, #modalOperation .tr_add')
-		if (!hasOperationContent) {
-			const editableCell = getVisibleTourElement(accountTourEditableCellSelector)
-			if (!editableCell) {
-				return
-			}
-
-			editableCell.click()
-			await waitForTourElement('#modalOperation .tr_ope, #modalOperation .tr_add', 3200)
-		}
-
-		operationModal = document.getElementById('modalOperation')
-		operationModal?.classList.add('account-tour-modal-active')
-
-		if (!getVisibleTourElement('#modalOperation .inputDay')) {
-			const fullEditButton = document.querySelector('#modalOperation #butFullToggleFormMod')
-			if (fullEditButton && !fullEditButton.disabled && fullEditButton.value !== '1') {
-				fullEditButton.click()
-			} else {
-				const editableOperationCell = getVisibleTourElement('#modalOperation .tr_ope .td_number, #modalOperation .tr_ope .td_anticipe, #modalOperation .tr_ope .td_date, #modalOperation .tr_ope .td_comment')
-				editableOperationCell?.click()
-			}
-
-			await waitForTourElement('#modalOperation .inputDay', 1200)
-		}
+	const getAccountTourLastActionsDemoHtml = function(){
+		return `
+			<div class="last-actions">
+				<div class="last-action-preview">
+					<span class="control-label">Dernières actions</span>
+					<div class="last-action-current">
+						<button type="button" class="last-action-trigger" aria-controls="lastActionsPopover" aria-expanded="true">
+							<span class="action-kind action-kind-edit">Modification</span>
+							<span class="last-action-summary action-zone-pos">Recettes / Salaire</span>
+						</button>
+					</div>
+				</div>
+				<div id="lastActionsPopover" class="last-actions-popover" role="tooltip">
+					<div class="last-actions-popover-title">
+						<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+						<span>15 dernières actions</span>
+					</div>
+					<ol class="last-actions-list">
+						<li class="last-actions-item">
+							<span class="action-kind action-kind-edit">Modification</span>
+							<span class="last-actions-description"><strong class="action-zone-pos">Recettes / Salaire</strong><small>05/08/2026 · 1 850,00 €</small></span>
+							<time datetime="2026-08-18T10:30:00">18/08 10:30</time>
+							<button type="button" class="undo-last-action undo-action" title="Annuler cette action"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>
+						</li>
+						<li class="last-actions-item is-cancelled">
+							<span class="action-kind action-kind-del">Suppression</span>
+							<span class="last-actions-description"><strong class="action-zone-neg">Dépenses / Courses</strong><small>12/08/2026 · -42,80 €</small></span>
+							<time datetime="2026-08-18T09:45:00">18/08 09:45</time>
+							<button type="button" class="undo-last-action undo-revert-action" title="Restaurer cette action"><i class="fa-solid fa-rotate-left action-restore-icon" aria-hidden="true"></i></button>
+						</li>
+						<li class="last-actions-item">
+							<span class="action-kind action-kind-move">Déplacement</span>
+							<span class="last-actions-description"><strong class="action-zone-neg">Dépenses fixes</strong><small>Position 4 → 2</small></span>
+							<time datetime="2026-08-17T18:12:00">17/08 18:12</time>
+							<button type="button" class="undo-last-action undo-action" title="Annuler cette action"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>
+						</li>
+					</ol>
+				</div>
+			</div>
+		`
 	}
-
+	const getAccountTourCategoryDemoHtml = function(){
+		return `
+			<div class="modal-header bck_pos">
+				<h4 class="modal-title">
+					<span class="souligne">Gestionnaire de catégorie</span><br />
+					« <span id="cat_name">Travail</span> »
+				</h4>
+				<button id="add_cat" class="m-1 p-2">Ajouter une catégorie</button>
+				<button type="button" id="modalCatClose" class="btn btn-dark minWitdh195" data-dismiss="modal">Fermer sans enregistrer</button>
+			</div>
+			<div id="body_cat" class="modal-body">
+				<div id="cat_save_error" class="modal-category-error" role="alert" style="display: none;"></div>
+				<table id="cat_tab" class="m-1 p-1" data-sign="1">
+					<tbody>
+						<tr class="tr_category_before italique"><td class="pb-2"><div data-id="2" data-sign="1" class="hide before_actif other_actif" title="Afficher cette catégorie" style="display: block;"> Assurance </div></td></tr>
+						<tr id="tr_category_1" class="tr_category">
+							<td><input type="text" id="cat_1" value="Travail" name="category" placeholder="Libellé catégorie" data-pos="1" class="input_edit" /></td>
+							<td class="row minWitdh20 m-2"><div class="col-3 p-1"><i id="td_chevron_cat_up" class="pointeur fas fa-chevron-circle-up opacity_low" aria-hidden="true"></i></div><div class="col-2 p-1"><i id="td_chevron_cat_down" class="fas fa-chevron-circle-down pointeur opacity_low" aria-hidden="true"></i></div></td>
+						</tr>
+						<tr class="tr_category_after italique"><td><div data-id="53" class="hide after_actif" style="display: block;"><span data-id="53" class="other_actif" title="Afficher cette catégorie">Gites</span></div><div id="cat_after_x" class="hide limite">....</div></td></tr>
+						<tr id="tr_subcategories_1" class="tr_subcategories"><td></td><td><input type="text" class="m-1" id="sc_1" value="salaire" name="sc_1" placeholder="Libellé sous-catégorie" data-pos="1" /></td><td class="td_chevron_up minWitdh40 center"><i class="fa-solid fa-chevron-up opacity_low" style="display: none;"></i></td><td class="td_chevron_down minWitdh40 center pointeur"><i class="fa-solid fa-chevron-down opacity_low"></i></td><td class="minWitdh40 center ml-1"><span class="pointeur_help" title="Vous ne pouvez pas supprimer cette sous-catégorie car des opérations liées persistent"><button class="btn btn-muted not_delete_sc pointeur_help opacity_low" disabled><i class="fa-solid fa-xmark"></i></button></span></td></tr>
+						<tr id="tr_subcategories_2" class="tr_subcategories"><td></td><td><input type="text" class="m-1" id="sc_2" value="prime" name="sc_2" placeholder="Libellé sous-catégorie" data-pos="2" /></td><td class="td_chevron_up minWitdh40 center pointeur"><i class="fa-solid fa-chevron-up opacity_low"></i></td><td class="td_chevron_down minWitdh40 center pointeur"><i class="fa-solid fa-chevron-down opacity_low"></i></td><td class="minWitdh40 center ml-1"><span class="pointeur_help" title="Vous ne pouvez pas supprimer cette sous-catégorie car des opérations liées persistent"><button class="btn btn-muted not_delete_sc pointeur_help opacity_low" disabled><i class="fa-solid fa-xmark"></i></button></span></td></tr>
+						<tr id="tr_subcategories_3" class="tr_subcategories"><td></td><td><input type="text" class="m-1" id="sc_3" value="13eme mois" name="sc_3" placeholder="Libellé sous-catégorie" data-pos="3" /></td><td class="td_chevron_up minWitdh40 center pointeur"><i class="opacity_low fa-solid fa-chevron-up"></i></td><td class="td_chevron_down minWitdh40 center"><i class="opacity_low fa-solid fa-chevron-down" style="display: none;"></i></td><td class="minWitdh40 center ml-1"><span class="pointeur_help" title="Vous ne pouvez pas supprimer cette sous-catégorie car des opérations liées persistent"><button class="opacity_low btn btn-muted not_delete_sc pointeur_help" disabled><i class="fa-solid fa-xmark"></i></button></span></td></tr>
+						<tr class="tr_add"><td></td><td><button id="modalCategorieAdd" class="mt-2">Ajouter</button></td></tr>
+					</tbody>
+				</table>
+				<div id="modal_cat_spinner" class="spinner spinner-border text-primary mt-4 ml-2" role="status" style="display: none;"><span class="sr-only">Chargement...</span></div>
+			</div>
+			<div class="hide delete_zone m-2" style="display: none;"></div>
+			<div class="hide modal-footer" style="display: block;">
+				<div class="row">
+					<div class="col-3"></div>
+					<div class="col-6 p-0"><button type="button" id="cancel_cat" class="hide btn btn-danger m-1" style="display: inline-block;">Annuler les changements</button></div>
+					<div class="col-3 p-0"><button type="button" id="modalCatSaveClose" class="btn btn-success m-1" data-dismiss="modal">Enregistrer et Fermer</button></div>
+				</div>
+			</div>
+		`
+	}
+	const getAccountTourOperationDemoHtml = function(){
+		return `
+			<div class="modal-header row bck_pos">
+				<h4 class="col-12 modal-title souligne center mt-0 pt-0">Gestion des opérations</h4>
+				<div class="col-8 taille25"><span id="date_mois">Février</span> <span id="date_annee">2026</span><br /><span id="category" class="total_month_full_pos">Travail</span> -> <span id="subcategory" class="total_month_full_pos">Prime</span><br /></div>
+				<div class="col-4 alignRight"><br /><button type="button" id="modalOperationClose" class="btn btn-dark minWitdh195" data-dismiss="modal" title="Fermer la fenêtre sans enregistrer">Fermer sans enregistrer</button></div>
+			</div>
+			<div class="modal-body pt-1">
+				<table id="operation_tab" class="m-1 p-1 mt-2">
+					<thead><tr class="mb-2"><th colspan="6" class="th_actions"><div class="row"><div class="col-2"><button id="butOpeAdd" class="btn btn-outline-success col-12 m-1 mr-4" value="0" title="Ajouter une ligne"><i class="fas fa-plus" aria-hidden="true"></i></button></div><div class="col-2"><button value="1" type="button" class="btn btn-outline-secondary col-12 m-1" id="butFullToggleFormMod" title="Afficher les formulaires des lignes"><i class="fas fa-times" title="Retirer les formulaires des lignes" aria-hidden="true"></i><span class="sr-only">Retirer les formulaires des lignes</span></button></div><div class="col-2"><button value="0" type="button" class="btn btn-outline-primary col-12 m-1 hide" id="butFullCancelEdit" title="Annuler les modifications des lignes" style="display: inline-block;"><i class="fas fa-times" aria-hidden="true"></i></button></div><div class="col-2"><button value="0" type="button" class="btn btn-outline-success col-12 m-1 hide" id="butFullDelAdd" title="Annuler les ajouts de lignes" style="display: inline-block;"><i class="fas fa-times" aria-hidden="true"></i></button></div><div class="col-2"><button value="0" type="button" class="btn btn-outline-danger col-12 m-1 hide" id="butFullRevive" title="Annuler les suppression de lignes" style="display: inline-block;"><i class="fas fa-times" aria-hidden="true"></i></button></div></div></th></tr><tr><th class="p-1">Montant</th><th class="th_switch p-1"></th><th class="p-1">A venir</th><th class="th_date p-1">Date</th><th class="th_comment p-1">Commentaire</th><th class="th_actions p-1"></th></tr></thead>
+					<tbody data-year="0" data-month="0" data-daysinmonth="0" data-scid="0" data-type="">
+						<tr id="ope_id_411" class="tr_ope"><td class="td_number">79,34</td><td class="td_switch"><span class="switch hide"><i class="fa-solid fa-repeat"></i></span></td><td class="td_anticipe"></td><td class="td_date p-1"><span class="day">26</span>/02/2026</td><td class="td_comment p-1">Comment 410</td><td class="td_actions row"><div class="hide btn-group col-4 ecart-left-5" role="group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-cog" aria-hidden="true"></i><span class="caret"></span></button><ul class="dropdown-menu options p-1"><li class="invalid">Dupliquer</li><li class="invalid">Changer le mois/année</li><li class="invalid">Attribuer</li><li class="invalid noForm">Retire mode édition</li><li class="invalid">...</li><li><hr /></li><li class="delete">Supprimer</li></ul></div><div class="offset-2 col-4"><button type="button" class="btn btn-outline-secondary mt-2 mb-2 pt-0 pb-0 hide trButStopFormMod" style="display: none;"><i class="fas fa-times"></i></button><button type="button" class="btn btn-outline-primary mt-2 mb-2 pt-0 pb-0 hide trButCancelEdit" style="display: none;"><i class="fas fa-times"></i></button><button type="button" class="btn btn-outline-succes mt-2 mb-2 pt-0 pb-0 hide trButDelAdd"><i class="fas fa-times"></i></button><button type="button" class="btn btn-outline-danger mt-2 mb-2 pt-0 pb-0 hide trButRevive"><i class="fas fa-times"></i></button></div></td></tr>
+						<tr id="ope_id_433" class="tr_ope"><td class="td_number"><input class="inputNumber" type="number" step="0.01" value="10.4" min="0" /></td><td class="td_switch"><span class="switch hide" style="display: inline;"><i class="fa-solid fa-repeat"></i></span></td><td class="td_anticipe"></td><td class="td_date p-1"><span class="day"><select class="inputDay"><option value="26" selected>26</option></select></span>/02/2026</td><td class="td_comment p-1"><input class="inputComment" type="text" value="Comment 432" /></td><td class="td_actions row"><div class="hide btn-group col-4 ecart-left-5" role="group" style="display: block;"><button type="button" class="btn btn-default dropdown-toggle"><i class="fas fa-cog"></i><span class="caret"></span></button></div><div class="offset-2 col-4"><button type="button" class="btn btn-outline-secondary mt-2 mb-2 pt-0 pb-0 hide trButStopFormMod" style="display: inline-block;"><i class="fas fa-times"></i></button><button type="button" class="btn btn-outline-primary mt-2 mb-2 pt-0 pb-0 hide trButCancelEdit" style="display: none;"><i class="fas fa-times"></i></button></div></td></tr>
+						<tr id="ope_id_35" class="tr_ope tr_del"><td class="td_number">95,02</td><td class="td_switch"><span class="switch hide" style="display: none;"><i class="fa-solid fa-repeat"></i></span></td><td class="td_anticipe"></td><td class="td_date p-1"><span class="day">21</span>/02/2026</td><td class="td_comment p-1">Comment 34</td><td class="td_actions row"><div class="hide btn-group col-4 ecart-left-5" role="group" style="display: none;"></div><div class="offset-2 col-4"><button type="button" class="btn btn-outline-danger mt-2 mb-2 pt-0 pb-0 hide trButRevive" style="display: inline-block;"><i class="fas fa-times"></i></button></div></td></tr>
+						<tr id="ope_id_476" class="tr_ope tr_edit"><td class="td_number"></td><td class="td_switch"><span class="switch hide" style="display: inline;"><i class="fa-solid fa-repeat"></i></span></td><td class="td_anticipe"><input class="inputAnticipe input_edit" type="number" step="0.01" value="66.96" min="0" /></td><td class="td_date p-1"><span class="day"><select class="inputDay"><option value="17" selected>17</option></select></span>/02/2026</td><td class="td_comment p-1"><input class="inputComment" type="text" value="Comment 475" /></td><td class="td_actions row"><div class="hide btn-group col-4 ecart-left-5" role="group" style="display: block;"><button type="button" class="btn btn-default dropdown-toggle"><i class="fas fa-cog"></i><span class="caret"></span></button></div><div class="offset-2 col-4"><button type="button" class="btn btn-outline-primary mt-2 mb-2 pt-0 pb-0 hide trButCancelEdit" style="display: inline-block;"><i class="fas fa-times"></i></button></div></td></tr>
+						<tr class="tr_add"><td class="td_number"><input class="inputNumber alerteOpe" type="number" step="0.01" value="" placeholder="0" min="0" /></td><td class="td_switch"><span class="switch hide"><i class="fa-solid fa-repeat"></i></span></td><td class="td_anticipe"><input class="inputAnticipe alerteOpe" type="number" step="0.01" value="" placeholder="0" min="0" /></td><td class="td_date p-1"><select class="inputDay"><option value="1" selected>1</option></select>/<span>02</span>/<span>2026</span></td><td class="td_comment p-1"><input class="inputComment" type="text" /></td><td class="td_actions row"><div class="btn-group col-4" role="group"><button type="button" class="btn btn-default dropdown-toggle"><i class="fas fa-cog"></i><span class="caret"></span></button></div><div class="offset-2 col-4"><button type="button" class="btn btn-outline-success mt-2 mb-2 pt-0 pb-0 trButDelAdd"><i class="fas fa-times"></i></button></div></td></tr>
+						<tr id="solde_tr_collabo"><td></td><td></td><td></td><td colspan="3"></td></tr><tr id="tr_solde" class="hide" style="display: table-row;"><td id="soldeReel" class="totalReel total_month_detail_1">153,92</td><td></td><td id="soldeAnticipe" class="totalAnticipe">66,96</td><td colspan="3"></td></tr>
+					</tbody>
+				</table>
+				<div id="modal_ope_spinner" class="spinner spinner-border text-primary mt-4 ml-2" role="status" style="display: none;"><span class="sr-only">Chargement...</span></div><div id="solde" class="mt-3 col-3 total_month_full_pos">220,88</div>
+			</div>
+			<div class="hide modal-footer" style="display: block;"><div class="row"><div class="col-3"></div><div class="offset-6 col-3 p-0"><button type="button" id="modalOperationSaveClose" class="btn btn-success m-1" data-dismiss="modal">Enregistrer et Fermer</button></div></div></div>
+		`
+	}
 	const buildAccountTourSteps = function(){
 		return accountTourDefinitions
 			.map(step => ({
@@ -792,18 +1068,15 @@ $(document).ready(function(){
 	}
 
 	const clearAccountTourTarget = function(){
-		if (!accountTourTarget) {
-			return
-		}
-
-		accountTourTarget.classList.remove('account-tour-highlight')
+		accountTourHighlightedElements.forEach(element => element.classList.remove('account-tour-highlight'))
+		accountTourHighlightedElements = []
 		accountTourTarget = null
 	}
 
 	const stopAccountTour = function(){
 		accountTourRenderToken++
 		clearAccountTourTarget()
-		closeOperationModalForTour()
+		closeTourModals()
 		document.body.classList.remove('account-tour-active')
 		accountTourOverlay?.remove()
 		accountTourPopover?.remove()
@@ -828,24 +1101,56 @@ $(document).ready(function(){
 
 		const rect = accountTourTarget.getBoundingClientRect()
 		const gap = 14
-		const popoverWidth = Math.min(360, window.innerWidth - 24)
+		const activeTourModal = accountTourTarget.closest('.modal.account-tour-modal-active')
+		const popoverWidth = activeTourModal ? Math.min(340, window.innerWidth - 24) : Math.min(380, window.innerWidth - 24)
 		const measuredHeight = accountTourPopover.offsetHeight || 220
+		const clamp = function(value, min, max){
+			return Math.max(min, Math.min(value, max))
+		}
 		let top = rect.bottom + gap
 		let left = rect.left + (rect.width / 2) - (popoverWidth / 2)
 
-		if (top + measuredHeight > window.innerHeight - 12) {
+		accountTourPopover.classList.toggle('is-modal-step', Boolean(activeTourModal))
+		if (activeTourModal) {
+			const modalRect = (activeTourModal.querySelector('.modal-dialog') || activeTourModal).getBoundingClientRect()
+			const sideTop = clamp(modalRect.top + 12, 12, window.innerHeight - measuredHeight - 12)
+			const rightSpace = window.innerWidth - modalRect.right
+			const leftSpace = modalRect.left
+
+			if (rightSpace >= popoverWidth + gap) {
+				left = modalRect.right + gap
+				top = sideTop
+			} else if (leftSpace >= popoverWidth + gap) {
+				left = modalRect.left - popoverWidth - gap
+				top = sideTop
+			} else {
+				left = modalRect.left + (modalRect.width / 2) - (popoverWidth / 2)
+				if (modalRect.bottom + measuredHeight + gap <= window.innerHeight - 12) {
+					top = modalRect.bottom + gap
+				} else if (modalRect.top - measuredHeight - gap >= 12) {
+					top = modalRect.top - measuredHeight - gap
+				} else {
+					top = window.innerHeight - measuredHeight - 12
+				}
+			}
+		} else if (top + measuredHeight > window.innerHeight - 12) {
 			top = rect.top - measuredHeight - gap
 		}
-		if (top < 12) {
-			top = 12
-		}
 
-		left = Math.max(12, Math.min(left, window.innerWidth - popoverWidth - 12))
+		top = clamp(top, 12, window.innerHeight - measuredHeight - 12)
+		left = clamp(left, 12, window.innerWidth - popoverWidth - 12)
 		accountTourPopover.style.width = `${popoverWidth}px`
 		accountTourPopover.style.top = `${top}px`
 		accountTourPopover.style.left = `${left}px`
 	}
 
+	const escapeAccountTourText = function(value){
+		return String(value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+	}
 	const renderAccountTourStep = async function(direction = 1){
 		const renderToken = ++accountTourRenderToken
 		const step = accountTourSteps[accountTourIndex]
@@ -855,9 +1160,7 @@ $(document).ready(function(){
 		}
 
 		clearAccountTourTarget()
-		if (!step.modal) {
-			closeOperationModalForTour()
-		}
+		closeTourModals(step.modal || null)
 		if (step.before) {
 			await step.before()
 		}
@@ -881,14 +1184,28 @@ $(document).ready(function(){
 		}
 
 		accountTourTarget = step.target
-		accountTourTarget.classList.add('account-tour-highlight')
+		accountTourHighlightedElements = step.highlightSelector ? getVisibleTourElements(step.highlightSelector) : [accountTourTarget]
+		if (!accountTourHighlightedElements.includes(accountTourTarget)) {
+			accountTourHighlightedElements.unshift(accountTourTarget)
+		}
+		accountTourHighlightedElements.forEach(element => element.classList.add('account-tour-highlight'))
 		accountTourTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
 
 		const isLastStep = accountTourIndex === accountTourSteps.length - 1
+		const stepBody = step.html || `<p>${step.text}</p>`
+		const stepOptions = accountTourSteps
+			.map((tourStep, index) => `<option value="${index}"${index === accountTourIndex ? ' selected' : ''}>${index + 1}. ${escapeAccountTourText(tourStep.title)}</option>`)
+			.join('')
 		accountTourPopover.innerHTML = `
-			<div class="account-tour-progress">Étape ${accountTourIndex + 1} / ${accountTourSteps.length}</div>
+			<div class="account-tour-progress-row">
+				<div class="account-tour-progress">Étape ${accountTourIndex + 1} / ${accountTourSteps.length}</div>
+				<label class="account-tour-jump">
+					<span>Aller à</span>
+					<select class="account-tour-jump-select">${stepOptions}</select>
+				</label>
+			</div>
 			<h5>${step.title}</h5>
-			<p>${step.text}</p>
+			<div class="account-tour-body">${stepBody}</div>
 			<div class="account-tour-actions">
 				<button type="button" class="account-tour-stop">Arrêter</button>
 				<div class="account-tour-navigation">
@@ -898,6 +1215,16 @@ $(document).ready(function(){
 			</div>
 		`
 		accountTourPopover.querySelector('.account-tour-stop').addEventListener('click', stopAccountTour)
+		accountTourPopover.querySelector('.account-tour-jump-select').addEventListener('change', function(){
+			const nextIndex = Number(this.value)
+			if (!Number.isInteger(nextIndex) || nextIndex === accountTourIndex || nextIndex < 0 || nextIndex >= accountTourSteps.length) {
+				return
+			}
+
+			const direction = nextIndex > accountTourIndex ? 1 : -1
+			accountTourIndex = nextIndex
+			renderAccountTourStep(direction)
+		})
 		accountTourPopover.querySelector('.account-tour-previous').addEventListener('click', function(){
 			if (accountTourIndex === 0) {
 				return
@@ -1148,7 +1475,7 @@ $(document).ready(function(){
 	})
 
 	$(document).on('click', function(event){
-		if ($(event.target).closest('.last-actions').length) {
+		if ($(event.target).closest('.last-actions').length || document.body.classList.contains('account-tour-active')) {
 			return
 		}
 

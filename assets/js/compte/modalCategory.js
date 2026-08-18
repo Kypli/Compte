@@ -46,11 +46,11 @@ $(document).ready(function(){
 		let sign = $(this).parent().parent().parent().data('sign')
 		$('#cat_tab').data('sign', sign)
 
-		$('.modal-header')
+		$('#modalCategory .modal-header')
 			.removeClass(sign ? 'bck_neg' : 'bck_pos')
 			.addClass(sign ? 'bck_pos' : 'bck_neg')
 
-		$('.modal-content')
+		$('#modalCategory .modal-content')
 			.removeClass(sign ? 'border_neg' : 'border_pos')
 			.addClass(sign ? 'border_pos' : 'border_neg')
 
@@ -203,11 +203,11 @@ $(document).ready(function(){
 	// Récupère le render d'une nouvelle catégorie
 	function getAddCategory(sign){
 
-		$('.modal-header')
+		$('#modalCategory .modal-header')
 			.removeClass(sign ? 'bck_neg' : 'bck_pos')
 			.addClass(sign ? 'bck_pos' : 'bck_neg')
 
-		$('.modal-content')
+		$('#modalCategory .modal-content')
 			.removeClass(sign ? 'border_neg' : 'border_pos')
 			.addClass(sign ? 'border_pos' : 'border_neg')
 

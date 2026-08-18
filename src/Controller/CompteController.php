@@ -173,17 +173,14 @@ class CompteController extends AbstractController
 		);
 
 		// Solde Fin mois
-		$soldeFinMensuel = $current_solde;
-		if ($current_year == $year){
-			if (isset($operations_pos_datas['totaux_mois'][$current_month]['anticipe'])){
-				$soldeFinMensuel += $operations_pos_datas['totaux_mois'][$current_month]['anticipe'];
-			}
-			if (isset($operations_neg_datas['totaux_mois'][$current_month]['anticipe'])){
-				$soldeFinMensuel += $operations_neg_datas['totaux_mois'][$current_month]['anticipe'];
-			}
-		} else {
-			$soldeFinMensuel = false;
-		}
+		$soldeFinMensuel = $this->soldeFinMensuel(
+			$current_solde,
+			$operations_pos_datas,
+			$operations_neg_datas,
+			$year,
+			$current_year,
+			(int) $current_month
+		);
 
 		// Color solde
 		$color_solde = $this->colorSolde($current_solde, $compte->getDecouvert());
@@ -265,17 +262,14 @@ class CompteController extends AbstractController
 		);
 
 		// Solde Fin mois
-		$soldeFinMensuel = $solde;
-		if ($current_year == $year){
-			if (isset($operations_pos_datas['totaux_mois'][$current_month]['anticipe'])){
-				$soldeFinMensuel += $operations_pos_datas['totaux_mois'][$current_month]['anticipe'];
-			}
-			if (isset($operations_neg_datas['totaux_mois'][$current_month]['anticipe'])){
-				$soldeFinMensuel += $operations_neg_datas['totaux_mois'][$current_month]['anticipe'];
-			}
-		} else {
-			$soldeFinMensuel = false;
-		}
+		$soldeFinMensuel = $this->soldeFinMensuel(
+			$solde,
+			$operations_pos_datas,
+			$operations_neg_datas,
+			$year,
+			$current_year,
+			(int) $current_month
+		);
 
 		$render = $this->render('compte/table/_tables.html.twig', [
 			'compte' => $compte,
@@ -507,6 +501,36 @@ class CompteController extends AbstractController
 		return $color;
 	}
 
+	private function soldeFinMensuel(float $solde, array $operationsPosDatas, array $operationsNegDatas, int $year, int $currentYear, int $currentMonth)
+	{
+		if ($currentYear !== $year){
+			return false;
+		}
+
+		return round(
+			$solde
+			+ $this->anticipatedTotalUntilMonth($operationsPosDatas, $currentMonth)
+			+ $this->anticipatedTotalUntilMonth($operationsNegDatas, $currentMonth),
+			2
+		);
+	}
+
+	private function anticipatedTotalUntilMonth(array $operationsDatas, int $monthLimit): float
+	{
+		$total = 0.0;
+
+		if (!isset($operationsDatas['totaux_mois'])){
+			return $total;
+		}
+
+		foreach ($operationsDatas['totaux_mois'] as $month => $monthTotals){
+			if ((int) $month <= $monthLimit && isset($monthTotals['anticipe'])){
+				$total += (float) $monthTotals['anticipe'];
+			}
+		}
+
+		return $total;
+	}
 	/**
 	 * Renvoie array avec gains mensuels + cumulé
 	 */

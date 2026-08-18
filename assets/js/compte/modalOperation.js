@@ -36,11 +36,11 @@ $(document).ready(function(){
 			year = $('#datas').data('year')
 		;
 
-		$('.modal-header')
+		$('#modalOperation .modal-header')
 			.removeClass(sign ? 'bck_neg' : 'bck_pos')
 			.addClass(sign ? 'bck_pos' : 'bck_neg')
 
-		$('.modal-content')
+		$('#modalOperation .modal-content')
 			.removeClass(sign ? 'border_neg' : 'border_pos')
 			.addClass(sign ? 'border_pos' : 'border_neg')
 

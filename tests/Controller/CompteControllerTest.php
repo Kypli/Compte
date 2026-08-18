@@ -24,6 +24,7 @@ class CompteControllerTest extends WebTestCase
 	private Category $positiveCategory;
 	private Category $negativeCategory;
 	private SubCategory $positiveSubCategory;
+	private SubCategory $negativeSubCategory;
 	private array $createdIds = [];
 
 	protected function setUp(): void
@@ -54,9 +55,9 @@ class CompteControllerTest extends WebTestCase
 		$this->positiveCategory = $this->createCategory($this->compte, 'Revenus', true, $currentYear);
 		$this->negativeCategory = $this->createCategory($this->compte, 'Depenses', false, $currentYear);
 		$this->positiveSubCategory = $this->createSubCategory($this->positiveCategory, 'Salaire');
-		$negativeSubCategory = $this->createSubCategory($this->negativeCategory, 'Factures');
+		$this->negativeSubCategory = $this->createSubCategory($this->negativeCategory, 'Factures');
 		$realIncome = $this->createOperation($this->positiveSubCategory, 100, false);
-		$anticipatedExpense = $this->createOperation($negativeSubCategory, 150, true);
+		$anticipatedExpense = $this->createOperation($this->negativeSubCategory, 150, true);
 		$realIncomeAction = $this->createOperationAction($realIncome);
 		$anticipatedExpenseAction = $this->createOperationAction($anticipatedExpense);
 
@@ -68,7 +69,7 @@ class CompteControllerTest extends WebTestCase
 			$this->positiveCategory,
 			$this->negativeCategory,
 			$this->positiveSubCategory,
-			$negativeSubCategory,
+			$this->negativeSubCategory,
 			$realIncome,
 			$anticipatedExpense,
 			$realIncomeAction,
@@ -80,7 +81,7 @@ class CompteControllerTest extends WebTestCase
 
 		$this->createdIds = [
 			Operation::class => [$realIncome->getId(), $anticipatedExpense->getId()],
-			SubCategory::class => [$this->positiveSubCategory->getId(), $negativeSubCategory->getId()],
+			SubCategory::class => [$this->positiveSubCategory->getId(), $this->negativeSubCategory->getId()],
 			Category::class => [$this->positiveCategory->getId(), $this->negativeCategory->getId()],
 			Compte::class => [$this->compte->getId()],
 			User::class => [$this->owner->getId(), $this->intruder->getId()],
@@ -209,6 +210,44 @@ class CompteControllerTest extends WebTestCase
 			date('n')
 		));
 		self::assertResponseIsSuccessful();
+	}
+
+	public function testMonthEndBalanceIncludesOverdueAnticipatedOperations(): void
+	{
+		if ((int) date('n') === 1){
+			self::markTestSkipped("Ce test a besoin d'un mois precedent dans la meme annee.");
+		}
+
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$overdueAnticipatedExpense = $this->createOperation($this->negativeSubCategory, 25, true)
+			->setDate(new \DateTime(date('Y').'/'.((int) date('n') - 1).'/01'))
+		;
+		$entityManager->persist($overdueAnticipatedExpense);
+		$entityManager->flush();
+		$this->createdIds[Operation::class][] = $overdueAnticipatedExpense->getId();
+
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+
+		self::assertResponseIsSuccessful();
+		self::assertSelectorTextSame('#soldeFinMoisNb', '-75,00');
+		self::assertSelectorExists('#soldeFinMois.total_month_full_neg');
+
+		$currentMonth = (string) (int) date('n');
+		$monthEndBalance = $crawler->filter('.gains-table tr:nth-child(2) .month-cell-span[data-month="'.$currentMonth.'"]');
+		self::assertCount(1, $monthEndBalance);
+		self::assertSame('-75,00', trim($monthEndBalance->text()));
+
+		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/tables?year='.date('Y'));
+		self::assertResponseIsSuccessful();
+		$response = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertSame(100.0, (float) $response['solde']);
+		self::assertSame(-75.0, (float) $response['soldeFinMensuel']);
+
+		$tablesCrawler = new Crawler($response['render']);
+		$ajaxMonthEndBalance = $tablesCrawler->filter('.gains-table tr:nth-child(2) .month-cell-span[data-month="'.$currentMonth.'"]');
+		self::assertCount(1, $ajaxMonthEndBalance);
+		self::assertSame('-75,00', trim($ajaxMonthEndBalance->text()));
 	}
 
 	public function testBudgetSwitcherIsOnlyDisplayedWhenAnotherBudgetIsAvailable(): void

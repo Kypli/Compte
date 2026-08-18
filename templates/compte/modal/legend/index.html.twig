@@ -1,19 +1,23 @@
 <div
 	id="modalLegend"
-	class="modal fade"
+	class="modal fade account-tutorial-modal"
 	tabindex="-1"
 	role="dialog"
 	aria-labelledby="modalLegendTitle"
 	aria-hidden="true"
 >
 	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
-		<div class="modal-content legend-modal-content">
+		<div class="modal-content legend-modal-content account-tutorial-content">
 			<div class="modal-header">
-				<h4 id="modalLegendTitle" class="modal-title">L&eacute;gende des couleurs</h4>
+				<div class="account-tutorial-title-group">
+					<span class="account-tutorial-kicker">L&eacute;gende</span>
+					<h4 id="modalLegendTitle" class="modal-title">Comprendre les couleurs du compte</h4>
+				</div>
 				<button
 					type="button"
-					class="legend-close-button"
+					class="account-tutorial-close"
 					data-dismiss="modal"
+					data-bs-dismiss="modal"
 					aria-label="Fermer"
 					title="Fermer"
 				>
@@ -22,95 +26,110 @@
 			</div>
 
 			<div class="modal-body">
-				<div class="legend-grid">
-					<section class="legend-section" aria-labelledby="legendBackgroundTitle">
-						<h5 id="legendBackgroundTitle" class="legend-section-title">Couleurs de fond</h5>
-						<ul class="legend-list">
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample bck_pos" aria-hidden="true"></span>
-								<span>Zone des revenus.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample bck_neg" aria-hidden="true"></span>
-								<span>Zone des d&eacute;penses.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample bck_solde" aria-hidden="true"></span>
-								<span>Zone des gains et des soldes.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample done" aria-hidden="true"></span>
-								<span>Mois termin&eacute;.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample legend-background-current" aria-hidden="true"></span>
-								<span>Mois en cours.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample legend-background-future" aria-hidden="true"></span>
-								<span>Mois &agrave; venir.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample legend-background-edit" aria-hidden="true"></span>
-								<span>Bordure jaune d'une zone modifiable.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-background-sample bck_black" aria-hidden="true"></span>
-								<span>Zone sans calcul applicable.</span>
-							</li>
-						</ul>
+				<div class="account-tutorial-grid legend-grid">
+					<section class="account-tutorial-step legend-section" aria-labelledby="legendBackgroundTitle">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-fill-drip"></i>
+						</span>
+						<div>
+							<h5 id="legendBackgroundTitle" class="legend-section-title">Couleurs de fond</h5>
+							<ul class="legend-list">
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample bck_pos" aria-hidden="true"></span>
+									<span>Zone des revenus.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample bck_neg" aria-hidden="true"></span>
+									<span>Zone des d&eacute;penses.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample bck_solde" aria-hidden="true"></span>
+									<span>Zone des gains et des soldes.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample legend-background-category" aria-hidden="true"></span>
+									<span>Cat&eacute;gories.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample legend-background-total" aria-hidden="true"></span>
+									<span>Total.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample done" aria-hidden="true"></span>
+									<span>Mois termin&eacute;.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample legend-background-current" aria-hidden="true"></span>
+									<span>Mois en cours.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample legend-background-future" aria-hidden="true"></span>
+									<span>Mois &agrave; venir.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-background-sample legend-background-edit" aria-hidden="true"></span>
+									<span>Bordure jaune d'une zone modifiable.</span>
+								</li>
+
+							</ul>
+						</div>
 					</section>
 
-					<section class="legend-section" aria-labelledby="legendTextTitle">
-						<h5 id="legendTextTitle" class="legend-section-title">Couleurs du texte</h5>
-						<ul class="legend-list">
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_detail_pos">123,45 &euro;</span>
-								<span>D&eacute;tail d'un revenu.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_detail_neg">123,45 &euro;</span>
-								<span>D&eacute;tail d'une d&eacute;pense.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_pos">123,45 &euro;</span>
-								<span>Total, gain ou solde positif.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_neg">-123,45 &euro;</span>
-								<span>Total, gain ou solde négatif.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_dec">-123,45 &euro;</span>
-								<span>Solde n&eacute;gatif couvert par le d&eacute;couvert autoris&eacute;.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample anticipe">123,45 &euro;</span>
-								<span>Op&eacute;ration anticip&eacute;e, clignotante si sa date est d&eacute;pass&eacute;e.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-text-sample total_month_full_neutre">0,00 &euro;</span>
-								<span>Solde neutre.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-alert-sample balance-alert-current" aria-hidden="true">
-									<i class="fas fa-exclamation"></i>
-								</span>
-								<span>Le solde actuel d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
-							</li>
-							<li class="legend-item">
-								<span class="legend-color-sample legend-alert-sample balance-alert-projected" aria-hidden="true">
-									<i class="fas fa-exclamation-triangle"></i>
-								</span>
-								<span>Triangle blanc avec un ! rouge : le solde pr&eacute;vu &agrave; la fin du mois d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
-							</li>
-						</ul>
+					<section class="account-tutorial-step legend-section" aria-labelledby="legendTextTitle">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-font"></i>
+						</span>
+						<div>
+							<h5 id="legendTextTitle" class="legend-section-title">Couleurs du texte</h5>
+							<ul class="legend-list">
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_detail_pos">123,45 &euro;</span>
+									<span>D&eacute;tail d'un revenu.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_detail_neg">123,45 &euro;</span>
+									<span>D&eacute;tail d'une d&eacute;pense.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_full_pos">123,45 &euro;</span>
+									<span>Total, gain ou solde positif.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_full_neg">-123,45 &euro;</span>
+									<span>Total, gain ou solde n&eacute;gatif.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_full_dec">-123,45 &euro;</span>
+									<span>Solde n&eacute;gatif couvert par le d&eacute;couvert autoris&eacute;.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample anticipe">123,45 &euro;</span>
+									<span>Op&eacute;ration anticip&eacute;e, clignotante si sa date est d&eacute;pass&eacute;e.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-text-sample total_month_full_neutre">0,00 &euro;</span>
+									<span>Solde neutre.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-alert-sample balance-alert-current" aria-hidden="true">
+										<i class="fas fa-exclamation"></i>
+									</span>
+									<span>Le solde actuel d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-alert-sample balance-alert-projected" aria-hidden="true">
+										<i class="fas fa-exclamation-triangle"></i>
+									</span>
+									<span>Triangle blanc avec un ! rouge : le solde pr&eacute;vu &agrave; la fin du mois d&eacute;passe le d&eacute;couvert autoris&eacute;.</span>
+								</li>
+							</ul>
+						</div>
 					</section>
 				</div>
 			</div>
 
-			<div class="modal-footer">
-				<button type="button" class="btn btn-dark" data-dismiss="modal">Fermer</button>
+			<div class="modal-footer account-tutorial-footer">
+				<button type="button" class="btn btn-dark" data-dismiss="modal" data-bs-dismiss="modal">Fermer</button>
 			</div>
 		</div>
 	</div>

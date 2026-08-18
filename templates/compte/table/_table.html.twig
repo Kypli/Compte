@@ -13,7 +13,7 @@
 >
 	<thead>
 		<tr class="tr_head">
-			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat category-header col_start_top bck_{{ sign }}'>
+			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat category-header col_start_top bck_{{ sign }}{{ user.preferences.comptegenreshow ? '' : ' category-header-single-row' }}'>
 				<button data-target="#modalCategory" data-toggle="modal">Ajout catégorie</button>
 				{{ 
 					sign == 'pos'
