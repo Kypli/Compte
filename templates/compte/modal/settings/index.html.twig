@@ -1,0 +1,80 @@
+<div
+	id="modalAccountSettings"
+	class="modal fade account-tutorial-modal account-settings-modal"
+	tabindex="-1"
+	role="dialog"
+	aria-labelledby="modalAccountSettingsTitle"
+	aria-hidden="true"
+	data-open-on-load="{{ open_account_settings ? '1' : '0' }}"
+>
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+		<div class="modal-content account-tutorial-content">
+			<div class="modal-header">
+				<div class="account-tutorial-title-group">
+					<span class="account-tutorial-kicker">Param&egrave;tres</span>
+					<h4 id="modalAccountSettingsTitle" class="modal-title">Modifier le compte</h4>
+				</div>
+				<button type="button" class="account-tutorial-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Fermer" title="Fermer">
+					<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="accountSettingsFormContainer">
+					{{ include('compte/modal/settings/_form.html.twig') }}
+				</div>
+				<section class="account-settings-danger" aria-labelledby="accountSettingsDeleteTitle">
+					<div class="account-settings-danger-copy">
+						<strong id="accountSettingsDeleteTitle">Supprimer le compte « <span data-account-delete-name>{{ compte.libelle }}</span> »</strong>
+						<small>Cette action supprime d&eacute;finitivement le compte et ses op&eacute;rations.</small>
+					</div>
+					<form method="post" action="{{ path('compte_delete', {'id': compte.id}) }}" class="account-settings-delete-form" data-account-delete-form>
+						<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compte.id) }}">
+						<button type="submit" class="btn btn-outline-danger" data-account-delete-open>
+							<i class="fa-solid fa-trash" aria-hidden="true"></i>
+							<span>Supprimer</span>
+						</button>
+					</form>
+				</section>
+			</div>
+			<div class="modal-footer">
+				<span class="account-settings-status" data-account-settings-status role="status" aria-live="polite"></span>
+				<button type="button" class="btn btn-dark" data-dismiss="modal" data-bs-dismiss="modal">Annuler</button>
+				<button type="submit" class="btn btn-success" form="accountSettingsForm" data-account-settings-save>
+					<i class="fa-solid fa-floppy-disk" data-account-settings-save-icon aria-hidden="true"></i>
+					<i class="fa-solid fa-spinner fa-spin" data-account-settings-save-spinner aria-hidden="true" hidden></i>
+					<span data-account-settings-save-label>Enregistrer</span>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class="account-delete-confirm-overlay" data-account-delete-confirm aria-hidden="true" hidden>
+		<div class="account-delete-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="accountDeleteConfirmTitle" aria-describedby="accountDeleteConfirmDescription">
+			<button type="button" class="account-delete-confirm-close" data-account-delete-cancel aria-label="Fermer la confirmation" title="Fermer">
+				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+			</button>
+			<div class="account-delete-confirm-heading">
+				<span class="account-delete-confirm-icon" aria-hidden="true">
+					<i class="fa-solid fa-triangle-exclamation"></i>
+				</span>
+				<div>
+					<span class="account-delete-confirm-kicker">Suppression définitive</span>
+					<h4 id="accountDeleteConfirmTitle">Supprimer ce compte ?</h4>
+				</div>
+			</div>
+			<p id="accountDeleteConfirmDescription">
+				Le compte <strong>« <span data-account-delete-name>{{ compte.libelle }}</span> »</strong> et toutes les opérations qu’il contient seront définitivement supprimés.
+			</p>
+			<div class="account-delete-confirm-warning">
+				<i class="fa-solid fa-ban" aria-hidden="true"></i>
+				<strong>Cette action est irréversible.</strong>
+			</div>
+			<div class="account-delete-confirm-actions">
+				<button type="button" class="btn btn-dark" data-account-delete-cancel>Conserver le compte</button>
+				<button type="button" class="btn btn-danger" data-account-delete-confirm-submit>
+					<i class="fa-solid fa-trash" aria-hidden="true"></i>
+					<span>Supprimer définitivement</span>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

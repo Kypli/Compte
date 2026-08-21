@@ -7,5 +7,5 @@
 			{{ compte.libelle }}
 		</a>
 	</div>
-	<div class='col-3 pr-4 mb-2{{ compte.main ? ' gras' }} alignRight'>{{ comptes_solde[compte.id].solde }} €</div>
+	<div class='col-3 pr-4 mb-2{{ compte.main ? ' gras' }} alignRight'>{{ comptes_solde[compte.id].solde|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</div>
 {% endfor %}

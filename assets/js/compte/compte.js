@@ -1,12 +1,13 @@
 // JS
 import './modalOperation.js';
 import './modalCategory.js';
-import { number_format } from '../service/service.js';
+import { money_display, money_symbol } from '../service/service.js';
 
 // CSS
 import '../../styles/compte/compte.css';
 
 let selectedMonth = null
+let selectedYear = null
 let categoryMove = null
 let subCategoryMove = null
 
@@ -19,19 +20,41 @@ export function updateTables(){
 	clearCategoryMove()
 	clearSubCategoryMove()
 
+	const routeParams = {
+		id: $('#datas').data('compteid'),
+		year: $('#datas').data('year'),
+		months: $('#datas').data('monthdisplay'),
+		months_before: getMonthRangeValue('monthRangeBefore', $('#datas').data('monthsbefore') || 1),
+		months_after: getMonthRangeValue('monthRangeAfter', $('#datas').data('monthsafter') || 3),
+		detail_months: getDetailMonthsParam(),
+		detail_months_set: 1
+	}
+	const datasElement = document.getElementById('datas')
+	if (datasElement) {
+		routeParams.money_display_format = datasElement.dataset.moneydisplayformat || 'comma'
+		routeParams.money_currency = datasElement.dataset.moneycurrency || 'EUR'
+		routeParams.money_trim_zeros = datasElement.dataset.moneytrimzeros === '1' ? '1' : '0'
+		routeParams.money_show_zero_decimals = datasElement.dataset.moneyshowzerodecimals === '0' ? '0' : '1'
+	}
+	const selectedMonthValue = datasElement?.dataset.selectedmonth
+	const selectedYearValue = datasElement?.dataset.selectedyear
+	if (selectedMonthValue) {
+		routeParams.selected_month = selectedMonthValue
+	}
+	if (selectedMonthValue && selectedYearValue) {
+		routeParams.selected_year = selectedYearValue
+	}
+
 	return $.ajax({
 		type: "POST",
-		url: Routing.generate('compte_tables', {
-			id: $('#datas').data('compteid'),
-			year: $('#datas').data('year'),
-			months: $('#datas').data('monthdisplay')
-		}),
+		url: Routing.generate('compte_tables', routeParams),
 		timeout: 15000,
 		beforeSend: function(){
 			spinner(true)
 		},
 		success: function(response){
 			$('#tables').empty().append(response.render)
+			syncMoneySymbols()
 			restoreSelectedMonths()
 			centerCompactTables()
 			$('#last-actions-div').empty().append(response.render_last_actions)
@@ -53,15 +76,310 @@ export function updateTables(){
 	})
 }
 
+function getCurrentMoneyDisplayFormat(){
+	const datas = document.getElementById('datas')
+
+	return datas?.dataset.moneydisplayformat || 'comma'
+}
+
+function shouldTrimCurrentMoneyZeros(){
+	return document.getElementById('datas')?.dataset.moneytrimzeros === '1'
+}
+
+function shouldShowCurrentMoneyZeroDecimals(){
+	return document.getElementById('datas')?.dataset.moneyshowzerodecimals !== '0'
+}
+
+function getCurrentMoneyCurrency(){
+	const datas = document.getElementById('datas')
+
+	return datas?.dataset.moneycurrency || 'EUR'
+}
+
+function syncMoneyAmounts(){
+	document.querySelectorAll('[data-money-amount]').forEach(element => {
+		element.textContent = money_display(
+			element.dataset.moneyAmount || 0,
+			getCurrentMoneyDisplayFormat(),
+			getCurrentMoneyCurrency(),
+			shouldTrimCurrentMoneyZeros(),
+			shouldShowCurrentMoneyZeroDecimals()
+		)
+	})
+}
+
+function syncMoneySymbols(){
+	const symbol = money_symbol(getCurrentMoneyCurrency())
+
+	document.querySelectorAll('[data-money-symbol]').forEach(element => {
+		element.textContent = symbol
+	})
+}
+
+function getDetailMonthCheckboxes(){
+	return Array.from(document.querySelectorAll('.month-detail-checkbox'))
+}
+
+function getDetailMonthMasterCheckbox(){
+	return document.getElementById('monthDetailMasterCheckbox')
+}
+
+function getSelectedDetailMonths(){
+	return getDetailMonthCheckboxes()
+		.filter(checkbox => checkbox.checked)
+		.map(checkbox => checkbox.value)
+}
+
+function getDetailMonthsParam(){
+	const datasElement = document.getElementById('datas')
+	const checkboxes = getDetailMonthCheckboxes()
+	const selectedDetailMonths = getSelectedDetailMonths()
+
+	if (checkboxes.length) {
+		return selectedDetailMonths.join(',')
+	}
+
+	return datasElement?.dataset.detailmonths || ''
+}
+
+function syncDetailMonthSummary(){
+	const summary = document.getElementById('monthDetailSummary')
+	if (!summary) {
+		return
+	}
+
+	const checkboxes = getDetailMonthCheckboxes()
+	const count = getSelectedDetailMonths().length
+	summary.textContent = `${count}/12`
+
+	const masterCheckbox = getDetailMonthMasterCheckbox()
+	if (masterCheckbox) {
+		masterCheckbox.checked = checkboxes.length > 0 && count === checkboxes.length
+		masterCheckbox.indeterminate = count > 0 && count < checkboxes.length
+	}
+}
+
+function syncSelectedMonthControls(){
+	const datasElement = document.getElementById('datas')
+	const selectedMonthInput = document.getElementById('selectedMonthInput')
+	const selectedYearInput = document.getElementById('selectedYearInput')
+	const url = new URL(window.location.href)
+
+	if (datasElement) {
+		datasElement.dataset.selectedmonth = selectedMonth || ''
+		datasElement.dataset.selectedyear = selectedMonth ? (selectedYear || datasElement.dataset.year || '') : ''
+		$(datasElement).data('selectedmonth', selectedMonth || '')
+		$(datasElement).data('selectedyear', selectedMonth ? (selectedYear || datasElement.dataset.year || '') : '')
+	}
+	if (selectedMonthInput) {
+		selectedMonthInput.value = selectedMonth || ''
+	}
+	if (selectedYearInput) {
+		selectedYearInput.value = selectedMonth ? (selectedYear || datasElement?.dataset.year || '') : ''
+	}
+	if (selectedMonth) {
+		url.searchParams.set('selected_month', selectedMonth)
+		url.searchParams.set('selected_year', selectedYear || datasElement?.dataset.year || '')
+	} else {
+		url.searchParams.delete('selected_month')
+		url.searchParams.delete('selected_year')
+	}
+	window.history.replaceState(window.history.state, '', url)
+}
+
+function isSelectedMonthDisplayMode(mode){
+	return typeof mode === 'string' && mode.endsWith('_selected')
+}
+
+function isCustomMonthDisplayMode(mode){
+	return typeof mode === 'string' && mode.startsWith('custom_')
+}
+
+function getCustomMonthDisplayMode(){
+	return document.getElementById('monthCustomBasis')?.value || 'custom_current'
+}
+
+function getMonthRangeValue(inputId, fallback){
+	const input = document.getElementById(inputId)
+	const parsedValue = Number.parseInt(input?.value ?? fallback, 10)
+	const value = Number.isFinite(parsedValue) ? parsedValue : fallback
+
+	return Math.min(Math.max(value, 0), 11)
+}
+
+function getMonthRangeParams(){
+	const monthsBefore = getMonthRangeValue('monthRangeBefore', document.getElementById('datas')?.dataset.monthsbefore || 1)
+	const monthsAfter = getMonthRangeValue('monthRangeAfter', document.getElementById('datas')?.dataset.monthsafter || 3)
+
+	return {
+		months_before: monthsBefore,
+		months_after: Math.min(monthsAfter, 11 - monthsBefore)
+	}
+}
+
+function syncMonthRangeInputs(range = getMonthRangeParams()){
+	const beforeInput = document.getElementById('monthRangeBefore')
+	const afterInput = document.getElementById('monthRangeAfter')
+
+	if (beforeInput) {
+		beforeInput.value = range.months_before
+	}
+	if (afterInput) {
+		afterInput.value = range.months_after
+		afterInput.max = String(11 - range.months_before)
+	}
+}
+
+function monthDisplaySummaryLabel(monthDisplay, range = getMonthRangeParams()){
+	if (monthDisplay === 'year') {
+		return 'Année entière'
+	}
+
+	const basis = isSelectedMonthDisplayMode(monthDisplay) || monthDisplay === 'custom_selected'
+		? 'mois sélectionné'
+		: 'mois en cours'
+
+	if (isCustomMonthDisplayMode(monthDisplay)) {
+		return `Perso : ${range.months_before} av. / ${range.months_after} ap. - ${basis}`
+	}
+	if (typeof monthDisplay === 'string' && monthDisplay.startsWith('three_')) {
+		return `1 av. / 3 ap. - ${basis}`
+	}
+	if (typeof monthDisplay === 'string' && monthDisplay.startsWith('one_')) {
+		return `1 av. / 1 ap. - ${basis}`
+	}
+	if (typeof monthDisplay === 'string' && monthDisplay.startsWith('current_')) {
+		return `1 seul mois - ${basis}`
+	}
+
+	return 'Affichage'
+}
+
+function syncMonthDisplaySummary(monthDisplay = document.getElementById('datas')?.dataset.monthdisplay || ''){
+	const button = document.getElementById('accountDisplayButton')
+	if (!button) {
+		return
+	}
+
+	button.setAttribute('title', `Options d'affichage - ${monthDisplaySummaryLabel(monthDisplay)}`)
+}
+
+function syncMonthDisplaySelect(monthDisplay = document.getElementById('datas')?.dataset.monthdisplay || ''){
+	const input = document.getElementById('monthDisplay')
+	const currentSelect = document.getElementById('monthDisplayCurrent')
+	const selectedSelect = document.getElementById('monthDisplaySelected')
+	const yearButton = document.querySelector('[data-month-display-value="year"]')
+	const isPresetMode = !isCustomMonthDisplayMode(monthDisplay)
+
+	if (input) {
+		input.value = monthDisplay
+	}
+	if (currentSelect) {
+		currentSelect.value = isPresetMode && monthDisplay !== 'year' && !isSelectedMonthDisplayMode(monthDisplay) ? monthDisplay : ''
+	}
+	if (selectedSelect) {
+		selectedSelect.value = isPresetMode && isSelectedMonthDisplayMode(monthDisplay) ? monthDisplay : ''
+	}
+	if (yearButton) {
+		const isYear = monthDisplay === 'year'
+		yearButton.classList.toggle('is-active', isYear)
+		yearButton.setAttribute('aria-pressed', isYear ? 'true' : 'false')
+	}
+	syncMonthDisplaySummary(monthDisplay)
+}
+
+function setMonthDisplayControlsDisabled(disabled){
+	$('#monthDisplay, [data-month-display-value], [data-month-display-select]').prop('disabled', disabled)
+}
+
+function syncMonthRangeFields(){
+	const monthDisplay = document.getElementById('datas')?.dataset.monthdisplay || ''
+	const customBasis = document.getElementById('monthCustomBasis')
+
+	if (customBasis && isCustomMonthDisplayMode(monthDisplay)) {
+		customBasis.value = monthDisplay
+	}
+	syncMonthDisplaySelect(monthDisplay)
+	syncMonthRangeInputs()
+}
+
+function syncMonthRangeUrl(){
+	const datasElement = document.getElementById('datas')
+	const range = getMonthRangeParams()
+	const url = new URL(window.location.href)
+
+	if (datasElement) {
+		datasElement.dataset.monthsbefore = String(range.months_before)
+		datasElement.dataset.monthsafter = String(range.months_after)
+		$(datasElement).data('monthsbefore', range.months_before)
+		$(datasElement).data('monthsafter', range.months_after)
+	}
+	url.searchParams.set('months_before', String(range.months_before))
+	url.searchParams.set('months_after', String(range.months_after))
+	window.history.replaceState(window.history.state, '', url)
+}
+
+function syncDetailMonthsUrl(){
+	const detailMonths = getSelectedDetailMonths().join(',')
+	const datasElement = document.getElementById('datas')
+	const url = new URL(window.location.href)
+
+	if (datasElement) {
+		datasElement.dataset.detailmonths = detailMonths
+		$(datasElement).data('detailmonths', detailMonths)
+	}
+	url.searchParams.set('detail_months', detailMonths)
+	url.searchParams.set('detail_months_set', '1')
+	window.history.replaceState(window.history.state, '', url)
+}
+
+function setAccountDisplayTab(tab){
+	document.querySelectorAll('[data-account-display-tab]').forEach(button => {
+		const isActive = button.dataset.accountDisplayTab === tab
+		button.classList.toggle('is-active', isActive)
+		button.setAttribute('aria-selected', isActive ? 'true' : 'false')
+	})
+	document.querySelectorAll('[data-account-display-panel]').forEach(panel => {
+		panel.hidden = panel.dataset.accountDisplayPanel !== tab
+	})
+}
+
+function setDetailMonthControlsDisabled(disabled){
+	getDetailMonthCheckboxes().forEach(checkbox => checkbox.disabled = disabled)
+	const masterCheckbox = getDetailMonthMasterCheckbox()
+	if (masterCheckbox) {
+		masterCheckbox.disabled = disabled
+	}
+}
+
+function updateDetailMonths(previousDetailMonths){
+	syncDetailMonthSummary()
+	syncDetailMonthsUrl()
+	setDetailMonthControlsDisabled(true)
+
+	updateTables()
+		.fail(function(){
+			const previousValues = previousDetailMonths ? previousDetailMonths.split(',') : []
+			getDetailMonthCheckboxes().forEach(checkbox => checkbox.checked = previousValues.includes(checkbox.value))
+			syncDetailMonthSummary()
+			syncDetailMonthsUrl()
+		})
+		.always(function(){
+			setDetailMonthControlsDisabled(false)
+		})
+}
 function applySelectedMonth(){
 	resetSelectedMonthWidths()
 
 	document.querySelectorAll('.compteTable').forEach(table => {
 		table.querySelectorAll('.month-selector').forEach(selector => {
-			selector.setAttribute('aria-pressed', selector.dataset.month === selectedMonth ? 'true' : 'false')
+			const selectorYear = selector.dataset.year || document.getElementById('datas')?.dataset.year || ''
+			const isSelected = selector.dataset.month === selectedMonth && selectorYear === String(selectedYear || '')
+			selector.setAttribute('aria-pressed', isSelected ? 'true' : 'false')
 		})
 		table.querySelectorAll('[data-month]').forEach(cell => {
-			cell.classList.toggle('month-column-selected', cell.dataset.month === selectedMonth)
+			const cellYear = cell.dataset.year || document.getElementById('datas')?.dataset.year || ''
+			cell.classList.toggle('month-column-selected', cell.dataset.month === selectedMonth && cellYear === String(selectedYear || ''))
 		})
 	})
 
@@ -80,22 +398,26 @@ function resetSelectedMonthWidths(){
 }
 
 function expandDisplayedMonth(){
+	const datasElement = document.getElementById('datas')
 	const selectedMonthHeader = selectedMonth
-		? document.querySelector(`.month-selector[data-month="${selectedMonth}"]`)
+		? document.querySelector(`.month-selector[data-month="${selectedMonth}"][data-year="${selectedYear || datasElement?.dataset.year || ''}"]`)
 		: null
 	const currentMonthHeader = document.querySelector('.month-selector.current')
 	const expandedMonth = selectedMonthHeader
 		? selectedMonth
-		: $('#datas').data('monthdisplay') === 'current'
+		: String($('#datas').data('monthdisplay')).startsWith('current')
 			? currentMonthHeader?.dataset.month
 			: null
+	const expandedYear = selectedMonthHeader
+		? selectedMonthHeader.dataset.year
+		: currentMonthHeader?.dataset.year
 
 	if (!expandedMonth) {
 		return
 	}
 
 	document.querySelectorAll('.compteTable').forEach(table => {
-		const monthHeader = table.querySelector(`tr:first-child .month-visible[data-month="${expandedMonth}"]`)
+		const monthHeader = table.querySelector(`tr:first-child .month-visible[data-month="${expandedMonth}"][data-year="${expandedYear}"]`)
 		if (!monthHeader) {
 			return
 		}
@@ -114,8 +436,27 @@ function restoreSelectedMonths(){
 	applySelectedMonth()
 }
 
-function toggleSelectedMonth(month){
-	selectedMonth = selectedMonth === month ? null : month
+function toggleSelectedMonth(month, year){
+	const previousSelectedMonth = selectedMonth
+	const previousSelectedYear = selectedYear
+	const nextYear = String(year || document.getElementById('datas')?.dataset.year || '')
+	const sameSelection = selectedMonth === month && String(selectedYear || '') === nextYear
+	selectedMonth = sameSelection ? null : month
+	selectedYear = sameSelection ? null : nextYear
+	syncSelectedMonthControls()
+
+	if (isSelectedMonthDisplayMode($('#datas').data('monthdisplay'))) {
+		updateTables()
+			.fail(function(){
+				selectedMonth = previousSelectedMonth
+				selectedYear = previousSelectedYear
+				syncSelectedMonthControls()
+				applySelectedMonth()
+				centerCompactTables()
+			})
+		return
+	}
+
 	applySelectedMonth()
 	centerCompactTables()
 }
@@ -326,7 +667,14 @@ function moveSubCategory(target){
 // Color soldeActuel
 function editSolde(solde, text = 'Actuel'){
 
-	$('#solde'+text+'Nb').text(number_format(solde, 2, ',', ' '))
+	const datas = document.getElementById('datas')
+	$('#solde'+text+'Nb').text(money_display(
+		solde,
+		datas?.dataset.moneydisplayformat || 'comma',
+		datas?.dataset.moneycurrency || 'EUR',
+		datas?.dataset.moneytrimzeros === '1',
+		datas?.dataset.moneyshowzerodecimals !== '0'
+	))
 
 	let 
 		decouvert = $('#datas').data('decouvert'),
@@ -374,7 +722,11 @@ function spinner(etat){
 }
 
 $(document).ready(function(){
-	selectedMonth = document.querySelector('.month-selector.current')?.dataset.month ?? null
+	const initialDatasElement = document.getElementById('datas')
+	selectedMonth = initialDatasElement?.dataset.selectedmonth || document.querySelector('.month-selector.current')?.dataset.month || null
+	selectedYear = selectedMonth
+		? (initialDatasElement?.dataset.selectedyear || document.querySelector(`.month-selector[data-month="${selectedMonth}"]`)?.dataset.year || initialDatasElement?.dataset.year || null)
+		: null
 	applySelectedMonth()
 	centerCompactTables()
 	const accountPreferencesButton = document.getElementById('accountPreferencesButton')
@@ -435,6 +787,11 @@ $(document).ready(function(){
 		if (!datas) {
 			return
 		}
+		let shouldUpdateTables = false
+		const previousMoneyDisplayFormat = datas.dataset.moneydisplayformat || 'comma'
+		const previousMoneyCurrency = datas.dataset.moneycurrency || 'EUR'
+		const previousMoneyTrimZeros = datas.dataset.moneytrimzeros === '1'
+		const previousMoneyShowZeroDecimals = datas.dataset.moneyshowzerodecimals !== '0'
 
 		Array.from(datas.classList).forEach(className => {
 			if (className.startsWith('table-palette-')) {
@@ -443,8 +800,33 @@ $(document).ready(function(){
 		})
 		datas.classList.add(`table-palette-${preferences.tablePalette || 'classic'}`)
 		datas.classList.toggle('hide-editable-border', preferences.showEditableBorder === false)
+		if (preferences.moneyDisplayFormat) {
+			datas.dataset.moneydisplayformat = preferences.moneyDisplayFormat
+			$(datas).data('moneydisplayformat', preferences.moneyDisplayFormat)
+			shouldUpdateTables = preferences.moneyDisplayFormat !== previousMoneyDisplayFormat
+		}
+		if (preferences.moneyCurrency) {
+			datas.dataset.moneycurrency = preferences.moneyCurrency
+			$(datas).data('moneycurrency', preferences.moneyCurrency)
+			shouldUpdateTables = shouldUpdateTables || preferences.moneyCurrency !== previousMoneyCurrency
+		}
+		if (typeof preferences.moneyTrimZeros === 'boolean') {
+			datas.dataset.moneytrimzeros = preferences.moneyTrimZeros ? '1' : '0'
+			$(datas).data('moneytrimzeros', preferences.moneyTrimZeros ? 1 : 0)
+			shouldUpdateTables = shouldUpdateTables || preferences.moneyTrimZeros !== previousMoneyTrimZeros
+		}
+		if (typeof preferences.moneyShowZeroDecimals === 'boolean') {
+			datas.dataset.moneyshowzerodecimals = preferences.moneyShowZeroDecimals ? '1' : '0'
+			$(datas).data('moneyshowzerodecimals', preferences.moneyShowZeroDecimals ? 1 : 0)
+			shouldUpdateTables = shouldUpdateTables || preferences.moneyShowZeroDecimals !== previousMoneyShowZeroDecimals
+		}
 
 		if (typeof preferences.compteGenreShow === 'boolean') {
+			shouldUpdateTables = true
+		}
+		syncMoneySymbols()
+		syncMoneyAmounts()
+		if (shouldUpdateTables) {
 			updateTables()
 		}
 	}
@@ -484,6 +866,64 @@ $(document).ready(function(){
 	}
 
 	if (accountPreferencesForm) {
+		const moneyTrimZerosInput = accountPreferencesForm.querySelector('[name$="[moneyTrimZeros]"]')
+		const moneyZeroRow = accountPreferencesForm.querySelector('.money-format-zero-row')
+		const moneyCurrencyInputs = accountPreferencesForm.querySelectorAll('[name$="[moneyCurrency]"]')
+		const moneyZeroInputs = accountPreferencesForm.querySelectorAll('[name$="[moneyShowZeroDecimals]"]')
+		const moneyZeroInput = Array.from(moneyZeroInputs).find(input => input.value === '0')
+		const moneyZeroDecimalInput = Array.from(moneyZeroInputs).find(input => input.value === '1')
+		const moneyZeroDecimalChoice = moneyZeroDecimalInput?.closest('.money-zero-choice')
+		const moneyZeroDecimalDefaultTitle = moneyZeroDecimalChoice?.getAttribute('title') || '0.00'
+		const yenZeroDecimalTitle = "Le yen japonais n'utilise pas de centimes : l'affichage 0.00 n'est pas disponible."
+		const moneyFormatExamples = accountPreferencesForm.querySelectorAll('[data-money-format-example]')
+		const moneySymbolByCurrency = {
+			EUR: '\u20ac',
+			USD: '$',
+			GBP: '\u00a3',
+			CHF: 'CHF',
+			JPY: '\u00a5',
+			CAD: 'CA$'
+		}
+		const getSelectedMoneyCurrency = function(){
+			const selectedCurrencyInput = Array.from(moneyCurrencyInputs).find(input => input.checked)
+
+			return selectedCurrencyInput?.value || 'EUR'
+		}
+		const syncMoneyZeroCurrencyState = function(){
+			if (!moneyZeroInput || !moneyZeroDecimalInput || !moneyZeroDecimalChoice) {
+				return
+			}
+
+			const shouldForceZero = getSelectedMoneyCurrency() === 'JPY' && !moneyTrimZerosInput?.checked
+			if (shouldForceZero) {
+				moneyZeroInput.checked = true
+				moneyZeroDecimalInput.checked = false
+			}
+
+			moneyZeroDecimalInput.disabled = shouldForceZero
+			moneyZeroDecimalChoice.classList.toggle('is-disabled', shouldForceZero)
+			moneyZeroDecimalChoice.setAttribute('title', shouldForceZero ? yenZeroDecimalTitle : moneyZeroDecimalDefaultTitle)
+		}
+		const syncMoneyFormatExamples = function(){
+			const symbol = money_symbol(getSelectedMoneyCurrency())
+
+			moneyFormatExamples.forEach(example => {
+				if (example.dataset.moneyFormat !== 'euro_cents') {
+					return
+				}
+
+				const label = `1 234${symbol}56`
+				example.textContent = label
+				example.closest('.money-format-choice')?.setAttribute('title', label)
+			})
+		}
+		const syncMoneyZeroPreferenceVisibility = function(){
+			if (!moneyTrimZerosInput || !moneyZeroRow) {
+				return
+			}
+
+			moneyZeroRow.hidden = moneyTrimZerosInput.checked
+		}
 		const saveAccountPreferences = function(){
 			window.clearTimeout(accountPreferencesSaveTimer)
 			setAccountPreferenceStatus('Enregistrement...', 'saving')
@@ -522,10 +962,18 @@ $(document).ready(function(){
 		}
 
 		accountPreferencesForm.addEventListener('change', function(){
+			syncMoneyZeroCurrencyState()
+			syncMoneyZeroPreferenceVisibility()
+			syncMoneyFormatExamples()
 			window.clearTimeout(accountPreferencesSaveTimer)
 			accountPreferencesSaveTimer = window.setTimeout(saveAccountPreferences, 160)
 		})
+		syncMoneyZeroCurrencyState()
+		syncMoneyZeroPreferenceVisibility()
+		syncMoneyFormatExamples()
 	}
+	syncMoneySymbols()
+	syncMoneyAmounts()
 	const markAccountTutorialSeen = function(){
 		if (!datasElement || datasElement.dataset.accountTutorialSeen === '1') {
 			return
@@ -1305,6 +1753,151 @@ $(document).ready(function(){
 			}
 		})
 	}
+	const accountSettingsModal = document.getElementById('modalAccountSettings')
+	if (accountSettingsModal) {
+		const formContainer = accountSettingsModal.querySelector('#accountSettingsFormContainer')
+		const status = accountSettingsModal.querySelector('[data-account-settings-status]')
+		const saveButton = accountSettingsModal.querySelector('[data-account-settings-save]')
+		const saveIcon = saveButton.querySelector('[data-account-settings-save-icon]')
+		const saveSpinner = saveButton.querySelector('[data-account-settings-save-spinner]')
+		const deleteAccountNames = Array.from(accountSettingsModal.querySelectorAll('[data-account-delete-name]'))
+		const setStatus = function(label, state = ''){
+			status.textContent = label
+			status.classList.remove('is-saving', 'is-success', 'is-error')
+			if (state) {
+				status.classList.add(`is-${state}`)
+			}
+		}
+		const setSaveLoading = function(isLoading){
+			saveButton.disabled = isLoading
+			saveIcon.hidden = isLoading
+			saveSpinner.hidden = !isLoading
+		}
+		const openAccountSettings = function(){
+			if (window.bootstrap?.Modal) {
+				window.bootstrap.Modal.getOrCreateInstance(accountSettingsModal).show()
+			} else {
+				$(accountSettingsModal).modal('show')
+			}
+		}
+		const closeAccountSettings = function(){
+			const dismissButton = accountSettingsModal.querySelector('.modal-footer [data-dismiss="modal"]')
+			if (dismissButton) {
+				dismissButton.click()
+				return
+			}
+
+			$(accountSettingsModal).modal('hide')
+		}
+
+		const deleteForm = accountSettingsModal.querySelector('[data-account-delete-form]')
+		const deleteConfirmation = accountSettingsModal.querySelector('[data-account-delete-confirm]')
+		if (deleteForm && deleteConfirmation) {
+			const deleteButton = deleteForm.querySelector('[data-account-delete-open]')
+			const confirmDeleteButton = deleteConfirmation.querySelector('[data-account-delete-confirm-submit]')
+			const cancelDeleteButtons = deleteConfirmation.querySelectorAll('[data-account-delete-cancel]')
+			let deleteConfirmed = false
+
+			const openDeleteConfirmation = function(){
+				deleteConfirmation.hidden = false
+				deleteConfirmation.setAttribute('aria-hidden', 'false')
+				deleteConfirmation.querySelector('.account-delete-confirm-actions [data-account-delete-cancel]')?.focus()
+			}
+			const closeDeleteConfirmation = function(){
+				deleteConfirmation.hidden = true
+				deleteConfirmation.setAttribute('aria-hidden', 'true')
+				deleteButton?.focus()
+			}
+
+			deleteForm.addEventListener('submit', function(event){
+				if (deleteConfirmed) {
+					return
+				}
+
+				event.preventDefault()
+				openDeleteConfirmation()
+			})
+			confirmDeleteButton?.addEventListener('click', function(){
+				deleteConfirmed = true
+				deleteForm.requestSubmit()
+			})
+			cancelDeleteButtons.forEach(button => button.addEventListener('click', closeDeleteConfirmation))
+			deleteConfirmation.addEventListener('click', function(event){
+				if (event.target === deleteConfirmation) {
+					closeDeleteConfirmation()
+				}
+			})
+			deleteConfirmation.addEventListener('keydown', function(event){
+				if ('Escape' === event.key) {
+					event.stopPropagation()
+					closeDeleteConfirmation()
+				}
+			})
+		}
+
+		accountSettingsModal.addEventListener('submit', function(event){
+			const form = event.target.closest('#accountSettingsForm')
+			if (!form) {
+				return
+			}
+
+			event.preventDefault()
+			setSaveLoading(true)
+			setStatus('Enregistrement...', 'saving')
+
+			fetch(form.action, {
+				method: form.method || 'POST',
+				body: new FormData(form),
+				headers: {'X-Requested-With': 'XMLHttpRequest'}
+			})
+				.then(async response => ({response, payload: await response.json()}))
+				.then(({response, payload}) => {
+					if (!response.ok || !payload.saved) {
+						if (payload.form) {
+							formContainer.innerHTML = payload.form
+						}
+						throw new Error(payload.error || 'Validation impossible')
+					}
+
+					const datas = document.getElementById('datas')
+					const accountTitle = document.querySelector('.account-title h1')
+					const overdraft = document.getElementById('overdraftAuthorization')
+					if (accountTitle) {
+						accountTitle.textContent = payload.account.libelle
+					}
+					deleteAccountNames.forEach(element => {
+						element.textContent = payload.account.libelle
+					})
+					if (datas) {
+						const overdraftLimit = Number(payload.account.decouvert || 0) * -1
+						datas.dataset.decouvert = String(overdraftLimit)
+						$(datas).data('decouvert', overdraftLimit)
+					}
+					if (overdraft) {
+						overdraft.dataset.moneyAmount = payload.account.decouvert || 0
+					}
+					syncMoneyAmounts()
+					setStatus('Mise à jour du tableau...', 'saving')
+					return Promise.resolve(updateTables()).then(() => {
+						setStatus('Enregistré', 'success')
+						closeAccountSettings()
+					})
+				})
+				.catch(error => {
+					if (error.message !== 'Validation impossible') {
+						console.log('Erreur lors de la modification du compte: ' + error)
+					}
+					setStatus('Veuillez corriger le formulaire.', 'error')
+				})
+				.finally(() => {
+					setSaveLoading(false)
+				})
+		})
+
+		if (accountSettingsModal.dataset.openOnLoad === '1') {
+			window.setTimeout(openAccountSettings, 120)
+		}
+	}
 	const yearPicker = document.getElementById('yearPicker')
 	const yearNavigationForm = document.getElementById('yearNavigationForm')
 	const yearPickerMenu = document.getElementById('yearPickerOptions')
@@ -1407,35 +2000,188 @@ $(document).ready(function(){
 		})
 	})
 
+	syncDetailMonthSummary()
+	syncMonthRangeFields()
+
+	const monthDetailToggle = document.getElementById('monthDetailToggle')
+	const monthDetailMenu = document.getElementById('monthDetailMenu')
+	if (monthDetailToggle && monthDetailMenu) {
+		const closeMonthDetailMenu = function(){
+			monthDetailMenu.hidden = true
+			monthDetailToggle.setAttribute('aria-expanded', 'false')
+		}
+
+		monthDetailToggle.addEventListener('click', function(event){
+			event.preventDefault()
+			const opens = monthDetailMenu.hidden
+			monthDetailMenu.hidden = !opens
+			monthDetailToggle.setAttribute('aria-expanded', opens ? 'true' : 'false')
+		})
+		document.addEventListener('click', function(event){
+			if (monthDetailMenu.hidden || monthDetailMenu.contains(event.target) || monthDetailToggle.contains(event.target)) {
+				return
+			}
+
+			closeMonthDetailMenu()
+		})
+		document.addEventListener('keydown', function(event){
+			if ('Escape' !== event.key || monthDetailMenu.hidden) {
+				return
+			}
+
+			closeMonthDetailMenu()
+			monthDetailToggle.focus()
+		})
+	}
+
 	////////////
 	// ON EVENTS
 	////////////
-	$('#monthDisplay').on('change', function(){
-		const select = this
+	$('body').on('click', '[data-account-display-tab]', function(){
+		setAccountDisplayTab(this.dataset.accountDisplayTab)
+	})
+
+	$('body').on('click', '[data-month-display-value]', function(){
+		const monthDisplayInput = document.getElementById('monthDisplay')
+		if (!monthDisplayInput || monthDisplayInput.value === this.dataset.monthDisplayValue) {
+			return
+		}
+		monthDisplayInput.value = this.dataset.monthDisplayValue
+		$(monthDisplayInput).trigger('change')
+	})
+
+	$('body').on('change', '[data-month-display-select]', function(){
+		const monthDisplayInput = document.getElementById('monthDisplay')
+		if (!monthDisplayInput || !this.value || monthDisplayInput.value === this.value) {
+			syncMonthDisplaySelect(monthDisplayInput?.value || document.getElementById('datas')?.dataset.monthdisplay || '')
+			return
+		}
+		monthDisplayInput.value = this.value
+		$(monthDisplayInput).trigger('change')
+	})
+
+	$('body').on('change', '#monthDisplay', function(){
+		const monthDisplayInput = this
 		const datas = $('#datas')
 		const previousMonthDisplay = datas.data('monthdisplay')
-		const monthDisplay = select.value
+		const monthDisplay = monthDisplayInput.value
+		if (!monthDisplay) {
+			return
+		}
+		const monthRange = getMonthRangeParams()
+		const detailMonths = getSelectedDetailMonths().join(',')
 		const url = new URL(window.location.href)
 
 		datas
 			.data('monthdisplay', monthDisplay)
 			.attr('data-monthdisplay', monthDisplay)
+			.data('monthsbefore', monthRange.months_before)
+			.attr('data-monthsbefore', monthRange.months_before)
+			.data('monthsafter', monthRange.months_after)
+			.attr('data-monthsafter', monthRange.months_after)
+			.data('selectedmonth', selectedMonth || '')
+			.attr('data-selectedmonth', selectedMonth || '')
+			.data('selectedyear', selectedMonth ? (selectedYear || '') : '')
+			.attr('data-selectedyear', selectedMonth ? (selectedYear || '') : '')
+			.data('detailmonths', detailMonths)
+			.attr('data-detailmonths', detailMonths)
 		url.searchParams.set('months', monthDisplay)
+		url.searchParams.set('months_before', monthRange.months_before)
+		url.searchParams.set('months_after', monthRange.months_after)
+		url.searchParams.set('detail_months', detailMonths)
+		url.searchParams.set('detail_months_set', '1')
+		if (selectedMonth) {
+			url.searchParams.set('selected_month', selectedMonth)
+			url.searchParams.set('selected_year', selectedYear || '')
+		} else {
+			url.searchParams.delete('selected_month')
+			url.searchParams.delete('selected_year')
+		}
 		window.history.replaceState(window.history.state, '', url)
-		select.disabled = true
+		syncMonthRangeFields()
+		setMonthDisplayControlsDisabled(true)
 
 		updateTables()
 			.fail(function(){
 				datas
 					.data('monthdisplay', previousMonthDisplay)
 					.attr('data-monthdisplay', previousMonthDisplay)
-				select.value = previousMonthDisplay
+				syncMonthDisplaySelect(previousMonthDisplay)
+				url.searchParams.set('months', previousMonthDisplay)
+				window.history.replaceState(window.history.state, '', url)
+				syncMonthRangeFields()
+			})
+			.always(function(){
+				setMonthDisplayControlsDisabled(false)
+			})
+	})
+
+	$('body').on('click', '#monthCustomApply', function(){
+		const datas = $('#datas')
+		const previousMonthDisplay = datas.data('monthdisplay')
+		const previousBefore = document.getElementById('datas')?.dataset.monthsbefore || '1'
+		const previousAfter = document.getElementById('datas')?.dataset.monthsafter || '3'
+		const monthDisplay = getCustomMonthDisplayMode()
+		const range = getMonthRangeParams()
+		const detailMonths = getSelectedDetailMonths().join(',')
+		const url = new URL(window.location.href)
+
+		syncMonthRangeInputs(range)
+		datas
+			.data('monthdisplay', monthDisplay)
+			.attr('data-monthdisplay', monthDisplay)
+			.data('monthsbefore', range.months_before)
+			.attr('data-monthsbefore', range.months_before)
+			.data('monthsafter', range.months_after)
+			.attr('data-monthsafter', range.months_after)
+			.data('detailmonths', detailMonths)
+			.attr('data-detailmonths', detailMonths)
+		syncMonthDisplaySelect(monthDisplay)
+		url.searchParams.set('months', monthDisplay)
+		url.searchParams.set('months_before', range.months_before)
+		url.searchParams.set('months_after', range.months_after)
+		url.searchParams.set('detail_months', detailMonths)
+		url.searchParams.set('detail_months_set', '1')
+		window.history.replaceState(window.history.state, '', url)
+		$('#monthCustomBasis, #monthRangeBefore, #monthRangeAfter, #monthCustomApply').prop('disabled', true)
+
+		updateTables()
+			.fail(function(){
+				const beforeInput = document.getElementById('monthRangeBefore')
+				const afterInput = document.getElementById('monthRangeAfter')
+				if (beforeInput) {
+					beforeInput.value = previousBefore
+				}
+				if (afterInput) {
+					afterInput.value = previousAfter
+				}
+				datas
+					.data('monthdisplay', previousMonthDisplay)
+					.attr('data-monthdisplay', previousMonthDisplay)
+				syncMonthDisplaySelect(previousMonthDisplay)
+				syncMonthRangeUrl()
 				url.searchParams.set('months', previousMonthDisplay)
 				window.history.replaceState(window.history.state, '', url)
 			})
 			.always(function(){
-				select.disabled = false
+				$('#monthCustomBasis, #monthRangeBefore, #monthRangeAfter, #monthCustomApply').prop('disabled', false)
 			})
+	})
+
+	$('body').on('change', '.month-detail-checkbox', function(){
+		const previousDetailMonths = document.getElementById('datas')?.dataset.detailmonths || ''
+
+		updateDetailMonths(previousDetailMonths)
+	})
+
+	$('body').on('change', '#monthDetailMasterCheckbox', function(){
+		const previousDetailMonths = document.getElementById('datas')?.dataset.detailmonths || ''
+		const checked = this.checked
+
+		getDetailMonthCheckboxes().forEach(checkbox => {
+			checkbox.checked = checked
+		})
+		updateDetailMonths(previousDetailMonths)
 	})
 
 	$('body').on('click', '.undo-last-action', function(){
@@ -1648,7 +2394,7 @@ $(document).ready(function(){
 	}, true)
 
 	$('body').on('click', '.month-selector', function(){
-		toggleSelectedMonth(this.dataset.month)
+		toggleSelectedMonth(this.dataset.month, this.dataset.year)
 	})
 
 	$('body').on('click', '.resolve-anomaly-button', function(){
@@ -1681,7 +2427,7 @@ $(document).ready(function(){
 		}
 
 		event.preventDefault()
-		toggleSelectedMonth(this.dataset.month)
+		toggleSelectedMonth(this.dataset.month, this.dataset.year)
 	})
 
 	// Td anticipe jauni

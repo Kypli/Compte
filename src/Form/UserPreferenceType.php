@@ -76,6 +76,62 @@ class UserPreferenceType extends AbstractType
 					],
 				]
 			)
+			->add(
+				'moneyDisplayFormat',
+				ChoiceType::class,
+				[
+					'label' => 'Format monétaire',
+					'expanded' => true,
+					'multiple' => false,
+					'choices' => [
+						'1 234.56' => 'dot',
+						'1 234,56' => 'comma',
+						'1 234€56' => 'euro_cents',
+						'1.234,56' => 'german',
+					],
+				]
+			)
+			->add(
+				'moneyCurrency',
+				ChoiceType::class,
+				[
+					'label' => 'Monnaie utilisée',
+					'expanded' => true,
+					'multiple' => false,
+					'choices' => [
+						'Euro (€)' => 'EUR',
+						'Dollar ($)' => 'USD',
+						'Livre sterling (£)' => 'GBP',
+						'Franc suisse (CHF)' => 'CHF',
+						'Yen (¥)' => 'JPY',
+						'Dollar canadien (CA$)' => 'CAD',
+					],
+				]
+			)
+			->add(
+				'moneyTrimZeros',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Retirer les 0 inutiles',
+					'attr' => [
+						'class' => 'checkType',
+					],
+				]
+			)
+			->add(
+				'moneyShowZeroDecimals',
+				ChoiceType::class,
+				[
+					'label' => 'Afficher 0 ou 0.00',
+					'expanded' => true,
+					'multiple' => false,
+					'choices' => [
+						'0' => false,
+						'0.00' => true,
+					],
+				]
+			)
 		;
 	}
 

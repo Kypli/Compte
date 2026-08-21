@@ -10,14 +10,17 @@
 	{# MOIS AFFICHES #}
 	{% for month in visible_months %}
 
-		{# VAR #}
-		{% set reel = '0' %}
+			{% set month_year = visible_month_years[month]|default(year) %}
+{# VAR #}
+		{% set reel = 0 %}
 		{% set blink = '' %}
-		{% set anticipe = '' %}
+		{% set anticipe = 0 %}
+		{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
+		{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
 		{% set done =
-				current_year > year or (current_year == year and month < current_month)
+				current_year > month_year or (current_year == month_year and month < current_month)
 					? 'done '
-					: current_year == year and month == current_month
+					: current_year == month_year and month == current_month
 						? 'current '
 						: ''
 		%}
@@ -25,41 +28,59 @@
 		{% if operationsBySc[month] is defined %}
 
 			{% set data = operationsBySc[month] %}
-			{% set reel = data['reel'] is defined ? data['reel'] : '0' %}
+			{% set reel = data['reel'] is defined ? data['reel'] : 0 %}
 
 			{% if data['anticipe'] is defined and data['anticipe'] != 0 %}
 				{% set anticipe = data['anticipe'] %}
-				{% set blink = month < current_month ? 'blink_me ' : '' %}
+				{% set blink = month_year < current_year or (month_year == current_year and month < current_month) ? 'blink_me ' : '' %}
 			{% endif %}
 		{% endif %}
 
-		{# REEL #}
-		<td
-			class="month-cell-start {{ done|trim }}"
-			data-month="{{ month }}"
-			data-scid="{{ subcategory.id }}"
-			data-anticipe="0"
-			data-target="#modalOperation"
-			data-toggle="modal"
-		>
-			{{ reel }}
-		</td>
+		{% if month_is_collapsed %}
+			<td
+				class="month-cell-span {{ done|trim }} month-detail-collapsed"
+				data-month="{{ month }}" data-year="{{ month_year }}"
+			></td>
+		{% elseif month_is_detailed %}
+			{# REEL #}
+			<td
+				class="month-cell-start {{ done|trim }}"
+				data-month="{{ month }}" data-year="{{ month_year }}"
+				data-scid="{{ subcategory.id }}"
+				data-anticipe="0"
+				data-target="#modalOperation"
+				data-toggle="modal"
+			>
+				{{ reel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
 
-		{# ANTICIPE #}
-		<td
-			class='month-cell-end {{ done }}{{ blink }}anticipe'
-			data-month="{{ month }}"
-			data-scid="{{ subcategory.id }}"
-			data-anticipe="1"
-			data-target="#modalOperation"
-			data-toggle="modal"
-		>
-			{{ anticipe }}
-		</td>
+			{# ANTICIPE #}
+			<td
+				class='month-cell-end {{ done }}{{ blink }}anticipe'
+				data-month="{{ month }}" data-year="{{ month_year }}"
+				data-scid="{{ subcategory.id }}"
+				data-anticipe="1"
+				data-target="#modalOperation"
+				data-toggle="modal"
+			>
+				{{ anticipe == 0 ? '' : anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% else %}
+			<td
+				class="month-cell-span {{ done|trim }}{{ blink }}"
+				data-month="{{ month }}" data-year="{{ month_year }}"
+				data-scid="{{ subcategory.id }}"
+				data-anticipe="0"
+				data-target="#modalOperation"
+				data-toggle="modal"
+			>
+				{{ (reel + anticipe)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% endif %}
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="year-total counterEdit done td_total_border">{{ operationsBySc['total'] }}</td>
-	<td class="year-total counterEdit done">{{ (operationsBySc['total'] / 12)|round(2, 'ceil') }}</td>
-	<td class="year-total counterEdit done">{{ ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') }}</td>
+	<td class="year-total counterEdit done td_total_border">{{ operationsBySc['total']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	<td class="year-total counterEdit done">{{ (display_month_count > 0 ? operationsBySc['total'] / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	<td class="year-total counterEdit done">{{ operations['total_final'] != 0 ? ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') : 0 }}</td>
 {% endif %}

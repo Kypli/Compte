@@ -1,0 +1,36 @@
+{{ form_start(account_settings_form, {'attr': {'id': 'accountSettingsForm', 'class': 'account-settings-form', 'novalidate': 'novalidate'}}) }}
+	<div class="account-settings-form-errors">{{ form_errors(account_settings_form) }}</div>
+	<div class="account-settings-grid">
+		<div class="account-settings-field">
+			{{ form_label(account_settings_form.type) }}
+			{{ form_widget(account_settings_form.type) }}
+			{{ form_errors(account_settings_form.type) }}
+		</div>
+		<div class="account-settings-field">
+			{{ form_label(account_settings_form.libelle) }}
+			{{ form_widget(account_settings_form.libelle) }}
+			{{ form_errors(account_settings_form.libelle) }}
+		</div>
+		<div class="account-settings-main-field">
+			<label class="account-settings-main-control" for="{{ account_settings_form.main.vars.id }}">
+				{{ form_widget(account_settings_form.main) }}
+				<span class="account-settings-main-copy">
+					<strong>Compte principal</strong>
+					<small>Ce compte devient le compte principal et remplace le pr&eacute;c&eacute;dent.</small>
+				</span>
+			</label>
+			{{ form_errors(account_settings_form.main) }}
+		</div>
+		<div class="account-settings-field">
+			{{ form_label(account_settings_form.decouvert) }}
+			{{ form_widget(account_settings_form.decouvert) }}
+			{{ form_errors(account_settings_form.decouvert) }}
+		</div>
+		<div class="account-settings-field">
+			{{ form_label(account_settings_form.users_code) }}
+			{{ form_widget(account_settings_form.users_code) }}
+			{{ form_errors(account_settings_form.users_code) }}
+			<small class="account-settings-help">Le code utilisateur se trouve dans la page Profil du g&eacute;rant.</small>
+		</div>
+	</div>
+{{ form_end(account_settings_form) }}

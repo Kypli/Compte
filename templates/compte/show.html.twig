@@ -15,6 +15,21 @@
 {% endblock %}
 
 {% block body %}
+	{% set account_view_query = {'year': year, 'months': month_display, 'months_before': month_display_before, 'months_after': month_display_after, 'detail_months': detail_months|join(','), 'detail_months_set': 1}|merge(selected_month ? {'selected_month': selected_month, 'selected_year': selected_year} : {}) %}
+	{% set month_display_option = month_display_options[month_display]|default(null) %}
+	{% if month_display == 'year' %}
+		{% set account_display_summary = 'Année entière' %}
+	{% elseif month_display starts with 'custom_' %}
+		{% set account_display_summary = 'Perso : ' ~ month_display_before ~ ' av. / ' ~ month_display_after ~ ' ap. - ' ~ (month_display == 'custom_selected' ? 'mois sélectionné' : 'mois en cours') %}
+	{% elseif month_display starts with 'three_' %}
+		{% set account_display_summary = '1 av. / 3 ap. - ' ~ (month_display_option.basis == 'selected' ? 'mois sélectionné' : 'mois en cours') %}
+	{% elseif month_display starts with 'one_' %}
+		{% set account_display_summary = '1 av. / 1 ap. - ' ~ (month_display_option.basis == 'selected' ? 'mois sélectionné' : 'mois en cours') %}
+	{% elseif month_display starts with 'current_' %}
+		{% set account_display_summary = '1 seul mois - ' ~ (month_display_option.basis == 'selected' ? 'mois sélectionné' : 'mois en cours') %}
+	{% else %}
+		{% set account_display_summary = month_display_option.label|default('Affichage') %}
+	{% endif %}
 	<div
 		id="datas"
 		class="table-palette-{{ user.preferences.tablePalette|default('classic') }}{{ user.preferences.showEditableBorder is same as(false) ? ' hide-editable-border' : '' }}"
@@ -22,6 +37,15 @@
 		data-decouvert="{{ compte.decouvert * -1 }}"
 		data-months="{{ months_json }}"
 		data-monthdisplay="{{ month_display }}"
+		data-monthsbefore="{{ month_display_before }}"
+		data-monthsafter="{{ month_display_after }}"
+		data-selectedmonth="{{ selected_month }}"
+		data-selectedyear="{{ selected_year }}"
+		data-detailmonths="{{ detail_months|join(',') }}"
+		data-moneydisplayformat="{{ user.preferences.moneyDisplayFormat|default('comma') }}"
+		data-moneycurrency="{{ user.preferences.moneyCurrency|default('EUR') }}"
+		data-moneytrimzeros="{{ user.preferences.moneyTrimZeros|default(false) ? '1' : '0' }}"
+		data-moneyshowzerodecimals="{{ (user.preferences.moneyShowZeroDecimals ?? true) ? '1' : '0' }}"
 		data-compteid="{{ compte.id }}"
 		data-account-tutorial-seen="{{ user.preferences.accountTutorialSeen|default(false) ? '1' : '0' }}"
 		data-account-tutorial-seen-url="{{ path('user_preference_account_tutorial_seen', {'id': user.id}) }}"
@@ -29,47 +53,68 @@
 	>
 		<header class="account-header">
 			<div class="account-heading-row">
-				{% if other_comptes is not empty %}
-					<div class="budget-switcher">
+				<div class="account-title-left-actions">
+					<div class="account-title-side-buttons">
+						{% if other_comptes is not empty %}
+							<div class="budget-switcher">
+								<button
+									type="button"
+									id="budgetSwitcherButton"
+									class="header-action-button budget-switcher-button"
+									aria-controls="budgetSwitcherMenu"
+									aria-expanded="false"
+									aria-haspopup="menu"
+								>
+									<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+									<span>Budgets</span>
+								</button>
+								<div id="budgetSwitcherMenu" class="budget-switcher-menu" role="menu" hidden>
+									{% for other_compte in other_comptes %}
+										<a
+											class="budget-switcher-option"
+											role="menuitem"
+											href="{{ path('compte_show', account_view_query|merge({'id': other_compte.id})) }}"
+										>
+											<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+											<span>{{ other_compte.libelle }}</span>
+										</a>
+									{% endfor %}
+								</div>
+							</div>
+						{% endif %}
 						<button
 							type="button"
-							id="budgetSwitcherButton"
-							class="header-action-button budget-switcher-button"
-							aria-controls="budgetSwitcherMenu"
-							aria-expanded="false"
-							aria-haspopup="menu"
+							id="accountParametersButton"
+							class="header-action-button account-parameters-button"
+							data-toggle="modal"
+							data-target="#modalAccountSettings"
+							aria-haspopup="dialog"
+							aria-controls="modalAccountSettings"
+							title="Param&egrave;tres du compte"
 						>
-							<i class="fa-solid fa-wallet" aria-hidden="true"></i>
-							<span>Budgets</span>
+							<i class="fa-solid fa-wrench" aria-hidden="true"></i>
+							<span>Param&egrave;tres</span>
 						</button>
-						<div id="budgetSwitcherMenu" class="budget-switcher-menu" role="menu" hidden>
-							{% for other_compte in other_comptes %}
-								<a
-									class="budget-switcher-option"
-									role="menuitem"
-									href="{{ path('compte_show', {'id': other_compte.id, 'year': year, 'months': month_display}) }}"
-								>
-									<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-									<span>{{ other_compte.libelle }}</span>
-								</a>
-							{% endfor %}
-						</div>
+						<button
+							type="button"
+							id="accountDisplayButton"
+							class="header-action-button display-options-button"
+							data-toggle="modal"
+							data-target="#modalAccountDisplay"
+							aria-haspopup="dialog"
+							aria-controls="modalAccountDisplay"
+							title="Options d'affichage - {{ account_display_summary }}"
+						>
+							<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+							<span>Affichage</span>
+						</button>
 					</div>
-				{% endif %}
+				</div>
 				<div class="account-title">
 					{% include('partiel/_h1.html.twig') with {'text': compte.libelle} %}
 				</div>
 				<div class="account-header-actions">
 					<div class="account-header-action-buttons">
-						<a
-							id="accountPreferencesButton"
-							class="header-action-button account-preferences-button"
-							href="#accountPreferencesPanel"
-							title="Ouvrir les pr&eacute;f&eacute;rences des comptes"
-						>
-							<i class="fa-solid fa-sliders" aria-hidden="true"></i>
-							<span class="account-preferences-button-label">Pr&eacute;f&eacute;rences</span>
-						</a>
 						<button
 							type="button"
 							id="legendButton"
@@ -87,20 +132,6 @@
 							<span>Tutoriel</span>
 						</button>
 					</div>
-					<div id="accountPreferencesPanel" class="account-preferences-panel" hidden>
-						<div class="account-preferences-panel-title">
-							<span class="account-preferences-panel-heading">
-								<i class="fa-solid fa-sliders" aria-hidden="true"></i>
-								<span>Pr&eacute;f&eacute;rences des comptes</span>
-							</span>
-							<span class="account-preferences-status is-saved" data-account-preference-status role="status" aria-live="polite">Enregistr&eacute;</span>
-						</div>
-						{{ form_start(account_preference_form, {'attr': {'class': 'account-preferences-form', 'data-account-preference-autosave': 'true'}}) }}
-							<input type="hidden" name="{{ account_preference_form.vars.full_name }}[dashboardBackground]" value="{{ user.preferences.dashboardBackground|default('green') }}">
-							{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInline'} %}
-							{{ form_widget(account_preference_form._token) }}
-						{{ form_end(account_preference_form, {'render_rest': false}) }}
-					</div>
 				</div>
 			</div>
 
@@ -109,7 +140,7 @@
 					<div class="balance-summary-item">
 						<span class="balance-label">Solde actuel du compte</span>
 						<span id="soldeActuel" class="soldeActuel total_month_full_{{ color_solde }}">
-							<span id="soldeActuelNb">{{ current_solde == null ? 0 : current_solde|number_format(2, ',', ' ') }}</span>
+							<span id="soldeActuelNb">{{ (current_solde == null ? 0 : current_solde)|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}</span>
 							<span
 								id="soldeActuelAlert"
 								class="balance-alert balance-alert-current pointeur_help{{ color_solde != 'neg' ? ' hide' }}"
@@ -124,7 +155,7 @@
 						<div class="balance-summary-item">
 							<span class="balance-label">Solde &agrave; la fin du mois</span>
 							<span id="soldeFinMois" class="soldeActuel total_month_full_{{ color_soldeFinMois }}">
-								<span id="soldeFinMoisNb">{{ current_monthEnd|number_format(2, ',', ' ') }}</span>
+								<span id="soldeFinMoisNb">{{ current_monthEnd|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}</span>
 								<span
 									id="soldeFinMoisAlert"
 									class="balance-alert balance-alert-projected pointeur_help{{ color_soldeFinMois != 'neg' ? ' hide' }}"
@@ -138,16 +169,13 @@
 
 					<div class="balance-summary-item overdraft-summary-item">
 						<span class="balance-label">Autorisation de d&eacute;couvert</span>
-						<span id="overdraftAuthorization" class="overdraft-authorization">
-							{{ compte.decouvert|number_format(2, ',', ' ') }} &euro;
+						<span id="overdraftAuthorization" class="overdraft-authorization" data-money-amount="{{ compte.decouvert }}">
+							{{ compte.decouvert|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}
 						</span>
 					</div>
 				</div>
 
 				<div class="account-activity-area">
-					<div id="show_spinner" class="spinner spinner-border text-primary hide" role="status">
-						<span class="sr-only">Chargement...</span>
-					</div>
 					<div id="anomalies-div">
 						{{ include('compte/_anomalies.html.twig') }}
 					</div>
@@ -161,7 +189,7 @@
 						<span class="control-label">Année</span>
 						<form method="get" action="{{ path('compte_show', {'id': compte.id}) }}" id="yearNavigationForm" class="year-navigation" aria-label="Changer d'année">
 							{% if year > min_year %}
-								<a class="year-navigation-button" href="{{ path('compte_show', {'id': compte.id, 'year': year - 1, 'months': month_display}) }}" aria-label="Année précédente" title="Année précédente">
+								<a class="year-navigation-button" href="{{ path('compte_show', account_view_query|merge({'id': compte.id, 'year': year - 1})) }}" aria-label="Année précédente" title="Année précédente">
 									<i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
 								</a>
 							{% else %}
@@ -190,71 +218,258 @@
 								<div id="yearPickerOptions" class="year-picker-menu" role="listbox" hidden>
 									<div class="year-picker-option-group">
 										<div class="year-picker-option-grid">
-											{% for option_year in future_year_options %}
+											{% for option_year in year_options %}
+												{% set has_budget = option_year in budget_year_options %}
 												<button
 													type="button"
-													class="year-picker-option{{ option_year == year ? ' is-selected' }}"
+													class="year-picker-option{{ option_year == year ? ' is-selected' }}{{ has_budget ? ' has-budget' }}"
 													role="option"
 													data-year="{{ option_year }}"
+													data-has-budget="{{ has_budget ? '1' : '0' }}"
+													aria-label="{{ option_year }}{{ has_budget ? ', budget présent' : '' }}"
 													aria-selected="{{ option_year == year ? 'true' : 'false' }}"
-												>{{ option_year }}</button>
+													{% if has_budget %}title="Budget présent pour {{ option_year }}"{% endif %}
+												>
+													{{ option_year }}
+													{% if has_budget %}<i class="fa-solid fa-wallet year-picker-budget-indicator" aria-hidden="true"></i>{% endif %}
+												</button>
 											{% endfor %}
 										</div>
 									</div>
-									{% if past_budget_year_options is not empty %}
-										<div class="year-picker-option-group">
-											<span class="year-picker-group-label">Budgets précédents</span>
-											<div class="year-picker-option-grid">
-												{% for option_year in past_budget_year_options %}
-													<button
-														type="button"
-														class="year-picker-option{{ option_year == year ? ' is-selected' }}"
-														role="option"
-														data-year="{{ option_year }}"
-														aria-selected="{{ option_year == year ? 'true' : 'false' }}"
-													>{{ option_year }}</button>
-												{% endfor %}
-											</div>
-										</div>
-									{% endif %}
 								</div>
 							</div>
 							{% if year < max_year %}
-								<a class="year-navigation-button" href="{{ path('compte_show', {'id': compte.id, 'year': year + 1, 'months': month_display}) }}" aria-label="Année suivante" title="Année suivante">
+								<a class="year-navigation-button" href="{{ path('compte_show', account_view_query|merge({'id': compte.id, 'year': year + 1})) }}" aria-label="Année suivante" title="Année suivante">
 									<i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
 								</a>
 							{% else %}
 								<span class="year-navigation-button disabled" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
 							{% endif %}
 							<input type="hidden" name="months" value="{{ month_display }}">
+							<input type="hidden" name="months_before" value="{{ month_display_before }}">
+							<input type="hidden" name="months_after" value="{{ month_display_after }}">
+							<input type="hidden" name="detail_months" value="{{ detail_months|join(',') }}">
+							<input type="hidden" name="detail_months_set" value="1">
+							{% if selected_month %}
+								<input type="hidden" name="selected_month" value="{{ selected_month }}">
+								<input type="hidden" name="selected_year" value="{{ selected_year }}">
+							{% endif %}
 							<button type="submit" class="sr-only">Afficher cette année</button>
 						</form>
 						{% if year != 'now'|date('Y') %}
-							<a class="current-year-link" href="{{ path('compte_show', {'id': compte.id, 'year': 'now'|date('Y'), 'months': month_display}) }}">Revenir à {{ 'now'|date('Y') }}</a>
+							<a class="current-year-link" href="{{ path('compte_show', account_view_query|merge({'id': compte.id, 'year': 'now'|date('Y')})) }}">Revenir à {{ 'now'|date('Y') }}</a>
 						{% endif %}
 					</div>
 
-					<form method="get" action="{{ path('compte_show', {'id': compte.id}) }}" class="month-display-form view-control-group">
-						<input type="hidden" name="year" value="{{ year }}">
-						<label for="monthDisplay" class="control-label">Affichage</label>
-						<div class="month-display-field">
-							<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-							<select id="monthDisplay" name="months" class="month-display-select" aria-label="Mois affichés">
-								{% for value, option in month_display_options %}
-									<option value="{{ value }}"{{ value == month_display ? ' selected' }}>{{ option['label'] }}</option>
-								{% endfor %}
-							</select>
-						</div>
-						<button type="submit" class="sr-only">Appliquer</button>
-					</form>
 				</div>
 			</div>
 		</header>
+
+		<div
+			id="modalAccountDisplay"
+			class="modal fade account-tutorial-modal account-display-modal"
+			tabindex="-1"
+			role="dialog"
+			aria-labelledby="modalAccountDisplayTitle"
+			aria-hidden="true"
+		>
+			<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+				<div class="modal-content account-tutorial-content account-display-content">
+					<div class="modal-header">
+						<div class="account-tutorial-title-group">
+							<span class="account-tutorial-kicker">Affichage</span>
+							<div class="account-display-title-line">
+								<h4 id="modalAccountDisplayTitle" class="modal-title">Options d'affichage</h4>
+								<div class="account-display-spinner-row">
+									<div id="show_spinner" class="spinner spinner-border text-primary hide" role="status">
+										<span class="sr-only">Chargement...</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<button
+							type="button"
+							class="account-tutorial-close"
+							data-dismiss="modal"
+							data-bs-dismiss="modal"
+							aria-label="Fermer"
+							title="Fermer"
+						>
+							<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+						</button>
+					</div>
+
+					<div class="modal-body">
+						<div class="account-display-tabs" role="tablist" aria-label="Options d'affichage">
+							<button type="button" id="accountDisplayTabDisplay" class="account-display-tab is-active" role="tab" aria-selected="true" aria-controls="accountDisplayPanelDisplay" data-account-display-tab="display">
+								<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+								<span>Tableau</span>
+							</button>
+							<button type="button" id="accountDisplayTabDetail" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelDetail" data-account-display-tab="detail">
+								<i class="fa-solid fa-list-check" aria-hidden="true"></i>
+								<span>Sélection des mois</span>
+							</button>
+							<button type="button" id="accountDisplayTabPreferences" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelPreferences" data-account-display-tab="preferences">
+								<i class="fa-solid fa-palette" aria-hidden="true"></i>
+								<span>Couleur</span>
+							</button>
+						</div>
+
+						<form method="get" action="{{ path('compte_show', {'id': compte.id}) }}" id="monthDisplayForm" class="account-display-form">
+							<input type="hidden" name="year" value="{{ year }}">
+							<input type="hidden" id="selectedMonthInput" name="selected_month" value="{{ selected_month }}">
+							<input type="hidden" id="selectedYearInput" name="selected_year" value="{{ selected_year }}">
+							<input type="hidden" name="detail_months_set" value="1">
+
+							<section id="accountDisplayPanelDisplay" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabDisplay" data-account-display-panel="display">
+								<span class="account-tutorial-icon" aria-hidden="true">
+									<i class="fa-solid fa-calendar-days"></i>
+								</span>
+								<div class="account-display-section-content">
+									<h5>Affichage des colonnes</h5>
+									<input type="hidden" id="monthDisplay" name="months" value="{{ month_display }}">
+									<div class="month-display-choices account-display-period-field">
+										<button
+											type="button"
+											class="month-display-button{{ month_display == 'year' ? ' is-active' }}"
+											data-month-display-value="year"
+											aria-pressed="{{ month_display == 'year' ? 'true' : 'false' }}"
+										>
+											<i class="fa-solid fa-calendar" aria-hidden="true"></i>
+											<span>Année entière</span>
+										</button>
+										<label class="month-display-control" for="monthDisplayCurrent">
+											<span class="month-display-control-label">Mois en cours</span>
+											<select id="monthDisplayCurrent" class="month-display-select" data-month-display-select aria-label="Affichage autour du mois en cours">
+												<option value=""{{ month_display_options[month_display] is not defined or month_display_options[month_display].basis != 'current' or (month_display_options[month_display].custom|default(false)) ? ' selected' }}>Choisir</option>
+												{% for value, option in month_display_options|filter((option, value) => option.basis == 'current' and value != 'year' and (option.custom|default(false)) == false) %}
+													<option value="{{ value }}"{{ value == month_display ? ' selected' }}>{{ option['label']|replace({' autour du mois en cours': '', ' le mois en cours': '', 'Mois en cours uniquement': '1 seul mois'}) }}</option>
+												{% endfor %}
+											</select>
+										</label>
+										<label class="month-display-control" for="monthDisplaySelected">
+											<span class="month-display-control-label">Mois sélectionné</span>
+											<select id="monthDisplaySelected" class="month-display-select" data-month-display-select aria-label="Affichage autour du mois sélectionné">
+												<option value=""{{ month_display_options[month_display] is not defined or month_display_options[month_display].basis != 'selected' or (month_display_options[month_display].custom|default(false)) ? ' selected' }}>Choisir</option>
+												{% for value, option in month_display_options|filter((option, value) => option.basis == 'selected' and (option.custom|default(false)) == false) %}
+													<option value="{{ value }}"{{ value == month_display ? ' selected' }}>{{ option['label']|replace({' autour du mois sélectionné': '', ' le mois sélectionné': '', 'Mois sélectionné uniquement': '1 seul mois'}) }}</option>
+												{% endfor %}
+											</select>
+										</label>
+									</div>
+									<div id="monthRangeFields" class="account-custom-display">
+										<h5>Affichage personnalisé des colonnes</h5>
+										<div class="month-range-fields">
+											<label class="month-range-field" for="monthCustomBasis">
+												<span>Autour du</span>
+												<select id="monthCustomBasis" class="month-range-select" aria-label="Référence de l'affichage personnalisé">
+													<option value="custom_current"{{ month_display == 'custom_current' ? ' selected' }}>Mois en cours</option>
+													<option value="custom_selected"{{ month_display == 'custom_selected' ? ' selected' }}>Mois sélectionné</option>
+												</select>
+											</label>
+											<label class="month-range-field" for="monthRangeBefore">
+												<span>Avant</span>
+												<select id="monthRangeBefore" class="month-range-input" name="months_before" aria-label="Nombre de mois avant">
+													{% for range_month in 0..11 %}
+														<option value="{{ range_month }}"{{ range_month == month_display_before ? ' selected' }}>{{ range_month }}</option>
+													{% endfor %}
+												</select>
+											</label>
+											<label class="month-range-field" for="monthRangeAfter">
+												<span>Après</span>
+												<select id="monthRangeAfter" class="month-range-input" name="months_after" aria-label="Nombre de mois après">
+													{% for range_month in 0..11 %}
+														<option value="{{ range_month }}"{{ range_month == month_display_after ? ' selected' }}>{{ range_month }}</option>
+													{% endfor %}
+												</select>
+											</label>
+											<button type="button" id="monthCustomApply" class="month-custom-apply-button">
+												<i class="fa-solid fa-check" aria-hidden="true"></i>
+												<span>Valider</span>
+											</button>
+										</div>
+									</div>
+								</div>
+							</section>
+
+							<section id="accountDisplayPanelDetail" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabDetail" data-account-display-panel="detail" hidden>
+								<span class="account-tutorial-icon" aria-hidden="true">
+									<i class="fa-solid fa-list-check"></i>
+								</span>
+								<div class="account-display-section-content">
+									<div class="account-display-section-heading">
+										<h5 id="accountDisplayDetailTitle">Sélection des mois</h5>
+										<span id="monthDetailSummary" class="account-display-summary">{{ detail_months|length }}/12</span>
+									</div>
+									<div class="account-display-month-list">
+										<label class="month-detail-master">
+											<input type="checkbox" id="monthDetailMasterCheckbox" class="month-detail-master-checkbox">
+											<span class="month-detail-check month-detail-master-check" aria-hidden="true">
+												<i class="fa-solid fa-check month-detail-icon-check"></i>
+												<i class="fa-solid fa-minus month-detail-icon-mixed"></i>
+											</span>
+											<span>Tous les mois</span>
+										</label>
+										<div class="account-display-month-grid">
+											{% for month_key, month_name in months %}
+												<label class="month-detail-option">
+													<input type="checkbox" class="month-detail-checkbox" name="detail_months[]" value="{{ month_key }}"{{ month_key in detail_months ? ' checked' }}>
+													<span class="month-detail-check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+													<span>{{ month_name|capitalize }}</span>
+												</label>
+											{% endfor %}
+										</div>
+									</div>
+								</div>
+							</section>
+
+							<button type="submit" class="sr-only">Appliquer</button>
+						</form>
+
+						<div id="accountPreferencesPanel" class="account-preferences-panel account-display-preferences">
+							{{ form_start(account_preference_form, {'attr': {'class': 'account-preferences-form', 'data-account-preference-autosave': 'true'}}) }}
+								<input type="hidden" name="{{ account_preference_form.vars.full_name }}[dashboardBackground]" value="{{ user.preferences.dashboardBackground|default('green') }}">
+
+								<section id="accountDisplayPanelTablePreferences" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabDisplay" data-account-display-panel="display">
+									<span class="account-tutorial-icon" aria-hidden="true">
+										<i class="fa-solid fa-table"></i>
+									</span>
+									<div class="account-display-section-content">
+										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineTable', 'sections': ['table']} %}
+									</div>
+								</section>
+
+								<section id="accountDisplayPanelMoneyPreferences" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabDisplay" data-account-display-panel="display">
+									<span class="account-tutorial-icon" aria-hidden="true">
+										<i class="fa-solid fa-coins"></i>
+									</span>
+									<div class="account-display-section-content">
+										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineMoney', 'sections': ['money_format', 'money_currency']} %}
+									</div>
+								</section>
+
+								<section id="accountDisplayPanelPreferences" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabPreferences" data-account-display-panel="preferences" hidden>
+									<span class="account-tutorial-icon" aria-hidden="true">
+										<i class="fa-solid fa-palette"></i>
+									</span>
+									<div class="account-display-section-content">
+										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineColor', 'sections': ['page_background', 'table_palette']} %}
+									</div>
+								</section>
+
+								{{ form_widget(account_preference_form._token) }}
+							{{ form_end(account_preference_form, {'render_rest': false}) }}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<span id="tables">
 			{% include('compte/table/_tables.html.twig') %}
 		</span>
 
+		{{ include('compte/modal/settings/index.html.twig') }}
 		{{ include('compte/modal/operations/index.html.twig') }}
 		{{ include('compte/modal/anomalies/index.html.twig') }}
 		{{ include('compte/modal/legend/index.html.twig') }}

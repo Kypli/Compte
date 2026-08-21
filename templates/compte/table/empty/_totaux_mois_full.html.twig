@@ -1,10 +1,13 @@
 {% for month in visible_months %}
+		{% set month_year = visible_month_years[month]|default(year) %}
+{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
+{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
 	{% set done =
-			current_year > year or (current_year == year and month < current_month)
+			current_year > month_year or (current_year == month_year and month < current_month)
 				? 'done gras'
-				: current_year == year and month == current_month
+				: current_year == month_year and month == current_month
 					? 'current'
 					: ''
 	%}
-	<td class="month-cell-span total_month_full_{{ sign }} {{ done }}" colspan="2" data-month="{{ month }}">0</td>
+	<td class="month-cell-span {{ month_is_collapsed ? 'month-detail-collapsed' : 'total_month_full_' ~ sign }} {{ done }}" colspan="{{ month_is_detailed ? 2 : 1 }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ month_is_collapsed ? '' : 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 {% endfor %}

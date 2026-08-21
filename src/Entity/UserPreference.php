@@ -30,6 +30,18 @@ class UserPreference
     #[ORM\Column(type: "string", length: 20, options: ["default" => "classic"])]
     private $tablePalette = 'classic';
 
+    #[ORM\Column(type: "string", length: 30, options: ["default" => "comma"])]
+    private $moneyDisplayFormat = 'comma';
+
+    #[ORM\Column(type: "string", length: 10, options: ["default" => "EUR"])]
+    private $moneyCurrency = 'EUR';
+
+    #[ORM\Column(type: "boolean", options: ["default" => false])]
+    private $moneyTrimZeros = false;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $moneyShowZeroDecimals = true;
+
     #[ORM\Column(type: "string", length: 20, options: ["default" => "green"])]
     private $dashboardBackground = 'green';
 
@@ -77,6 +89,77 @@ class UserPreference
         $this->tablePalette = in_array($tablePalette, ['classic', 'soft', 'contrast', 'lagoon', 'berry', 'copper'], true)
             ? $tablePalette
             : 'classic'
+        ;
+
+        return $this;
+    }
+
+    public function getMoneyDisplayFormat(): string
+    {
+        return $this->moneyDisplayFormat;
+    }
+
+    public function setMoneyDisplayFormat(string $moneyDisplayFormat): self
+    {
+        $legacyFormats = [
+            'us_dollar' => 'dot',
+            'uk_pound' => 'dot',
+            'swiss_franc' => 'dot',
+            'german_euro' => 'german',
+        ];
+        $moneyDisplayFormat = $legacyFormats[$moneyDisplayFormat] ?? $moneyDisplayFormat;
+        $this->moneyDisplayFormat = in_array($moneyDisplayFormat, ['dot', 'comma', 'euro_cents', 'german'], true)
+            ? $moneyDisplayFormat
+            : 'comma'
+        ;
+
+        return $this;
+    }
+
+    public function getMoneyCurrency(): string
+    {
+        return $this->moneyCurrency;
+    }
+
+    public function setMoneyCurrency(string $moneyCurrency): self
+    {
+        $moneyCurrency = strtoupper($moneyCurrency);
+        $this->moneyCurrency = in_array($moneyCurrency, ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD'], true)
+            ? $moneyCurrency
+            : 'EUR'
+        ;
+        if ('JPY' === $this->moneyCurrency && !$this->moneyTrimZeros) {
+            $this->moneyShowZeroDecimals = false;
+        }
+
+        return $this;
+    }
+
+    public function isMoneyTrimZeros(): bool
+    {
+        return $this->moneyTrimZeros;
+    }
+
+    public function setMoneyTrimZeros(bool $moneyTrimZeros): self
+    {
+        $this->moneyTrimZeros = $moneyTrimZeros;
+        if ('JPY' === $this->moneyCurrency && !$this->moneyTrimZeros) {
+            $this->moneyShowZeroDecimals = false;
+        }
+
+        return $this;
+    }
+
+    public function isMoneyShowZeroDecimals(): bool
+    {
+        return $this->moneyShowZeroDecimals;
+    }
+
+    public function setMoneyShowZeroDecimals(bool $moneyShowZeroDecimals): self
+    {
+        $this->moneyShowZeroDecimals = 'JPY' === $this->moneyCurrency && !$this->moneyTrimZeros
+            ? false
+            : $moneyShowZeroDecimals
         ;
 
         return $this;

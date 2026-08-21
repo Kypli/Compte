@@ -69,7 +69,7 @@
 								{% if is_move %}
 									Position {{ action.beforeSnapshot.position }} → {{ action.afterSnapshot.position }}
 								{% else %}
-									{{ action.displayDate|date('d/m/Y') }} · {{ action.displayNumber|number_format(2, ',', ' ') }} €
+									{{ action.displayDate|date('d/m/Y') }} &middot; {{ action.displayNumber|money_display(money_display_format|default(app.user.preferences.moneyDisplayFormat|default('comma')), money_currency|default(app.user.preferences.moneyCurrency|default('EUR')), money_trim_zeros|default(app.user.preferences.moneyTrimZeros|default(false)), (money_show_zero_decimals ?? (app.user.preferences.moneyShowZeroDecimals ?? true))) }}
 								{% endif %}
 							</small>
 						</span>

@@ -52,10 +52,20 @@ class CompteController extends AbstractController
 		12 => 'décembre',
 	];
 	public const MONTH_DISPLAY_OPTIONS = [
-		'year' => ['label' => 'Année entière', 'radius' => null],
-		'three' => ['label' => '3 mois avant/après', 'radius' => 3],
-		'one' => ['label' => '1 mois avant/après', 'radius' => 1],
-		'current' => ['label' => 'Mois en cours', 'radius' => 0],
+		'year' => ['label' => 'Année entière', 'radius' => null, 'basis' => 'current'],
+		'three_current' => ['label' => '1 mois avant / 3 mois après le mois en cours', 'before' => 1, 'after' => 3, 'basis' => 'current'],
+		'three_selected' => ['label' => '1 mois avant / 3 mois après le mois sélectionné', 'before' => 1, 'after' => 3, 'basis' => 'selected'],
+		'one_current' => ['label' => '1 mois avant/après le mois en cours', 'radius' => 1, 'basis' => 'current'],
+		'one_selected' => ['label' => '1 mois avant/après le mois sélectionné', 'radius' => 1, 'basis' => 'selected'],
+		'current_current' => ['label' => 'Mois en cours uniquement', 'radius' => 0, 'basis' => 'current'],
+		'current_selected' => ['label' => 'Mois sélectionné uniquement', 'radius' => 0, 'basis' => 'selected'],
+		'custom_current' => ['label' => 'Personnalisé autour du mois en cours', 'before' => 1, 'after' => 3, 'basis' => 'current', 'custom' => true],
+		'custom_selected' => ['label' => 'Personnalisé autour du mois sélectionné', 'before' => 1, 'after' => 3, 'basis' => 'selected', 'custom' => true],
+	];
+	private const MONTH_DISPLAY_ALIASES = [
+		'three' => 'three_current',
+		'one' => 'one_current',
+		'current' => 'current_current',
 	];
 
 	private $navigation_max_year;
@@ -146,14 +156,23 @@ class CompteController extends AbstractController
 		$date = new \Datetime('now');
 		$current_year = (int) $date->format('Y');
 		$current_month = $date->format('n');
-		[
-			$month_display,
-			$visible_months,
-		] = $this->resolveMonthDisplay($request, (int) $current_month);
+		$selected_month = $this->resolveSelectedMonth($request);
 
 		// Year
 		$year = $this->resolveYear($request, $current_year);
-		$year_options = $this->yearOptions($compte->getId(), $current_year);
+		$selected_year = $this->resolveSelectedYear($request, $year);
+		$detail_months = $this->resolveDetailMonths($request);
+		$show_month_details = $this->getUser()->getPreferences()->isCompteGenreShow();
+		[
+			$month_display,
+			$visible_months,
+			$visible_month_years,
+			$month_display_before,
+			$month_display_after,
+		] = $this->resolveMonthDisplay($request, $current_year, (int) $current_month, $year, $selected_month, $selected_year, $detail_months, $show_month_details);
+		$month_colspan = $this->monthColspan($visible_months, $detail_months, $show_month_details);
+		$display_month_years = $this->displayMonthYears($visible_month_years, $detail_months, $show_month_details);
+		$year_options = $this->yearOptions($compte->getId(), $year);
 		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
 		$other_comptes = array_values(array_filter(
 			$this->cr->getComptesByUser($this->getUser()),
@@ -161,10 +180,11 @@ class CompteController extends AbstractController
 		));
 
 		// Opérations
-		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
-		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
-		$operations_pos_datas = $this->operations($operations_pos);
-		$operations_neg_datas = $this->operations($operations_neg, false);
+		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
+		$operations_pos = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years);
+		$operations_neg = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years, false);
+		$operations_pos_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year));
+		$operations_neg_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false), false);
 
 		// Solde
 		$current_solde = round(
@@ -188,6 +208,10 @@ class CompteController extends AbstractController
 		$preferenceForm = $this->createForm(UserPreferenceType::class, $this->getUser()->getPreferences(), [
 			'action' => $this->generateUrl('user_preference', ['id' => $this->getUser()->getId()]),
 		]);
+		$accountSettingsForm = $this->createForm(CompteType::class, $compte, [
+			'action' => $this->generateUrl('compte_settings', ['id' => $compte->getId()]),
+			'method' => 'POST',
+		]);
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
@@ -197,9 +221,17 @@ class CompteController extends AbstractController
 			'months_json' => json_encode(SELF::MONTHS),
 			'month_display' => $month_display,
 			'month_display_options' => SELF::MONTH_DISPLAY_OPTIONS,
+			'month_display_before' => $month_display_before,
+			'month_display_after' => $month_display_after,
 			'visible_months' => $visible_months,
-			'future_year_options' => $year_options['future'],
-			'past_budget_year_options' => $year_options['past'],
+			'visible_month_years' => $visible_month_years,
+			'detail_months' => $detail_months,
+			'month_colspan' => $month_colspan,
+			'display_month_count' => count($display_month_years),
+			'selected_month' => $selected_month,
+			'selected_year' => $selected_year,
+			'year_options' => $year_options['years'],
+			'budget_year_options' => $year_options['budget'],
 			'other_comptes' => $other_comptes,
 			'max_year' => $this->navigation_max_year,
 			'min_year' => $this->navigation_min_year,
@@ -208,18 +240,20 @@ class CompteController extends AbstractController
 			'current_year' => $current_year,
 			'current_month' => $current_month,
 
-			'operations_pos' => $operations_pos_datas,
-			'operations_neg' => $operations_neg_datas,
+			'operations_pos' => $this->operations($operations_pos, true, $display_month_years),
+			'operations_neg' => $this->operations($operations_neg, false, $display_month_years),
 
 			'color_solde' => $color_solde, // Couleur d'alerte du solde
 			'color_soldeFinMois' => $color_soldeFinMois, // Couleur d'alerte du solde
 			'current_solde' => $current_solde, // Solde courant du compte
 			'current_monthEnd' => $soldeFinMensuel, // Solde courant du compte à la fin du mois
-			'gains' => $this->gains($operations_pos, $operations_neg),
+			'gains' => $this->gains($operations_pos, $operations_neg, $display_month_years),
 
 			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()), // Last actions
 			'anomalies' => $anomalies,
 			'account_preference_form' => $preferenceForm->createView(),
+			'account_settings_form' => $accountSettingsForm->createView(),
+			'open_account_settings' => $request->query->getBoolean('settings'),
 		]);
 	}
 
@@ -240,19 +274,27 @@ class CompteController extends AbstractController
 		$date = new \Datetime('now');
 		$current_year = (int) $date->format('Y');
 		$current_month = $date->format('n');
-		[
-			$month_display,
-			$visible_months,
-		] = $this->resolveMonthDisplay($request, (int) $current_month);
+		$selected_month = $this->resolveSelectedMonth($request);
 
 		// Year
 		$year = $this->resolveYear($request, $current_year);
+		$selected_year = $this->resolveSelectedYear($request, $year);
+		$detail_months = $this->resolveDetailMonths($request);
+		$show_month_details = $this->getUser()->getPreferences()->isCompteGenreShow();
+		[
+			$month_display,
+			$visible_months,
+			$visible_month_years,
+		] = $this->resolveMonthDisplay($request, $current_year, (int) $current_month, $year, $selected_month, $selected_year, $detail_months, $show_month_details);
+		$month_colspan = $this->monthColspan($visible_months, $detail_months, $show_month_details);
+		$display_month_years = $this->displayMonthYears($visible_month_years, $detail_months, $show_month_details);
 
 		// Opérations
-		$operations_pos = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year);
-		$operations_neg = $this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false);
-		$operations_pos_datas = $this->operations($operations_pos);
-		$operations_neg_datas = $this->operations($operations_neg, false);
+		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
+		$operations_pos = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years);
+		$operations_neg = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years, false);
+		$operations_pos_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year));
+		$operations_neg_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false), false);
 		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
 
 		// Solde
@@ -271,6 +313,12 @@ class CompteController extends AbstractController
 			(int) $current_month
 		);
 
+		$preferences = $this->getUser()->getPreferences();
+		$moneyDisplayFormat = (string) $request->query->get('money_display_format', $preferences->getMoneyDisplayFormat() ?? 'comma');
+		$moneyCurrency = (string) $request->query->get('money_currency', $preferences->getMoneyCurrency() ?? 'EUR');
+		$moneyTrimZeros = '1' === (string) $request->query->get('money_trim_zeros', $preferences->isMoneyTrimZeros() ? '1' : '0');
+		$moneyShowZeroDecimals = '0' !== (string) $request->query->get('money_show_zero_decimals', $preferences->isMoneyShowZeroDecimals() ? '1' : '0');
+
 		$render = $this->render('compte/table/_tables.html.twig', [
 			'compte' => $compte,
 
@@ -278,20 +326,34 @@ class CompteController extends AbstractController
 			'months' => SELF::MONTHS,
 			'month_display' => $month_display,
 			'visible_months' => $visible_months,
+			'visible_month_years' => $visible_month_years,
+			'detail_months' => $detail_months,
+			'month_colspan' => $month_colspan,
+			'display_month_count' => count($display_month_years),
+			'selected_month' => $selected_month,
+			'selected_year' => $selected_year,
 
 			'user' => $this->getUser(),
 			'current_year' => $current_year,
 			'current_month' => $current_month,
 
-			'operations_pos' => $this->operations($operations_pos),
-			'operations_neg' => $this->operations($operations_neg, false),
+			'operations_pos' => $this->operations($operations_pos, true, $display_month_years),
+			'operations_neg' => $this->operations($operations_neg, false, $display_month_years),
 
-			'gains' => $this->gains($operations_pos, $operations_neg),
+			'gains' => $this->gains($operations_pos, $operations_neg, $display_month_years),
+			'money_display_format' => $moneyDisplayFormat,
+			'money_currency' => $moneyCurrency,
+			'money_trim_zeros' => $moneyTrimZeros,
+			'money_show_zero_decimals' => $moneyShowZeroDecimals,
 		])->getContent();
 
 		$render_last_actions = $this->render('compte/_last_actions.html.twig', [
 			'compte' => $compte,
 			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()),
+			'money_display_format' => $moneyDisplayFormat,
+			'money_currency' => $moneyCurrency,
+			'money_trim_zeros' => $moneyTrimZeros,
+			'money_show_zero_decimals' => $moneyShowZeroDecimals,
 		])->getContent();
 		$render_anomalies = $this->render('compte/_anomalies.html.twig', [
 			'compte' => $compte,
@@ -366,21 +428,224 @@ class CompteController extends AbstractController
 		]);
 	}
 
-	private function resolveMonthDisplay(Request $request, int $currentMonth): array
+	private function resolveSelectedMonth(Request $request): ?int
+	{
+		$requestedMonth = $request->query->get('selected_month');
+		if (!is_scalar($requestedMonth) || '' === (string) $requestedMonth){
+			return null;
+		}
+
+		$month = filter_var((string) $requestedMonth, FILTER_VALIDATE_INT, [
+			'options' => [
+				'min_range' => 1,
+				'max_range' => 12,
+			],
+		]);
+
+		return false === $month ? null : (int) $month;
+	}
+
+	private function resolveSelectedYear(Request $request, int $displayYear): int
+	{
+		$requestedYear = $request->query->get('selected_year');
+		if (!is_scalar($requestedYear) || '' === (string) $requestedYear){
+			return $displayYear;
+		}
+
+		$year = filter_var((string) $requestedYear, FILTER_VALIDATE_INT, [
+			'options' => [
+				'min_range' => $this->navigation_min_year,
+				'max_range' => $this->navigation_max_year,
+			],
+		]);
+
+		return false === $year ? $displayYear : (int) $year;
+	}
+
+	private function resolveMonthDisplay(Request $request, int $currentYear, int $currentMonth, int $displayYear, ?int $selectedMonth = null, ?int $selectedYear = null, ?array $detailMonths = null, bool $showDetails = false): array
 	{
 		$requestedMode = $request->query->get('months', 'year');
+		if (is_string($requestedMode) && array_key_exists($requestedMode, self::MONTH_DISPLAY_ALIASES)){
+			$requestedMode = self::MONTH_DISPLAY_ALIASES[$requestedMode];
+		}
 		$mode = is_string($requestedMode) && array_key_exists($requestedMode, self::MONTH_DISPLAY_OPTIONS)
 			? $requestedMode
 			: 'year'
 		;
-		$radius = self::MONTH_DISPLAY_OPTIONS[$mode]['radius'];
-
-		$visibleMonths = null === $radius
-			? array_keys(self::MONTHS)
-			: range(max(1, $currentMonth - $radius), min(12, $currentMonth + $radius))
+		$option = self::MONTH_DISPLAY_OPTIONS[$mode];
+		[$monthsBefore, $monthsAfter] = $this->monthDisplayRange($request, $option);
+		$referenceMonth = 'selected' === $option['basis'] && null !== $selectedMonth
+			? $selectedMonth
+			: $currentMonth
+		;
+		$referenceYear = 'selected' === $option['basis'] && null !== $selectedMonth
+			? ($selectedYear ?? $displayYear)
+			: $currentYear
 		;
 
-		return [$mode, $visibleMonths];
+		if (null === ($option['radius'] ?? null) && !($option['custom'] ?? false) && !array_key_exists('before', $option)){
+			$visibleMonths = array_keys(self::MONTHS);
+			return [$mode, $visibleMonths, array_fill_keys($visibleMonths, $displayYear), $monthsBefore, $monthsAfter];
+		}
+
+		$referenceDate = (new \DateTimeImmutable())->setDate($referenceYear, $referenceMonth, 1)->setTime(0, 0);
+
+		[$startOffset, $endOffset] = $this->monthDisplayOffsets($referenceDate, $monthsBefore, $monthsAfter, $detailMonths, $showDetails);
+		$visibleMonths = [];
+		$visibleMonthYears = [];
+		$seenMonths = [];
+		for ($offset = $startOffset; $offset <= $endOffset; $offset++){
+			$monthDate = $referenceDate->modify(sprintf('%+d months', $offset));
+			$month = (int) $monthDate->format('n');
+			if (isset($seenMonths[$month])){
+				[$visibleMonths, $visibleMonthYears] = $this->calendarMonthDisplay($referenceDate, $monthsBefore, $monthsAfter);
+				return [$mode, $visibleMonths, $visibleMonthYears, $monthsBefore, $monthsAfter];
+			}
+			$seenMonths[$month] = true;
+			$visibleMonths[] = $month;
+			$visibleMonthYears[$month] = (int) $monthDate->format('Y');
+		}
+
+		return [$mode, $visibleMonths, $visibleMonthYears, $monthsBefore, $monthsAfter];
+	}
+
+	/**
+	 * @return array{0: int, 1: int}
+	 */
+	private function monthDisplayRange(Request $request, array $option): array
+	{
+		if (($option['custom'] ?? false) === true){
+			return $this->normalizeMonthDisplayRange(
+				$this->resolveMonthRangeValue($request, 'months_before', (int) ($option['before'] ?? 1)),
+				$this->resolveMonthRangeValue($request, 'months_after', (int) ($option['after'] ?? 3))
+			);
+		}
+
+		if (array_key_exists('before', $option) || array_key_exists('after', $option)){
+			return $this->normalizeMonthDisplayRange((int) ($option['before'] ?? 0), (int) ($option['after'] ?? 0));
+		}
+
+		$radius = $option['radius'];
+		return null === $radius ? [1, 3] : $this->normalizeMonthDisplayRange((int) $radius, (int) $radius);
+	}
+
+	/**
+	 * @return array{0: int, 1: int}
+	 */
+	private function normalizeMonthDisplayRange(int $monthsBefore, int $monthsAfter): array
+	{
+		$monthsBefore = min(max($monthsBefore, 0), 11);
+		$monthsAfter = min(max($monthsAfter, 0), 11 - $monthsBefore);
+
+		return [$monthsBefore, $monthsAfter];
+	}
+
+	private function resolveMonthRangeValue(Request $request, string $key, int $default): int
+	{
+		$value = filter_var($request->query->get($key, $default), FILTER_VALIDATE_INT, [
+			'options' => [
+				'min_range' => 0,
+				'max_range' => 11,
+			],
+		]);
+
+		return false === $value ? $default : (int) $value;
+	}
+
+	/**
+	 * @return array{0: int, 1: int}
+	 */
+	private function monthDisplayOffsets(\DateTimeImmutable $referenceDate, int $monthsBefore, int $monthsAfter, ?array $detailMonths, bool $showDetails): array
+	{
+		if (!$showDetails || null === $detailMonths || 0 === count($detailMonths) || 12 === count($detailMonths)){
+			return [-$monthsBefore, $monthsAfter];
+		}
+
+		$detailMonthsByNumber = array_flip(array_map('intval', $detailMonths));
+
+		$startOffset = 0;
+		$foundBefore = 0;
+		for ($offset = -1; $foundBefore < $monthsBefore && $offset >= -11; $offset--){
+			$month = (int) $referenceDate->modify(sprintf('%+d months', $offset))->format('n');
+			$startOffset = $offset;
+			if (isset($detailMonthsByNumber[$month])){
+				$foundBefore++;
+			}
+		}
+
+		$endOffset = 0;
+		$foundAfter = 0;
+		for ($offset = 1; $foundAfter < $monthsAfter && $offset <= 11; $offset++){
+			$month = (int) $referenceDate->modify(sprintf('%+d months', $offset))->format('n');
+			$endOffset = $offset;
+			if (isset($detailMonthsByNumber[$month])){
+				$foundAfter++;
+			}
+		}
+
+		return [$startOffset, $endOffset];
+	}
+
+	/**
+	 * @return array{0: int[], 1: array<int, int>}
+	 */
+	private function calendarMonthDisplay(\DateTimeImmutable $referenceDate, int $monthsBefore, int $monthsAfter): array
+	{
+		$visibleMonths = [];
+		$visibleMonthYears = [];
+		for ($offset = -$monthsBefore; $offset <= $monthsAfter; $offset++){
+			$monthDate = $referenceDate->modify(sprintf('%+d months', $offset));
+			$month = (int) $monthDate->format('n');
+			$visibleMonths[] = $month;
+			$visibleMonthYears[$month] = (int) $monthDate->format('Y');
+		}
+
+		return [$visibleMonths, $visibleMonthYears];
+	}
+
+	private function resolveDetailMonths(Request $request): array
+	{
+		$query = $request->query->all();
+		if (!array_key_exists('detail_months', $query) && !array_key_exists('detail_months_set', $query)){
+			return array_keys(self::MONTHS);
+		}
+
+		$requestedMonths = $query['detail_months'] ?? [];
+		if (is_string($requestedMonths)){
+			$requestedMonths = array_filter(explode(',', $requestedMonths), static fn ($month): bool => '' !== trim($month));
+		} elseif (!is_array($requestedMonths)){
+			$requestedMonths = [];
+		}
+
+		$detailMonths = array_values(array_unique(array_filter(array_map('intval', $requestedMonths), static function(int $month): bool {
+			return $month >= 1 && $month <= 12;
+		})));
+
+		return $detailMonths;
+	}
+
+	private function monthColspan(array $visibleMonths, array $detailMonths, bool $showDetails): int
+	{
+		if (!$showDetails){
+			return count($visibleMonths);
+		}
+
+		return array_reduce($visibleMonths, static function(int $colspan, int $month) use ($detailMonths): int {
+			return $colspan + (in_array((int) $month, $detailMonths, true) ? 2 : 1);
+		}, 0);
+	}
+
+	private function displayMonthYears(array $visibleMonthYears, array $detailMonths, bool $showDetails): array
+	{
+		if (!$showDetails){
+			return $visibleMonthYears;
+		}
+
+		return array_filter(
+			$visibleMonthYears,
+			static fn (int $year, int $month): bool => in_array($month, $detailMonths, true),
+			ARRAY_FILTER_USE_BOTH
+		);
 	}
 
 	private function resolveYear(Request $request, int $currentYear): int
@@ -401,31 +666,61 @@ class CompteController extends AbstractController
 	}
 
 	/**
-	 * @return array{future: int[], past: int[]}
+	 * @return array{years: int[], budget: int[]}
 	 */
-	private function yearOptions(int $compteId, int $currentYear): array
+	private function yearOptions(int $compteId, int $displayYear): array
 	{
-		$futureYears = range($currentYear, min($currentYear + 10, $this->navigation_max_year));
-		$pastBudgetYears = array_filter(
-			$this->catr->yearsWithBudgetForCompte($compteId, $currentYear),
-			fn (int $year): bool => $year >= $this->navigation_min_year
+		$years = range(
+			max($displayYear - 5, $this->navigation_min_year),
+			min($displayYear + 5, $this->navigation_max_year)
 		);
+		$budgetYears = array_values(array_intersect(
+			$years,
+			$this->catr->yearsWithBudgetForCompte($compteId)
+		));
 
 		return [
-			'future' => $futureYears,
-			'past' => array_values($pastBudgetYears),
+			'years' => $years,
+			'budget' => $budgetYears,
 		];
 	}
 
+	private function operationsByYearsAndCompteAndSign(int $compteId, array $years, bool $sign = true): array
+	{
+		$operations = [];
+		foreach ($years as $operationYear){
+			foreach ($this->or->OperationsByYearAndCompteAndSign($compteId, (int) $operationYear, $sign) as $operation){
+				$operations[] = $operation;
+			}
+		}
+
+		return $operations;
+	}
+
+	private function operationMatchesVisibleMonthYears($operation, ?array $visibleMonthYears): bool
+	{
+		if (null === $visibleMonthYears){
+			return true;
+		}
+
+		$month = (int) $operation->getDate()->format('n');
+		$year = (int) $operation->getDate()->format('Y');
+
+		return isset($visibleMonthYears[$month]) && (int) $visibleMonthYears[$month] === $year;
+	}
 	/**
 	 * Renvoie sous formes d'array les informations liés à des opérations
 	 */
-	public function operations($operations_ent, $sign = true): Array
+	public function operations($operations_ent, $sign = true, ?array $visibleMonthYears = null): Array
 	{
 		$total_final = 0;
 		$operations = [];
 
 		foreach($operations_ent as $operation){
+
+			if (!$this->operationMatchesVisibleMonthYears($operation, $visibleMonthYears)){
+				continue;
+			}
 
 			$number = $sign ? $operation->getNumber() : $operation->getNumber() * -1;
 
@@ -534,13 +829,17 @@ class CompteController extends AbstractController
 	/**
 	 * Renvoie array avec gains mensuels + cumulé
 	 */
-	public function gains($opes_pos, $opes_neg): Array
+	public function gains($opes_pos, $opes_neg, ?array $visibleMonthYears = null): Array
 	{
 		// Gains
 		$gains = [];
 
 		// Pos
 		foreach($opes_pos as $ope){
+
+			if (!$this->operationMatchesVisibleMonthYears($ope, $visibleMonthYears)){
+				continue;
+			}
 
 			$mois = $ope->getDate()->format('n');
 
@@ -554,6 +853,10 @@ class CompteController extends AbstractController
 		// Neg
 		foreach($opes_neg as $ope){
 
+			if (!$this->operationMatchesVisibleMonthYears($ope, $visibleMonthYears)){
+				continue;
+			}
+
 			$mois = $ope->getDate()->format('n');
 
 			// Total by month
@@ -565,6 +868,20 @@ class CompteController extends AbstractController
 
 		// Cumulé
 		$cumule = 0;
+		if (null !== $visibleMonthYears){
+			$orderedGains = [];
+			foreach ($visibleMonthYears as $key => $visibleYear){
+				if (!isset($gains[$key])){
+					continue;
+				}
+				$cumule += $gains[$key]['gain'];
+				$gains[$key]['cumule'] = $cumule;
+				$orderedGains[$key] = $gains[$key];
+			}
+
+			return $orderedGains;
+		}
+
 		ksort($gains);
 		foreach($gains as $key => $mois){
 			$cumule += $mois['gain'];
@@ -574,40 +891,51 @@ class CompteController extends AbstractController
 		return $gains;
 	}
 
-	/**
-	 * @Route("/{id}/edit", name="_edit", methods={"GET", "POST"})
-	 */
-	#[Route("/{id}/edit", name: "_edit", methods: ["GET", "POST"])]
-	public function edit(Compte $compte, Request $request): Response
+	#[Route("/{id}/settings", name: "_settings", methods: ["POST"])]
+	public function settings(Compte $compte, Request $request): JsonResponse
 	{
 		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
 
-		$form = $this->createForm(CompteType::class, $compte);
+		if (!$request->isXmlHttpRequest()){
+			return $this->json(['saved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+
+		$form = $this->createForm(CompteType::class, $compte, [
+			'action' => $this->generateUrl('compte_settings', ['id' => $compte->getId()]),
+			'method' => 'POST',
+		]);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()){
-
-			// Devient unique main si true
-			if ($compte->getMain() == true){
-				$user_comptes = $this->getUser()->getComptes();
-				foreach ($user_comptes as $c){
-					if ($compte->getId() != $c->getId()){
-						$c->setMain(false);
-						$this->cr->add($c, true);
+			if ($compte->getMain()){
+				foreach ($this->getUser()->getComptes() as $userCompte){
+					if ($compte->getId() !== $userCompte->getId()){
+						$userCompte->setMain(false);
+						$this->cr->add($userCompte);
 					}
 				}
 			}
 
-			// Save
 			$this->cr->add($compte, true);
 
-			return $this->redirectToRoute('compte', [], Response::HTTP_SEE_OTHER);
+			return $this->json([
+				'saved' => true,
+				'account' => [
+					'id' => $compte->getId(),
+					'libelle' => $compte->getLibelle(),
+					'type' => $compte->getType()?->getLibelle(),
+					'main' => $compte->getMain(),
+					'decouvert' => $compte->getDecouvert(),
+				],
+			]);
 		}
 
-		return $this->render('compte/edit.html.twig', [
-			'compte' => $compte,
-			'form' => $form->createView(),
-		]);
+		return $this->json([
+			'saved' => false,
+			'form' => $this->renderView('compte/modal/settings/_form.html.twig', [
+				'account_settings_form' => $form->createView(),
+			]),
+		], Response::HTTP_UNPROCESSABLE_ENTITY);
 	}
 
 	/**

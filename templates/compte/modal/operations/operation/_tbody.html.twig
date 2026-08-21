@@ -5,10 +5,7 @@
 	{% set month = ope.month < 10 ? '0' ~ ope.month : ope.month %}
 
 	{# DEAL WITH 0 #}
-	{% set number = ope.number|number_format(2, ',', ' ') %}
-	{% set number_l = number|length %}
-	{% set cts = number|slice(number_l - 2, 2) %}
-	{% set number = cts == '00' ? number|slice(0, number_l - 3) : number %}
+	{% set number = ope.number|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) %}
 
 	{# TBODY - TR #}
 	<tr id='ope_id_{{ ope.id }}' class='tr_ope'>

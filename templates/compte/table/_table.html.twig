@@ -1,10 +1,13 @@
+{% set month_display_family = month_display|split('_')|first %}
+{% set money_currency = money_currency|default(user.preferences.moneyCurrency|default('EUR')) %}
+{% set money_symbol = money_currency|money_symbol %}
 {% set displayed_categories = compte.categories
 	|filter(category => category.sign == signBool and category.year == year)
 	|sort((a, b) => a.position <=> b.position)
 %}
 
 <table
-	class="table compteTable center month-display-{{ month_display }}{{ month_display in ['one', 'current'] ? ' month-display-compact' }}"
+	class="table compteTable center month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
 	data-sign="{{ signBool == 1 ? '1' : '0' }}"
 	data-category-reorder-url="{{ path('compte_category_reorder', {'id': compte.id}) }}"
 	data-category-reorder-token="{{ csrf_token('reorder-categories' ~ compte.id) }}"
@@ -20,49 +23,59 @@
 						? "<span class='green pointeur_help' title='Tableau des revenus'>(+)</span>"
 						: "<span class='sign-pos pointeur_help' title='Tableau des dépenses'>(-)</span>"
 				}}
-				<span class="pointeur_help" title='Euros'>(€)</span>
+				<span class="pointeur_help" title="Monnaie utilisee">(<span data-money-symbol>{{ money_symbol }}</span>)</span>
 			</th>
 
 			{# MONTHS #}
 			{% for key in visible_months %}
 				{% set month = months[key] %}
+				{% set month_year = visible_month_years[key]|default(year) %}
+				{% set month_label = month|capitalize ~ (month_year != year ? ' ' ~ month_year : '') %}
+				{% set month_is_detailed = user.preferences.comptegenreshow and key in detail_months %}
+				{% set month_is_collapsed = user.preferences.comptegenreshow and key not in detail_months %}
 				{% set done =
-						current_year > year or (current_year == year and key < current_month)
+						current_year > month_year or (current_year == month_year and key < current_month)
 							? 'done'
-							: current_year == year and key == current_month
+							: current_year == month_year and key == current_month
 								? 'current normal italique taille18'
 								: 'normal'
 				%}
 				<th
-					colspan='2'
+					colspan='{{ month_is_detailed ? 2 : 1 }}'
 					id='month_{{ key }}'
-					class="month-visible month-selector month-cell-span {{ done }}"
-					data-month="{{ key }}"
+					class="month-visible month-selector month-cell-span {{ done }}{{ month_is_collapsed ? ' month-detail-collapsed' : '' }}"
+					data-month="{{ key }}" data-year="{{ month_year }}"
 					role="button"
 					tabindex="0"
 					aria-pressed="false"
-					title="Mettre ce mois en évidence"
-				>{{ month|capitalize }}</th>
+					title="Mettre {{ month_label }} en évidence"
+				>{{ month_is_collapsed ? month_label|slice(0, 3) : month_label }}</th>
 			{% endfor %}
 
 			{# TOTAL #}
 			<th id='total' class="year-total td_total_border done col_end_top">Total</th>
-			<th id='totalByMonth' class="year-total done col_end_top">X€ / mois</th>
+			<th id='totalByMonth' class="year-total done col_end_top">X<span data-money-symbol>{{ money_symbol }}</span> / mois</th>
 			<th id='percent' class="year-total done col_end_top">%</th>
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
 				{% for month in visible_months %}
-
+										{% set month_year = visible_month_years[month]|default(year) %}
+					{% set month_is_detailed = month in detail_months %}
+					{% set month_is_collapsed = month not in detail_months %}
 					{% set done =
-							current_year > year or (current_year == year and month < current_month)
+							current_year > month_year or (current_year == month_year and month < current_month)
 								? 'done'
-								: current_year == year and month == current_month
+								: current_year == month_year and month == current_month
 									? 'current'
 									: ''
 					%}
-					<td class="month-cell-start {{ done }}" data-month="{{ month }}">Fait</td>
-					<td class="month-cell-end {{ done }}" data-month="{{ month }}">A ven.</td>
+					{% if month_is_detailed %}
+						<td class="month-cell-start {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">Fait</td>
+						<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">A ven.</td>
+					{% else %}
+						<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
+					{% endif %}
 				{% endfor %}
 				<th colspan="3" class="year-total td_total_border done"></th>
 			</tr>

@@ -43,15 +43,13 @@ class CategoryRepository extends ServiceEntityRepository
 	/**
 	 * @return int[]
 	 */
-	public function yearsWithBudgetForCompte(int $compteId, int $beforeYear): array
+	public function yearsWithBudgetForCompte(int $compteId): array
 	{
 		$rows = $this->createQueryBuilder('category')
 			->select('DISTINCT category.year AS year')
 			->innerJoin('category.compte', 'compte')
 			->where('compte.id = :compteId')
-			->andWhere('category.year < :beforeYear')
 			->setParameter('compteId', $compteId)
-			->setParameter('beforeYear', $beforeYear)
 			->orderBy('category.year', 'DESC')
 			->getQuery()
 			->getArrayResult()

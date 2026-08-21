@@ -1,3 +1,8 @@
+{% set money_display_format = money_display_format|default(user.preferences.moneyDisplayFormat|default('comma')) %}
+{% set money_currency = money_currency|default(user.preferences.moneyCurrency|default('EUR')) %}
+{% set money_trim_zeros = money_trim_zeros|default(user.preferences.moneyTrimZeros|default(false)) %}
+{% set money_show_zero_decimals = money_show_zero_decimals ?? (user.preferences.moneyShowZeroDecimals ?? true) %}
+
 <div class='row m-1'>
 
 	{# TABLE + #}

@@ -123,7 +123,7 @@ class DashBoardController extends AbstractController
 				($or->CompteSoldeActuel($compte->getId(), true) - $or->CompteSoldeActuel($compte->getId(), false)),
 				2
 			);
-			$comptes_solde[$compte->getId()]['solde'] = number_format($solde, 2, ',', ' ');
+			$comptes_solde[$compte->getId()]['solde'] = $solde;
 			$total += $solde;
 		}
 
@@ -139,7 +139,7 @@ class DashBoardController extends AbstractController
 
 			'investissements' => $investissements,
 
-			'total' => number_format($total, 2, ',', ' '),
+			'total' => $total,
 
 			'compte_form' => $compteForm->createView(),
 			'credit_form' => $creditForm->createView(),

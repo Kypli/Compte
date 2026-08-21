@@ -1,57 +1,116 @@
-<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}DisplayTitle">
-	<h4 id="{{ title_prefix|default('account') }}DisplayTitle">Tableau</h4>
-	<div class="preference-toggle-row">
-		{{ form_label(form.compteGenreShow) }}
-		{{ form_widget(form.compteGenreShow, {'attr': {'class': 'checkType preference-checkbox'}}) }}
-	</div>
-	<div class="preference-toggle-row">
-		{{ form_label(form.showEditableBorder) }}
-		{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
-	</div>
-</section>
+{% set preference_sections = sections|default(['table', 'money_format', 'money_currency', 'page_background', 'table_palette']) %}
+{% set money_currency_value = form.moneyCurrency is defined ? form.moneyCurrency.vars.value|default('EUR') : 'EUR' %}
+{% set money_currency_symbols = {'EUR': '&euro;', 'USD': '$', 'GBP': '&pound;', 'CHF': 'CHF', 'JPY': '&yen;', 'CAD': 'CA$'} %}
+{% set money_currency_symbol = money_currency_symbols[money_currency_value]|default('&euro;') %}
 
-<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}BackgroundTitle">
-	<h4 id="{{ title_prefix|default('account') }}BackgroundTitle">Couleur de fond de la page</h4>
-	<div class="page-color-choice-grid">
-		{% for choice in form.accountBackground %}
-			<label class="page-color-choice page-color-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
-				{{ form_widget(choice, {'attr': {'class': 'page-color-choice-input'}}) }}
-				<span class="page-color-choice-content">
-					<span class="page-color-preview" aria-hidden="true"></span>
-					<span class="preference-choice-heading">
-						<span class="page-color-choice-title">{{ choice.vars.label }}</span>
-						{% if loop.first %}
-							<span class="preference-default-label">Par d&eacute;faut</span>
-						{% endif %}
-					</span>
-				</span>
-			</label>
-		{% endfor %}
-	</div>
-</section>
+{% if 'table' in preference_sections %}
+	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}DisplayTitle">
+		<h4 id="{{ title_prefix|default('account') }}DisplayTitle">Tableau</h4>
+		<div class="preference-toggle-row">
+			{{ form_label(form.compteGenreShow) }}
+			{{ form_widget(form.compteGenreShow, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row">
+			{{ form_label(form.showEditableBorder) }}
+			{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+	</section>
+{% endif %}
 
-<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}TablePaletteTitle">
-	<h4 id="{{ title_prefix|default('account') }}TablePaletteTitle">Couleurs du tableau</h4>
-	<div class="palette-choice-grid">
-		{% for choice in form.tablePalette %}
-			<label class="palette-choice palette-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
-				{{ form_widget(choice, {'attr': {'class': 'palette-choice-input'}}) }}
-				<span class="palette-choice-content">
-					<span class="preference-choice-heading">
-						<span class="palette-choice-title">{{ choice.vars.label }}</span>
-						{% if loop.first %}
-							<span class="preference-default-label">Par d&eacute;faut</span>
-						{% endif %}
+{% if 'money_format' in preference_sections %}
+	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}MoneyFormatTitle">
+		<h4 id="{{ title_prefix|default('account') }}MoneyFormatTitle">Format mon&eacute;taire</h4>
+		<div class="money-format-choice-grid">
+			{% for choice in form.moneyDisplayFormat %}
+				{% set money_format_label = choice.vars.value == 'euro_cents' ? '1 234' ~ money_currency_symbol ~ '56' : choice.vars.label %}
+				<label class="money-format-choice" title="{{ money_format_label|raw }}" data-money-format-choice="{{ choice.vars.value }}">
+					{{ form_widget(choice, {'attr': {'class': 'money-format-choice-input'}}) }}
+					<span class="money-format-choice-content">
+						<span class="money-format-example" data-money-format-example data-money-format="{{ choice.vars.value }}">{{ money_format_label|raw }}</span>
 					</span>
-					<span class="palette-swatches" aria-hidden="true">
-						<span class="palette-swatch palette-category" title="Categorie et sous-categorie"></span>
-						<span class="palette-swatch palette-past" title="Mois passe"></span>
-						<span class="palette-swatch palette-current" title="Mois en cours"></span>
-						<span class="palette-swatch palette-future" title="Mois a venir"></span>
-						<span class="palette-swatch palette-total" title="Total"></span>
+				</label>
+			{% endfor %}
+		</div>
+		<div class="preference-toggle-row money-format-trim-row">
+			{{ form_label(form.moneyTrimZeros) }}
+			{{ form_widget(form.moneyTrimZeros, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row money-format-zero-row"{{ form.moneyTrimZeros.vars.checked ? ' hidden' : '' }}>
+			{{ form_label(form.moneyShowZeroDecimals) }}
+			<div class="money-zero-choice-group">
+				{% for choice in form.moneyShowZeroDecimals %}
+					<label class="money-zero-choice" title="{{ choice.vars.label }}">
+						{{ form_widget(choice, {'attr': {'class': 'money-zero-choice-input'}}) }}
+						<span class="money-zero-choice-content">{{ choice.vars.label }}</span>
+					</label>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
+{% endif %}
+
+{% if 'money_currency' in preference_sections %}
+	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}MoneyCurrencyTitle">
+		<h4 id="{{ title_prefix|default('account') }}MoneyCurrencyTitle">Monnaie utilis&eacute;e</h4>
+		<div class="money-currency-choice-grid">
+			{% for choice in form.moneyCurrency %}
+				<label class="money-currency-choice" title="{{ choice.vars.label }}">
+					{{ form_widget(choice, {'attr': {'class': 'money-currency-choice-input'}}) }}
+					<span class="money-currency-choice-content">
+						<span class="money-currency-label">{{ choice.vars.label }}</span>
 					</span>
-				</span>
-			</label>
-		{% endfor %}
-	</div>
-</section>
+				</label>
+			{% endfor %}
+		</div>
+	</section>
+{% endif %}
+
+{% if 'page_background' in preference_sections %}
+	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}BackgroundTitle">
+		<h4 id="{{ title_prefix|default('account') }}BackgroundTitle">Couleur de fond de la page</h4>
+		<div class="page-color-choice-grid">
+			{% for choice in form.accountBackground %}
+				<label class="page-color-choice page-color-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
+					{{ form_widget(choice, {'attr': {'class': 'page-color-choice-input'}}) }}
+					<span class="page-color-choice-content">
+						<span class="page-color-preview" aria-hidden="true"></span>
+						<span class="preference-choice-heading">
+							<span class="page-color-choice-title">{{ choice.vars.label }}</span>
+							{% if loop.first %}
+								<span class="preference-default-label">Par d&eacute;faut</span>
+							{% endif %}
+						</span>
+					</span>
+				</label>
+			{% endfor %}
+		</div>
+	</section>
+{% endif %}
+
+{% if 'table_palette' in preference_sections %}
+	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}TablePaletteTitle">
+		<h4 id="{{ title_prefix|default('account') }}TablePaletteTitle">Couleurs du tableau</h4>
+		<div class="palette-choice-grid">
+			{% for choice in form.tablePalette %}
+				<label class="palette-choice palette-choice-{{ choice.vars.value }}" title="{{ choice.vars.label }}{{ loop.first ? ' - Par defaut' : '' }}">
+					{{ form_widget(choice, {'attr': {'class': 'palette-choice-input'}}) }}
+					<span class="palette-choice-content">
+						<span class="preference-choice-heading">
+							<span class="palette-choice-title">{{ choice.vars.label }}</span>
+							{% if loop.first %}
+								<span class="preference-default-label">Par d&eacute;faut</span>
+							{% endif %}
+						</span>
+						<span class="palette-swatches" aria-hidden="true">
+							<span class="palette-swatch palette-category" title="Categorie et sous-categorie"></span>
+							<span class="palette-swatch palette-past" title="Mois passe"></span>
+							<span class="palette-swatch palette-current" title="Mois en cours"></span>
+							<span class="palette-swatch palette-future" title="Mois a venir"></span>
+							<span class="palette-swatch palette-total" title="Total"></span>
+						</span>
+					</span>
+				</label>
+			{% endfor %}
+		</div>
+	</section>
+{% endif %}

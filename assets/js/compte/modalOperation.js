@@ -1,13 +1,25 @@
 // JS IMPORT
 import { ucFirst } from '../service/service.js';
 import { updateTables } from './compte.js';
-import { number_format } from '../service/service.js';
+import { money_display } from '../service/service.js';
 import { number_toInput } from '../service/service.js';
 
 // CSS
 import '../../styles/compte/modalOperation.css';
 
 $(document).ready(function(){
+	const getMoneyDisplayFormat = function(){
+		return document.getElementById('datas')?.dataset.moneydisplayformat || 'comma'
+	}
+	const getMoneyCurrency = function(){
+		return document.getElementById('datas')?.dataset.moneycurrency || 'EUR'
+	}
+	const shouldTrimMoneyZeros = function(){
+		return document.getElementById('datas')?.dataset.moneytrimzeros === '1'
+	}
+	const shouldShowZeroDecimals = function(){
+		return document.getElementById('datas')?.dataset.moneyshowzerodecimals !== '0'
+	}
 
 	////////////
 	// ON LOAD
@@ -33,7 +45,7 @@ $(document).ready(function(){
 			sign = $(this).parent().parent().parent().data('sign'),
 			month = $(this).data('month'),
 			months = $('#datas').data('months'),
-			year = $('#datas').data('year')
+			year = $(this).data('year') || $('#datas').data('year')
 		;
 
 		$('#modalOperation .modal-header')
@@ -358,9 +370,9 @@ $(document).ready(function(){
 		solde_anticipe = Math.round((solde_anticipe)*100)/100
 		solde = Math.round((parseFloat(solde_fait) + parseFloat(solde_anticipe))*100)/100
 
-		$('#soldeReel').text(number_format(solde_fait, 2, ',', ' '))
-		$('#soldeAnticipe').text(number_format(solde_anticipe, 2, ',', ' '))
-		$('#solde').text(number_format(solde, 2, ',', ' '))
+		$('#soldeReel').text(money_display(solde_fait, getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()))
+		$('#soldeAnticipe').text(money_display(solde_anticipe, getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()))
+		$('#solde').text(money_display(solde, getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()))
 
 		// Color Reel
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
@@ -614,8 +626,8 @@ $(document).ready(function(){
 			let
 				inputNumber = tr.find('.inputNumber'),
 				inputAnticipe = tr.find('.inputAnticipe'),
-				inputNumberVal = inputNumber.val() == null ? '' : number_format(inputNumber.val(), 2, ',', ' '),
-				inputAnticipeVal = inputAnticipe.val() == null ? '' : number_format(inputAnticipe.val(), 2, ',', ' '),
+				inputNumberVal = inputNumber.val() == null ? '' : money_display(inputNumber.val(), getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()),
+				inputAnticipeVal = inputAnticipe.val() == null ? '' : money_display(inputAnticipe.val(), getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()),
 				inputDay = tr.find('.inputDay'),
 				inputComment = tr.find('.inputComment'),
 				day = inputDay.val()
@@ -716,8 +728,8 @@ $(document).ready(function(){
 				// Number + Anticipe
 				$('#' + id + ' .td_number, #' + id + ' .td_anticipe').empty()
 				number != ''
-					? $('#' + id + ' .td_number').append(number_format(number, 2, ',', ' '))
-					: $('#' + id + ' .td_anticipe').append(number_format(anticipe, 2, ',', ' '))
+					? $('#' + id + ' .td_number').append(money_display(number, getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()))
+					: $('#' + id + ' .td_anticipe').append(money_display(anticipe, getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()))
 
 				// Date
 				$('#' + id + ' .td_date .day').text(date)

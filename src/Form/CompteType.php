@@ -10,6 +10,9 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\PositiveOrZero;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -48,6 +51,14 @@ class CompteType extends AbstractType
 				[
 					'label' => "Libellé du compte",
 					'required' => true,
+					'empty_data' => '',
+					'constraints' => [
+						new NotBlank(message: 'Le libellé du compte est obligatoire.'),
+						new Length(
+							max: 35,
+							maxMessage: 'Le libellé ne peut pas dépasser {{ limit }} caractères.',
+						),
+					],
 					'attr' => [
 						'class' => 'form-control',
 						'placeholder' => 'Nommer votre compte ici',
@@ -75,8 +86,11 @@ class CompteType extends AbstractType
 				IntegerType::class,
 				[
 					'required' => false,
-					'empty_data' => null,
+					'empty_data' => '0',
 					'label' => 'Montant du découvert autorisé',
+					'constraints' => [
+						new PositiveOrZero(message: 'Le découvert autorisé doit être positif ou nul.'),
+					],
 					'attr' => [
 						'class' => 'form-control',
 						'min' => 0,

@@ -1,1 +1,1 @@
-<div class="col-12 gras center pt-3 taille35 text-defaut-invers">{{ total }} €</div>
+<div class="col-12 gras center pt-3 taille35 text-defaut-invers">{{ total|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</div>

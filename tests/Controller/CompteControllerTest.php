@@ -664,33 +664,44 @@ class CompteControllerTest extends WebTestCase
 		self::assertSame('year', $crawler->filter('#monthDisplay option[selected]')->attr('value'));
 	}
 
-	public function testYearPickerOffersFutureYearsAndPastYearsWithABudget(): void
+	public function testYearPickerOffersFiveYearsBeforeAndAfterAndHighlightsBudgets(): void
 	{
 		$currentYear = (int) date('Y');
 		$pastBudgetYear = $currentYear - 3;
-		$pastCategory = $this->createCategory($this->compte, 'Ancien budget', true, $pastBudgetYear);
+		$futureBudgetYear = $currentYear + 2;
 		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
-		$entityManager->persist($pastCategory);
+		$budgetCategories = [];
+		foreach ([$pastBudgetYear, $futureBudgetYear] as $budgetYear){
+			$category = $this->createCategory($this->compte, 'Budget '.$budgetYear, true, $budgetYear);
+			$entityManager->persist($category);
+			$budgetCategories[] = $category;
+		}
 		$entityManager->flush();
-		$this->createdIds[Category::class][] = $pastCategory->getId();
+		foreach ($budgetCategories as $category){
+			$this->createdIds[Category::class][] = $category->getId();
+		}
 
 		$this->client->loginUser($this->owner);
 		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId().'?months=one');
 
 		self::assertResponseIsSuccessful();
 		self::assertSame((string) $currentYear, $crawler->filter('#yearPicker')->attr('value'));
-		self::assertSame('one', $crawler->filter('#yearNavigationForm input[name="months"]')->attr('value'));
-		for ($year = $currentYear; $year <= $currentYear + 10; ++$year){
+		self::assertSame('one_current', $crawler->filter('#yearNavigationForm input[name="months"]')->attr('value'));
+		for ($year = $currentYear - 5; $year <= $currentYear + 5; ++$year){
 			self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.$year.'"]'));
 		}
-		self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.$pastBudgetYear.'"]'));
-		self::assertCount(0, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($currentYear - 4).'"]'));
-		self::assertCount(0, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($currentYear + 11).'"]'));
+		self::assertCount(11, $crawler->filter('#yearPickerOptions .year-picker-option'));
+		self::assertCount(0, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($currentYear - 6).'"]'));
+		self::assertCount(0, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($currentYear + 6).'"]'));
+		self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option.has-budget[data-year="'.$pastBudgetYear.'"]'));
+		self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option.has-budget[data-year="'.$futureBudgetYear.'"]'));
 
 		$customYear = $currentYear + 20;
 		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId().'?year='.$customYear);
 		self::assertResponseIsSuccessful();
 		self::assertSame((string) $customYear, $crawler->filter('#yearPicker')->attr('value'));
+		self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($customYear - 5).'"]'));
+		self::assertCount(1, $crawler->filter('#yearPickerOptions .year-picker-option[data-year="'.($customYear + 5).'"]'));
 	}
 
 	public function testMonthDisplayModeIsAppliedToAjaxTableRefresh(): void
