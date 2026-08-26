@@ -15,7 +15,8 @@
 {% endblock %}
 
 {% block body %}
-	{% set account_view_query = {'year': year, 'months': month_display, 'months_before': month_display_before, 'months_after': month_display_after, 'detail_months': detail_months|join(','), 'detail_months_set': 1}|merge(selected_month ? {'selected_month': selected_month, 'selected_year': selected_year} : {}) %}
+	{% set account_single_query = {'year': year, 'months': month_display, 'months_before': month_display_before, 'months_after': month_display_after, 'detail_months': detail_months|join(','), 'detail_months_set': 1}|merge(selected_month ? {'selected_month': selected_month, 'selected_year': selected_year} : {}) %}
+	{% set account_view_query = account_single_query|merge(combined_compte ? {'avec': combined_compte.id} : {}) %}
 	{% set month_display_option = month_display_options[month_display]|default(null) %}
 	{% if month_display == 'year' %}
 		{% set account_display_summary = 'Année entière' %}
@@ -34,7 +35,7 @@
 		id="datas"
 		class="table-palette-{{ user.preferences.tablePalette|default('classic') }}{{ user.preferences.showEditableBorder is same as(false) ? ' hide-editable-border' : '' }}"
 		data-year="{{ year }}"
-		data-decouvert="{{ compte.decouvert * -1 }}"
+		data-decouvert="{{ combined_decouvert * -1 }}"
 		data-months="{{ months_json }}"
 		data-monthdisplay="{{ month_display }}"
 		data-monthsbefore="{{ month_display_before }}"
@@ -47,6 +48,9 @@
 		data-moneytrimzeros="{{ user.preferences.moneyTrimZeros|default(false) ? '1' : '0' }}"
 		data-moneyshowzerodecimals="{{ (user.preferences.moneyShowZeroDecimals ?? true) ? '1' : '0' }}"
 		data-compteid="{{ compte.id }}"
+		data-combinedcompteid="{{ combined_compte ? combined_compte.id : '' }}"
+		data-combinedcomptelabel="{{ combined_compte ? combined_compte.libelle : '' }}"
+		data-combinedcompteoverdraft="{{ combined_compte ? combined_compte.decouvert : 0 }}"
 		data-account-tutorial-seen="{{ user.preferences.accountTutorialSeen|default(false) ? '1' : '0' }}"
 		data-account-tutorial-seen-url="{{ path('user_preference_account_tutorial_seen', {'id': user.id}) }}"
 		data-account-tutorial-seen-token="{{ csrf_token('account-tutorial-seen' ~ user.id) }}"
@@ -73,7 +77,7 @@
 										<a
 											class="budget-switcher-option"
 											role="menuitem"
-											href="{{ path('compte_show', account_view_query|merge({'id': other_compte.id})) }}"
+											href="{{ path('compte_show', account_single_query|merge({'id': other_compte.id})) }}"
 										>
 											<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
 											<span>{{ other_compte.libelle }}</span>
@@ -106,12 +110,15 @@
 							title="Options d'affichage - {{ account_display_summary }}"
 						>
 							<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-							<span>Affichage</span>
+							<span>Affichage (<span data-money-symbol>{{ user.preferences.moneyCurrency|default('EUR')|money_symbol }}</span>)</span>
 						</button>
 					</div>
 				</div>
 				<div class="account-title">
-					{% include('partiel/_h1.html.twig') with {'text': compte.libelle} %}
+					{% include('partiel/_h1.html.twig') with {'text': combined_compte ? compte.libelle ~ ' + ' ~ combined_compte.libelle : compte.libelle} %}
+					{% if combined_compte %}
+						<span class="combined-view-caption">Vue combinée, données conservées dans leurs comptes respectifs</span>
+					{% endif %}
 				</div>
 				<div class="account-header-actions">
 					<div class="account-header-action-buttons">
@@ -138,7 +145,7 @@
 			<div class="account-toolbar">
 				<div class="balance-summary">
 					<div class="balance-summary-item">
-						<span class="balance-label">Solde actuel du compte</span>
+						<span class="balance-label">{{ combined_compte ? 'Solde actuel combiné' : 'Solde actuel du compte' }}</span>
 						<span id="soldeActuel" class="soldeActuel total_month_full_{{ color_solde }}">
 							<span id="soldeActuelNb">{{ (current_solde == null ? 0 : current_solde)|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}</span>
 							<span
@@ -168,9 +175,9 @@
 					{% endif %}
 
 					<div class="balance-summary-item overdraft-summary-item">
-						<span class="balance-label">Autorisation de d&eacute;couvert</span>
-						<span id="overdraftAuthorization" class="overdraft-authorization" data-money-amount="{{ compte.decouvert }}">
-							{{ compte.decouvert|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}
+						<span class="balance-label">{{ combined_compte ? 'Découvert cumulé autorisé' : 'Autorisation de découvert' }}</span>
+						<span id="overdraftAuthorization" class="overdraft-authorization" data-money-amount="{{ combined_decouvert }}">
+							{{ combined_decouvert|money_display(user.preferences.moneyDisplayFormat|default('comma'), user.preferences.moneyCurrency|default('EUR'), user.preferences.moneyTrimZeros|default(false), (user.preferences.moneyShowZeroDecimals ?? true)) }}
 						</span>
 					</div>
 				</div>
@@ -250,6 +257,7 @@
 							<input type="hidden" name="months_after" value="{{ month_display_after }}">
 							<input type="hidden" name="detail_months" value="{{ detail_months|join(',') }}">
 							<input type="hidden" name="detail_months_set" value="1">
+							{% if combined_compte %}<input type="hidden" name="avec" value="{{ combined_compte.id }}">{% endif %}
 							{% if selected_month %}
 								<input type="hidden" name="selected_month" value="{{ selected_month }}">
 								<input type="hidden" name="selected_year" value="{{ selected_year }}">
@@ -273,7 +281,7 @@
 			aria-labelledby="modalAccountDisplayTitle"
 			aria-hidden="true"
 		>
-			<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+			<div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
 				<div class="modal-content account-tutorial-content account-display-content">
 					<div class="modal-header">
 						<div class="account-tutorial-title-group">
@@ -307,11 +315,15 @@
 							</button>
 							<button type="button" id="accountDisplayTabDetail" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelDetail" data-account-display-tab="detail">
 								<i class="fa-solid fa-list-check" aria-hidden="true"></i>
-								<span>Sélection des mois</span>
+								<span>Mois</span>
 							</button>
 							<button type="button" id="accountDisplayTabPreferences" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelPreferences" data-account-display-tab="preferences">
 								<i class="fa-solid fa-palette" aria-hidden="true"></i>
 								<span>Couleur</span>
+							</button>
+							<button type="button" id="accountDisplayTabAccounts" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelAccounts" data-account-display-tab="accounts">
+								<i class="fa-solid fa-code-merge" aria-hidden="true"></i>
+								<span>Combiner</span>
 							</button>
 						</div>
 
@@ -320,6 +332,7 @@
 							<input type="hidden" id="selectedMonthInput" name="selected_month" value="{{ selected_month }}">
 							<input type="hidden" id="selectedYearInput" name="selected_year" value="{{ selected_year }}">
 							<input type="hidden" name="detail_months_set" value="1">
+							{% if combined_compte %}<input type="hidden" name="avec" value="{{ combined_compte.id }}">{% endif %}
 
 							<section id="accountDisplayPanelDisplay" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabDisplay" data-account-display-panel="display">
 								<span class="account-tutorial-icon" aria-hidden="true">
@@ -460,6 +473,8 @@
 								{{ form_widget(account_preference_form._token) }}
 							{{ form_end(account_preference_form, {'render_rest': false}) }}
 						</div>
+
+						{{ include('compte/modal/combine/index.html.twig') }}
 					</div>
 				</div>
 			</div>

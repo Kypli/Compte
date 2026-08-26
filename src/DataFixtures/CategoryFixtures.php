@@ -15,6 +15,8 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 	public const CATEGORY_ADMIN_POS_2 = 'category_admin_pos_2';
 	public const CATEGORY_ADMIN_NEG_1 = 'category_admin_neg_1';
 	public const CATEGORY_ADMIN_NEG_2 = 'category_admin_neg_2';
+	public const CATEGORY_ADMIN_LIQUIDE_POS_1 = 'category_admin_liquide_pos_1';
+	public const CATEGORY_ADMIN_LIQUIDE_NEG_1 = 'category_admin_liquide_neg_1';
 
 	public const CATEGORY_USER_POS_1 = 'category_user_pos_1';
 	public const CATEGORY_USER_POS_2 = 'category_user_pos_2';
@@ -106,6 +108,27 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setCompte($this->getReference(CompteFixtures::COMPTE_USER))
 		;
 		$this->addReference(self::CATEGORY_USER_NEG_2, $entity);
+		$manager->persist($entity);
+
+		// Compte liquide (+)
+		$entity = new Entity();
+		$entity
+			->setLibelle('Alimentation du compte')
+			->setYear(date('Y'))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE))
+		;
+		$this->addReference(self::CATEGORY_ADMIN_LIQUIDE_POS_1, $entity);
+		$manager->persist($entity);
+
+		// Compte liquide (-)
+		$entity = new Entity();
+		$entity
+			->setLibelle('Dépenses en espèces')
+			->setSign(false)
+			->setYear(date('Y'))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE))
+		;
+		$this->addReference(self::CATEGORY_ADMIN_LIQUIDE_NEG_1, $entity);
 		$manager->persist($entity);
 
 		$manager->flush();

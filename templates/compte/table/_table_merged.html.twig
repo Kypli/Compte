@@ -1,0 +1,204 @@
+{% set month_display_family = month_display|split('_')|first %}
+{% set combined_compte = combined_compte|default(null) %}
+{% set money_currency = money_currency|default(user.preferences.moneyCurrency|default('EUR')) %}
+{% set money_symbol = money_currency|money_symbol %}
+{% set show_table_totals = user.preferences.showTableTotals ?? true %}
+{% set show_table_monthly_average = user.preferences.showTableMonthlyAverage ?? true %}
+{% set show_table_percentage = user.preferences.showTablePercentage ?? true %}
+{% set table_summary_colspan = (show_table_totals ? 1 : 0) + (show_table_monthly_average ? 1 : 0) + (show_table_percentage ? 1 : 0) %}
+{% set show_sub_categories = user.preferences.showSubCategories ?? true %}
+{% set label_colspan = show_sub_categories ? 2 : 1 %}
+{% set merged_table_colspan = label_colspan + month_colspan + table_summary_colspan %}
+{% set merged_sections = [
+	{'operations': operations_pos, 'sign': 'pos', 'signBool': true},
+	{'operations': operations_neg, 'sign': 'neg', 'signBool': false}
+] %}
+{% set view_comptes = view_comptes|default([compte]) %}
+
+<table
+	class="table compteTable account-merged-table center{{ combined_compte ? ' is-combined-account-table' }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
+	data-category-reorder-url="{{ path('compte_category_reorder', {'id': compte.id}) }}"
+	data-category-reorder-token="{{ csrf_token('reorder-categories' ~ compte.id) }}"
+	data-subcategory-reorder-url="{{ path('compte_subcategory_reorder', {'id': compte.id}) }}"
+	data-subcategory-reorder-token="{{ csrf_token('reorder-subcategories' ~ compte.id) }}"
+>
+	<thead>
+		<tr class="tr_head">
+			<th colspan="{{ label_colspan }}" {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class="add_cat category-header col_start_top merged-table-main-header{{ user.preferences.comptegenreshow ? '' : ' category-header-single-row' }}">
+				<span class="merged-table-heading">Entrées / dépenses</span>
+				<span class="merged-table-add-actions category-add-toolbar">
+					{% if combined_compte %}
+						<label class="category-add-target">
+							<span>Ajouter dans</span>
+							<select class="combined-account-target" aria-label="Compte cible pour la nouvelle catégorie">
+								{% for table_compte in view_comptes %}<option value="{{ table_compte.id }}">{{ table_compte.libelle }}</option>{% endfor %}
+							</select>
+						</label>
+					{% endif %}
+					<span class="category-add-buttons">
+						<button type="button" class="category-add-button category-add-button-income" data-sign="1" data-target="#modalCategory" data-toggle="modal" aria-label="Ajouter une catégorie d'entrée" title="Ajouter une catégorie d'entrée">
+							<i class="fa-solid fa-plus" aria-hidden="true"></i>
+							<span>Catégorie</span>
+						</button>
+						<button type="button" class="category-add-button category-add-button-expense" data-sign="0" data-target="#modalCategory" data-toggle="modal" aria-label="Ajouter une catégorie de dépense" title="Ajouter une catégorie de dépense">
+							<i class="fa-solid fa-plus" aria-hidden="true"></i>
+							<span>Catégorie</span>
+						</button>
+					</span>
+				</span>
+			</th>
+
+			{% for key in visible_months %}
+				{% set month = months[key] %}
+				{% set month_year = visible_month_years[key]|default(year) %}
+				{% set month_label = month|capitalize ~ (month_year != year ? ' ' ~ month_year : '') %}
+				{% set month_is_detailed = user.preferences.comptegenreshow and key in detail_months %}
+				{% set month_is_collapsed = user.preferences.comptegenreshow and key not in detail_months %}
+				{% set done =
+					current_year > month_year or (current_year == month_year and key < current_month)
+						? 'done'
+						: current_year == month_year and key == current_month
+							? 'current normal italique taille18'
+							: 'normal'
+				%}
+				<th
+					colspan="{{ month_is_detailed ? 2 : 1 }}"
+					class="month-visible month-selector month-cell-span merged-table-month-header {{ done }}{{ month_is_collapsed ? ' month-detail-collapsed' : '' }}"
+					data-month="{{ key }}"
+					data-year="{{ month_year }}"
+					role="button"
+					tabindex="0"
+					aria-pressed="false"
+					title="Mettre {{ month_label }} en évidence"
+				>{{ month_is_collapsed ? month_label|slice(0, 3) : month_label }}</th>
+			{% endfor %}
+
+			{% if show_table_totals %}
+				<th class="year-total td_total_border done col_end_top">Total</th>
+			{% endif %}
+			{% if show_table_monthly_average %}
+				<th class="year-total{{ not show_table_totals ? ' td_total_border' }} done col_end_top">X<span data-money-symbol>{{ money_symbol }}</span> / mois</th>
+			{% endif %}
+			{% if show_table_percentage %}
+				<th class="year-total{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }} done col_end_top">%</th>
+			{% endif %}
+		</tr>
+
+		{% if user.preferences.comptegenreshow %}
+			<tr class="tr_etat">
+				{% for month in visible_months %}
+					{% set month_year = visible_month_years[month]|default(year) %}
+					{% set month_is_detailed = month in detail_months %}
+					{% set month_is_collapsed = month not in detail_months %}
+					{% set done =
+						current_year > month_year or (current_year == month_year and month < current_month)
+							? 'done'
+							: current_year == month_year and month == current_month ? 'current' : ''
+					%}
+					{% if month_is_detailed %}
+						<td class="month-cell-start {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">Fait</td>
+						<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">A ven.</td>
+					{% else %}
+						<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
+					{% endif %}
+				{% endfor %}
+				{% if table_summary_colspan > 0 %}<th colspan="{{ table_summary_colspan }}" class="year-total td_total_border done"></th>{% endif %}
+			</tr>
+		{% endif %}
+	</thead>
+
+	<tbody class="merged-table-category-body">
+		{% for section in merged_sections %}
+			{% set operations = section.operations %}
+			{% set sign = section.sign %}
+			{% set signBool = section.signBool %}
+			{% set displayed_categories = [] %}
+			{% for table_compte in view_comptes %}
+				{% set account_categories = table_compte.categories
+					|filter(category => category.sign == signBool and category.year == year)
+					|sort((a, b) => a.position <=> b.position)
+				%}
+				{% set displayed_categories = displayed_categories|merge(account_categories) %}
+			{% endfor %}
+
+			{% for category in displayed_categories %}
+				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
+					<tr class="{{ loop.first ? 'tr_operation_first' }} edit" data-category-row="{{ category.id }}" data-accountid="{{ category.compte.id }}">
+						{% if loop.first %}
+							<td
+								data-target="#modalCategory"
+								data-toggle="modal"
+								data-id="{{ category.id }}"
+								data-focusa="cat_{{ category.id }}"
+								data-accountid="{{ category.compte.id }}"
+								data-category-drop-before="{{ category.id }}"
+								class="td_category_libelle"
+								rowspan="{{ category.subcategories|length }}"
+							>
+								<span class="category-label-content">
+									<span class="category-label-text">{{ category.libelle|capitalize }}</span>
+									{% if combined_compte %}<span class="account-source-badge" title="Compte source">{{ category.compte.libelle }}</span>{% endif %}
+									{% if not combined_compte and displayed_categories|length > 1 %}
+										<button
+											type="button"
+											class="category-drag-handle"
+											draggable="true"
+											data-category-id="{{ category.id }}"
+											aria-grabbed="false"
+											aria-label="Déplacer la catégorie {{ category.libelle }}"
+											title="Déplacer cette catégorie"
+										>
+											<i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+										</button>
+									{% endif %}
+								</span>
+							</td>
+						{% endif %}
+
+						{% if show_sub_categories %}
+							<td
+								data-target="#modalCategory"
+								data-toggle="modal"
+								data-id="{{ category.id }}"
+								data-focusa="sc_{{ subcategory.id }}"
+								data-accountid="{{ category.compte.id }}"
+								data-subcategory-drop-before="{{ subcategory.id }}"
+								data-subcategory-category-id="{{ category.id }}"
+								{% if loop.last %}data-subcategory-drop-end="{{ category.id }}"{% endif %}
+								class="td_subcategory_libelle"
+							>
+								<span class="subcategory-label-content">
+									<span class="subcategory-label-text">{{ subcategory.libelle|capitalize }}</span>
+									{% if not combined_compte and category.subcategories|length > 1 %}
+										<button
+											type="button"
+											class="subcategory-drag-handle"
+											draggable="true"
+											data-subcategory-id="{{ subcategory.id }}"
+											data-subcategory-category-id="{{ category.id }}"
+											aria-grabbed="false"
+											aria-label="Déplacer la sous-catégorie {{ subcategory.libelle }}"
+											title="Déplacer cette sous-catégorie"
+										>
+											<i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+										</button>
+									{% endif %}
+								</span>
+							</td>
+						{% endif %}
+
+						{{ include('compte/table/_sc_operations.html.twig') }}
+					</tr>
+				{% endfor %}
+			{% endfor %}
+
+		{% endfor %}
+	</tbody>
+
+	<tbody class="merged-table-summary-body">
+		<tr class="collabo merged-table-summary-divider">
+			<td colspan="{{ merged_table_colspan }}"></td>
+		</tr>
+		{{ include('compte/table/_table_totaux_fusionnes.html.twig') }}
+	</tbody>
+</table>

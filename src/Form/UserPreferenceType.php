@@ -60,6 +60,70 @@ class UserPreferenceType extends AbstractType
 				]
 			)
 			->add(
+				'showTableTotals',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Total',
+				]
+			)
+			->add(
+				'showTableMonthlyAverage',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'X devise / mois',
+				]
+			)
+			->add(
+				'showTablePercentage',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => '%',
+				]
+			)
+			->add(
+				'showBalanceTable',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Gain mensuel',
+				]
+			)
+			->add(
+				'showBalanceCumulative',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Solde mensuel cumulé',
+				]
+			)
+			->add(
+				'showAnnualGain',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Gain annuel',
+				]
+			)
+			->add(
+				'showSubCategories',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Afficher les sous-catégories',
+				]
+			)
+			->add(
+				'mergeIncomeExpenseTables',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Fusionner les tableaux recettes et dépenses',
+				]
+			)
+			->add(
 				'tablePalette',
 				ChoiceType::class,
 				[

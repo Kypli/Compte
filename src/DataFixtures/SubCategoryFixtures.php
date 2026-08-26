@@ -21,6 +21,8 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 	public const SUBCATEGORY_ADMIN_NEG_1_3 = 'subcategory_admin_neg_1_3';
 	public const SUBCATEGORY_ADMIN_NEG_2_1 = 'subcategory_admin_neg_2_1';
 	public const SUBCATEGORY_ADMIN_NEG_2_2 = 'subcategory_admin_neg_2_2';
+	public const SUBCATEGORY_ADMIN_LIQUIDE_POS_1_1 = 'subcategory_admin_liquide_pos_1_1';
+	public const SUBCATEGORY_ADMIN_LIQUIDE_NEG_1_1 = 'subcategory_admin_liquide_neg_1_1';
 
 	public const SUBCATEGORY_USER_POS_1_1 = 'subcategory_user_pos_1_1';
 	public const SUBCATEGORY_USER_POS_1_2 = 'subcategory_user_pos_1_2';
@@ -156,6 +158,18 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 				'addRef' => self::SUBCATEGORY_USER_NEG_2_2,
 				'libelle' => "meubles",
 				'position' => 2,
+			],
+			21 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_LIQUIDE_POS_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_LIQUIDE_POS_1_1,
+				'libelle' => "Retraits d'espèces",
+				'position' => 1,
+			],
+			22 => [
+				'setRef' => CategoryFixtures::CATEGORY_ADMIN_LIQUIDE_NEG_1,
+				'addRef' => self::SUBCATEGORY_ADMIN_LIQUIDE_NEG_1_1,
+				'libelle' => "Achats du quotidien",
+				'position' => 1,
 			],
 		];
 

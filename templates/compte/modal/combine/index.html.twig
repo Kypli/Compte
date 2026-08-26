@@ -1,0 +1,69 @@
+<section
+	id="accountDisplayPanelAccounts"
+	class="account-display-section account-display-accounts-section"
+	role="tabpanel"
+	aria-labelledby="accountDisplayTabAccounts"
+	data-account-display-panel="accounts"
+	hidden
+>
+	<span class="account-tutorial-icon" aria-hidden="true">
+		<i class="fa-solid fa-code-merge"></i>
+	</span>
+	<div class="account-display-section-content">
+		<h5>{{ combined_compte ? 'Modifier la vue combinée' : 'Afficher deux comptes ensemble' }}</h5>
+		<p class="combine-account-intro">Les opérations restent enregistrées dans leur compte d’origine.</p>
+
+		<form method="get" action="{{ path('compte_show', {'id': compte.id}) }}" class="account-combine-form">
+			<div class="combine-primary-account">
+				<span class="combine-account-role">Compte principal</span>
+				<strong>{{ compte.libelle }}</strong>
+			</div>
+
+			{% if other_comptes is not empty %}
+				<fieldset class="combine-account-fieldset">
+					<legend>Compte à ajouter</legend>
+					<div class="combine-account-list">
+						{% for other_compte in other_comptes %}
+							<label class="combine-account-option{{ combined_compte and combined_compte.id == other_compte.id ? ' is-selected' }}">
+								<input type="radio" name="avec" value="{{ other_compte.id }}"{{ combined_compte and combined_compte.id == other_compte.id ? ' checked' }} required>
+								<span class="combine-account-radio" aria-hidden="true"></span>
+								<span class="combine-account-copy">
+									<strong>{{ other_compte.libelle }}</strong>
+									<small>{{ other_compte.type.libelle }}</small>
+								</span>
+							</label>
+						{% endfor %}
+					</div>
+				</fieldset>
+			{% else %}
+				<p class="combine-account-empty">Aucun autre compte n’est disponible pour créer une vue combinée.</p>
+			{% endif %}
+
+			<input type="hidden" name="year" value="{{ year }}">
+			<input type="hidden" name="months" value="{{ month_display }}">
+			<input type="hidden" name="months_before" value="{{ month_display_before }}">
+			<input type="hidden" name="months_after" value="{{ month_display_after }}">
+			<input type="hidden" name="detail_months" value="{{ detail_months|join(',') }}">
+			<input type="hidden" name="detail_months_set" value="1">
+			{% if selected_month %}
+				<input type="hidden" name="selected_month" value="{{ selected_month }}">
+				<input type="hidden" name="selected_year" value="{{ selected_year }}">
+			{% endif %}
+
+			<div class="account-combine-actions">
+				{% if combined_compte %}
+					<a class="combine-exit-button" href="{{ path('compte_show', account_single_query|merge({'id': compte.id})) }}">
+						<i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+						<span>Quitter la vue combinée</span>
+					</a>
+				{% endif %}
+				{% if other_comptes is not empty %}
+					<button type="submit" class="btn btn-primary">
+						<i class="fa-solid fa-code-merge" aria-hidden="true"></i>
+						<span>{{ combined_compte ? 'Mettre à jour la vue' : 'Afficher ensemble' }}</span>
+					</button>
+				{% endif %}
+			</div>
+		</form>
+	</div>
+</section>

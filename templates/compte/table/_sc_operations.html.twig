@@ -38,7 +38,7 @@
 
 		{% if month_is_collapsed %}
 			<td
-				class="month-cell-span {{ done|trim }} month-detail-collapsed"
+			class="month-cell-span {{ done|trim }} month-detail-collapsed{{ loop.last ? ' month-cell-last' }}"
 				data-month="{{ month }}" data-year="{{ month_year }}"
 			></td>
 		{% elseif month_is_detailed %}
@@ -56,7 +56,7 @@
 
 			{# ANTICIPE #}
 			<td
-				class='month-cell-end {{ done }}{{ blink }}anticipe'
+				class='month-cell-end {{ done }}{{ blink }}anticipe{{ loop.last ? ' month-cell-last' }}'
 				data-month="{{ month }}" data-year="{{ month_year }}"
 				data-scid="{{ subcategory.id }}"
 				data-anticipe="1"
@@ -67,7 +67,7 @@
 			</td>
 		{% else %}
 			<td
-				class="month-cell-span {{ done|trim }}{{ blink }}"
+				class="month-cell-span {{ done|trim }}{{ blink }}{{ loop.last ? ' month-cell-last' }}"
 				data-month="{{ month }}" data-year="{{ month_year }}"
 				data-scid="{{ subcategory.id }}"
 				data-anticipe="0"
@@ -80,7 +80,13 @@
 	{% endfor %}
 
 	{# SC TOTAL #}
-	<td class="year-total counterEdit done td_total_border">{{ operationsBySc['total']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-	<td class="year-total counterEdit done">{{ (display_month_count > 0 ? operationsBySc['total'] / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-	<td class="year-total counterEdit done">{{ operations['total_final'] != 0 ? ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') : 0 }}</td>
+	{% if show_table_totals %}
+		<td class="year-total counterEdit done td_total_border">{{ operationsBySc['total']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	{% endif %}
+	{% if show_table_monthly_average %}
+		<td class="year-total counterEdit{{ not show_table_totals ? ' td_total_border' }} done">{{ (display_month_count > 0 ? operationsBySc['total'] / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	{% endif %}
+	{% if show_table_percentage %}
+		<td class="year-total counterEdit{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }} done">{{ operations['total_final'] != 0 ? ((operationsBySc['total']*100)/operations['total_final'])|round(2, 'ceil') : 0 }}</td>
+	{% endif %}
 {% endif %}

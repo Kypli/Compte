@@ -1,7 +1,7 @@
 {# EMPTY TR #}
 <tr class="collabo">
 	<td
-		colspan="2"
+		colspan="{{ label_colspan }}"
 		class="col_start_middle bck_{{ sign }} category-drop-end"
 		data-category-drop-end="true"
 		tabindex="-1"
@@ -9,14 +9,14 @@
 		<span class="category-drop-end-label">Dernière position</span>
 	</td>
 	<td colspan="{{ month_colspan }}" class="bck_{{ sign }}"></td>
-	<td colspan="3" class="col_start_middle bck_{{ sign }}"></td>
+	{% if table_summary_colspan > 0 %}<td colspan="{{ table_summary_colspan }}" class="col_start_middle bck_{{ sign }}"></td>{% endif %}
 </tr>
 
 {# TOTAUX #}
 
 	{# DETAILS (reel & anticipe) #}
 	<tr>
-		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
+		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}
@@ -53,12 +53,12 @@
 		{% else %}
 			{{ include('compte/table/empty/_totaux_mois_detail.html.twig') }}
 		{% endif %}
-		<td colspan="3" class="td_total bck_black"></td>
+		{% if table_summary_colspan > 0 %}<td colspan="{{ table_summary_colspan }}" class="td_total bck_black"></td>{% endif %}
 	</tr>
 
 	{# FULL #}
 	<tr>
-		<td colspan="2" class="col_start_bottom bck_{{ sign }}"></td>
+		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}
@@ -86,7 +86,13 @@
 		{% else %}
 			{{ include('compte/table/empty/_totaux_mois_full.html.twig') }}
 		{% endif %}
-		<td class="year-total td_total souligne done">{{ operations['total_final']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-		<td class="year-total done">{{ (display_month_count > 0 ? operations['total_final'] / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-		<td class="year-total done">{{ operations['totaux_mois'] is defined ? 100 : 0 }}</td>
+		{% if show_table_totals %}
+			<td class="year-total td_total souligne done">{{ operations['total_final']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+		{% endif %}
+		{% if show_table_monthly_average %}
+			<td class="year-total{{ not show_table_totals ? ' td_total_border' }} done">{{ (display_month_count > 0 ? operations['total_final'] / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+		{% endif %}
+		{% if show_table_percentage %}
+			<td class="year-total{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }} done">{{ operations['totaux_mois'] is defined ? 100 : 0 }}</td>
+		{% endif %}
 	</tr>

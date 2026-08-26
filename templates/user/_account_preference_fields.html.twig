@@ -6,6 +6,15 @@
 {% if 'table' in preference_sections %}
 	<section class="preference-section" aria-labelledby="{{ title_prefix|default('account') }}DisplayTitle">
 		<h4 id="{{ title_prefix|default('account') }}DisplayTitle">Tableau</h4>
+		<h5 class="preference-subtitle">Tableaux des entrées (vert) et dépenses (rouge)</h5>
+		<div class="preference-toggle-row">
+			{{ form_label(form.mergeIncomeExpenseTables) }}
+			{{ form_widget(form.mergeIncomeExpenseTables, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row">
+			{{ form_label(form.showSubCategories) }}
+			{{ form_widget(form.showSubCategories, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
 		<div class="preference-toggle-row">
 			{{ form_label(form.compteGenreShow) }}
 			{{ form_widget(form.compteGenreShow, {'attr': {'class': 'checkType preference-checkbox'}}) }}
@@ -13,6 +22,33 @@
 		<div class="preference-toggle-row">
 			{{ form_label(form.showEditableBorder) }}
 			{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-group-label">Afficher les colonnes</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			<label for="{{ form.showTableTotals.vars.id }}">Total</label>
+			{{ form_widget(form.showTableTotals, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			<label for="{{ form.showTableMonthlyAverage.vars.id }}">X<span data-money-symbol>{{ money_currency_symbol|raw }}</span> / mois</label>
+			{{ form_widget(form.showTableMonthlyAverage, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			<label for="{{ form.showTablePercentage.vars.id }}">%</label>
+			{{ form_widget(form.showTablePercentage, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<h5 class="preference-subtitle preference-subtitle-spaced">Tableau des gains (bleu)</h5>
+		<div class="preference-group-label">Afficher</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			{{ form_label(form.showBalanceTable) }}
+			{{ form_widget(form.showBalanceTable, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			{{ form_label(form.showAnnualGain) }}
+			{{ form_widget(form.showAnnualGain, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
+		<div class="preference-toggle-row preference-toggle-row-nested">
+			{{ form_label(form.showBalanceCumulative) }}
+			{{ form_widget(form.showBalanceCumulative, {'attr': {'class': 'checkType preference-checkbox'}}) }}
 		</div>
 	</section>
 {% endif %}

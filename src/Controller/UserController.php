@@ -634,6 +634,14 @@ class UserController extends AbstractController
 						'moneyShowZeroDecimals' => $preferences->isMoneyShowZeroDecimals(),
 						'showEditableBorder' => $preferences->isShowEditableBorder(),
 						'compteGenreShow' => $preferences->isCompteGenreShow(),
+						'showTableTotals' => $preferences->isShowTableTotals(),
+						'showTableMonthlyAverage' => $preferences->isShowTableMonthlyAverage(),
+						'showTablePercentage' => $preferences->isShowTablePercentage(),
+						'showBalanceTable' => $preferences->isShowBalanceTable(),
+						'showBalanceCumulative' => $preferences->isShowBalanceCumulative(),
+						'showAnnualGain' => $preferences->isShowAnnualGain(),
+						'showSubCategories' => $preferences->isShowSubCategories(),
+						'mergeIncomeExpenseTables' => $preferences->isMergeIncomeExpenseTables(),
 					],
 				]);
 			}

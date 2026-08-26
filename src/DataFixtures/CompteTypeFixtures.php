@@ -12,6 +12,9 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 class CompteTypeFixtures extends Fixture implements FixtureGroupInterface
 {
+	public const COMPTE_COURANT = 'compte_type_compte_courant';
+	public const COMPTE_LIQUIDE = 'compte_type_compte_liquide';
+
 	public function load(ObjectManager $manager): void
 	{
 		// Datas
@@ -19,6 +22,7 @@ class CompteTypeFixtures extends Fixture implements FixtureGroupInterface
 			[
 				"libelle" => "Compte courant",
 				"libelleShort" => "CC",
+				"reference" => self::COMPTE_COURANT,
 				"decouvert" => true,
 				"tauxInteret" => 0,
 				"plancher" => 0,
@@ -28,6 +32,15 @@ class CompteTypeFixtures extends Fixture implements FixtureGroupInterface
 				"libelle" => "Compte libre",
 				"libelleShort" => "CL",
 				"decouvert" => true,
+				"tauxInteret" => 0,
+				"plancher" => 0,
+				"plafond" => null,
+			],
+			[
+				"libelle" => "Compte liquide",
+				"libelleShort" => "ESP",
+				"reference" => self::COMPTE_LIQUIDE,
+				"decouvert" => false,
 				"tauxInteret" => 0,
 				"plancher" => 0,
 				"plafond" => null,
@@ -136,6 +149,9 @@ class CompteTypeFixtures extends Fixture implements FixtureGroupInterface
 			;
 
 			$this->addReference('compteType_'.$key, $entity);
+			if (isset($value['reference'])) {
+				$this->addReference($value['reference'], $entity);
+			}
 			$manager->persist($entity);
 		}
 		$manager->flush();

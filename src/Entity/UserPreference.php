@@ -51,6 +51,30 @@ class UserPreference
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $showEditableBorder = true;
 
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showTableTotals = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showTableMonthlyAverage = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showTablePercentage = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showBalanceTable = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showBalanceCumulative = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showAnnualGain = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showSubCategories = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => false])]
+    private $mergeIncomeExpenseTables = false;
+
     #[ORM\Column(type: "boolean", options: ["default" => false])]
     private $accountTutorialSeen = false;
 
@@ -197,6 +221,102 @@ class UserPreference
     public function setShowEditableBorder(bool $showEditableBorder): self
     {
         $this->showEditableBorder = $showEditableBorder;
+
+        return $this;
+    }
+
+    public function isShowTableTotals(): bool
+    {
+        return $this->showTableTotals;
+    }
+
+    public function setShowTableTotals(bool $showTableTotals): self
+    {
+        $this->showTableTotals = $showTableTotals;
+
+        return $this;
+    }
+
+    public function isShowTableMonthlyAverage(): bool
+    {
+        return $this->showTableMonthlyAverage;
+    }
+
+    public function setShowTableMonthlyAverage(bool $showTableMonthlyAverage): self
+    {
+        $this->showTableMonthlyAverage = $showTableMonthlyAverage;
+
+        return $this;
+    }
+
+    public function isShowTablePercentage(): bool
+    {
+        return $this->showTablePercentage;
+    }
+
+    public function setShowTablePercentage(bool $showTablePercentage): self
+    {
+        $this->showTablePercentage = $showTablePercentage;
+
+        return $this;
+    }
+
+    public function isShowBalanceTable(): bool
+    {
+        return $this->showBalanceTable;
+    }
+
+    public function setShowBalanceTable(bool $showBalanceTable): self
+    {
+        $this->showBalanceTable = $showBalanceTable;
+
+        return $this;
+    }
+
+    public function isShowBalanceCumulative(): bool
+    {
+        return $this->showBalanceCumulative;
+    }
+
+    public function setShowBalanceCumulative(bool $showBalanceCumulative): self
+    {
+        $this->showBalanceCumulative = $showBalanceCumulative;
+
+        return $this;
+    }
+
+    public function isShowAnnualGain(): bool
+    {
+        return $this->showAnnualGain;
+    }
+
+    public function setShowAnnualGain(bool $showAnnualGain): self
+    {
+        $this->showAnnualGain = $showAnnualGain;
+
+        return $this;
+    }
+
+    public function isShowSubCategories(): bool
+    {
+        return $this->showSubCategories;
+    }
+
+    public function setShowSubCategories(bool $showSubCategories): self
+    {
+        $this->showSubCategories = $showSubCategories;
+
+        return $this;
+    }
+
+    public function isMergeIncomeExpenseTables(): bool
+    {
+        return $this->mergeIncomeExpenseTables;
+    }
+
+    public function setMergeIncomeExpenseTables(bool $mergeIncomeExpenseTables): self
+    {
+        $this->mergeIncomeExpenseTables = $mergeIncomeExpenseTables;
 
         return $this;
     }

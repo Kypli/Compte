@@ -12,7 +12,7 @@
 
 	{% if month_is_collapsed %}
 		<td
-			class='month-cell-span {{ done|trim }} month-detail-collapsed'
+			class='month-cell-span {{ done|trim }} month-detail-collapsed{{ loop.last ? ' month-cell-last' }}'
 			data-month="{{ month }}" data-year="{{ month_year }}"
 		></td>
 	{% elseif month_is_detailed %}
@@ -31,7 +31,7 @@
 
 		{# ANTICIPE #}
 		<td
-			class='month-cell-end {{ done|trim }} anticipe'
+			class='month-cell-end {{ done|trim }} anticipe{{ loop.last ? ' month-cell-last' }}'
 			data-month="{{ month }}" data-year="{{ month_year }}"
 			data-scid="{{ subcategory.id }}"
 			data-sign="{{ sign }}"
@@ -41,7 +41,7 @@
 		></td>
 	{% else %}
 		<td
-			class='month-cell-span {{ done|trim }}'
+			class='month-cell-span {{ done|trim }}{{ loop.last ? ' month-cell-last' }}'
 			data-month="{{ month }}" data-year="{{ month_year }}"
 			data-scid="{{ subcategory.id }}"
 			data-sign="{{ sign }}"
@@ -51,6 +51,12 @@
 		>{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 	{% endif %}
 {% endfor %}
-<td class="year-total done counterEdit td_total_border">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-<td class="year-total done counterEdit">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
-<td class="year-total done counterEdit">0</td>
+{% if show_table_totals %}
+	<td class="year-total done counterEdit td_total_border">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+{% endif %}
+{% if show_table_monthly_average %}
+	<td class="year-total done counterEdit{{ not show_table_totals ? ' td_total_border' }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+{% endif %}
+{% if show_table_percentage %}
+	<td class="year-total done counterEdit{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }}">0</td>
+{% endif %}

@@ -156,21 +156,27 @@ body.account-background-grey {
 	outline-offset: 2px;
 }
 .legend-modal-content {
+	color: #1f2d34;
+	border: 1px solid #83948a;
 	border-radius: 6px;
-	background: #F6F8F5!important;
+	background: #FFFFFF!important;
 }
 .account-tutorial-content {
 	color: #24323A;
 	border-radius: 6px;
 	background: #F6F8F5!important;
 }
-#modalLegend .modal-header,
-#modalLegend .modal-body,
-#modalLegend .modal-footer,
 #modalAccountTutorial .modal-header,
 #modalAccountTutorial .modal-body,
 #modalAccountTutorial .modal-footer {
 	background: transparent!important;
+}
+#modalLegend .modal-header,
+#modalLegend .modal-footer {
+	background: #EDF2EF!important;
+}
+#modalLegend .modal-body {
+	background: #F7F9F7!important;
 }
 .account-tutorial-title-group {
 	display: flex;
@@ -475,12 +481,15 @@ body.account-background-grey {
 }
 .legend-section.account-tutorial-step {
 	min-height: 0;
-	background: #EEF3EF;
+	color: #1f2d34;
+	border-color: #aab8b0;
+	background: #FFFFFF;
+	box-shadow: 0 1px 3px rgba(31, 45, 52, 0.08);
 }
 .legend-section-title {
 	margin: 0 0 10px;
 	padding: 0;
-	color: #203827;
+	color: #152d20;
 	font-size: 15px;
 	font-weight: 800;
 	border: 0;
@@ -497,10 +506,10 @@ body.account-background-grey {
 	gap: 12px;
 	min-height: 42px;
 	padding: 6px 0;
-	color: #4A5860;
+	color: #2f3c43;
 	font-size: 13px;
 	line-height: 1.35;
-	border-bottom: 1px solid #E0E6E2;
+	border-bottom: 1px solid #cfd8d2;
 }
 .legend-item:last-child {
 	border-bottom: 0;
@@ -2088,6 +2097,9 @@ body.account-background-grey {
 .account-display-tab.is-active i {
 	color: #FFFFFF;
 }
+.display-options-button [data-money-symbol] {
+	font-weight: 800;
+}
 .account-display-section {
 	display: grid;
 	grid-template-columns: 40px minmax(0, 1fr);
@@ -2106,6 +2118,144 @@ body.account-background-grey {
 	font-size: 15px;
 	font-weight: 800;
 	line-height: 1.25;
+}
+
+.account-display-section .preference-subtitle {
+	margin: 4px 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #526068;
+	text-transform: uppercase;
+}
+
+.account-display-section .preference-group-label {
+	margin: 3px 0 0;
+	color: #233C2A;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.account-display-section .preference-subtitle-spaced {
+	margin-top: 10px;
+}
+
+.preference-toggle-row-nested {
+	box-sizing: border-box;
+	margin-left: 0;
+	padding-left: 28px;
+	border-left: 2px solid #c8d2d6;
+}
+
+.account-display-modal .modal-dialog,
+.account-display-modal .modal-content {
+	max-height: min(86vh, 760px);
+}
+
+.account-display-modal .modal-dialog {
+	margin-top: 24px;
+	margin-bottom: 24px;
+}
+
+.account-display-modal .modal-header {
+	padding: 12px 16px;
+}
+
+.account-display-modal .modal-body {
+	padding: 10px 16px 14px;
+}
+
+.account-display-modal .account-display-tabs {
+	margin-bottom: 10px;
+}
+
+.account-display-modal .account-display-section {
+	gap: 10px;
+	padding: 11px 12px;
+}
+
+.account-display-accounts-section {
+	color: #241f29;
+	background: #FFFFFF;
+	border-color: #9d7fb0;
+	box-shadow: 0 1px 3px rgba(62, 42, 73, 0.1);
+}
+
+.account-display-accounts-section .account-tutorial-icon {
+	color: #70419e;
+	background: #e4d7ee;
+}
+
+.combine-account-intro {
+	margin: -4px 0 12px;
+	color: #4f4953;
+	font-size: 12px;
+}
+
+.account-combine-form {
+	display: grid;
+	gap: 14px;
+}
+
+.account-combine-form .combine-account-fieldset {
+	margin-top: 0;
+}
+
+.account-combine-form .combine-primary-account strong {
+	color: #20382a;
+}
+
+.account-combine-form .combine-account-option strong {
+	color: #2d2831;
+}
+
+.account-combine-form .combine-account-copy small {
+	color: #554e59;
+}
+
+.account-combine-form .combine-account-option {
+	border-color: #9f96a3;
+}
+
+.account-combine-form .combine-account-option:hover,
+.account-combine-form .combine-account-option:has(input:checked) {
+	background: #eee5f4;
+	border-color: #70419e;
+}
+
+.account-combine-form .combine-account-list {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.combine-account-empty {
+	margin: 0;
+	padding: 12px;
+	color: #625d67;
+	font-size: 12px;
+	border: 1px dashed #b9a9c5;
+	border-radius: 5px;
+	background: #fff;
+}
+
+.account-combine-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	padding-top: 2px;
+}
+
+#accountDisplayPanelTablePreferences .preference-section > .preference-toggle-row {
+	min-height: 30px;
+	padding: 3px 0;
+}
+#accountDisplayPanelTablePreferences .preference-section > .preference-toggle-row-nested {
+	box-sizing: border-box;
+	margin-left: 0;
+	padding-left: 28px;
+}
+.account-display-modal .account-display-preferences .account-preferences-form {
+	gap: 12px;
+	margin-top: 10px;
 }
 .account-display-preferences.account-preferences-panel {
 	position: static;
@@ -2239,6 +2389,10 @@ body.account-background-grey {
 	gap: 4px 8px;
 }
 @media (max-width: 575px) {
+	.account-display-modal .modal-dialog {
+		margin-top: 8px;
+		margin-bottom: 8px;
+	}
 	.account-display-section {
 		grid-template-columns: 1fr;
 	}
@@ -2254,6 +2408,23 @@ body.account-background-grey {
 	.account-display-tab {
 		flex: 1;
 		min-width: 0;
+		height: 42px;
+		gap: 4px;
+		padding: 5px 4px;
+		font-size: 11px;
+	}
+	.account-combine-form .combine-account-list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.account-combine-actions {
+		align-items: stretch;
+		flex-direction: column;
+	}
+	.account-combine-actions .combine-exit-button,
+	.account-combine-actions .btn {
+		justify-content: center;
+		width: 100%;
+		margin-right: 0;
 	}
 	.account-display-period-field,
 	.month-display-choices,
@@ -3228,6 +3399,104 @@ table {
 	overscroll-behavior-inline: contain;
 }
 
+.account-table-section-title {
+	margin: 0;
+	padding: 2px 8px 8px;
+	font-size: 16px;
+	font-weight: 800;
+	line-height: 1.2;
+	text-align: left;
+}
+
+.account-table-section-title-income {
+	color: #123f1c;
+}
+
+.account-table-section-title-expense {
+	color: #552020;
+}
+
+.account-table-section-title-gains {
+	color: #182e45;
+}
+
+.account-table-section-title-merged {
+	color: #3f2e50;
+}
+
+.account-tables-merged {
+	padding: 10px;
+	overflow: hidden;
+	border: 1px solid #88749C;
+	border-radius: 6px;
+	background: #DED3EA!important;
+}
+
+.account-merged-table {
+	margin-bottom: 0;
+}
+
+.account-merged-table .merged-table-main-header {
+	color: #3f2e50;
+	background: #cbb9dc!important;
+}
+
+.account-merged-table .merged-table-main-header {
+	vertical-align: middle;
+}
+
+.account-merged-table .merged-table-main-header > span:first-child {
+	display: block;
+	white-space: nowrap;
+}
+
+.account-merged-table .merged-table-main-header .merged-table-add-actions {
+	display: flex;
+	justify-content: center;
+	gap: 5px;
+	margin-top: 6px;
+}
+
+.account-merged-table .merged-table-main-header.add_cat button {
+	position: static;
+	top: auto!important;
+	float: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 6px;
+	border: 1px solid #88749C;
+	border-radius: 4px;
+	color: #3f2e50;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+	background: #f2edf6;
+}
+
+.account-merged-table .merged-table-main-header.add_cat button:hover {
+	background: #fff;
+}
+
+.account-merged-table .merged-table-month-header {
+	background: #e5ddee!important;
+}
+
+.account-merged-table .merged-table-summary-divider td {
+	height: 12px;
+	padding: 0;
+	border-top: 3px solid #88749C!important;
+	border-bottom: 2px solid #88749C!important;
+	background: #cbb9dc!important;
+}
+
+.account-merged-table .merged-table-summary-label {
+	color: #3f2e50;
+	font-weight: 800;
+	text-align: right;
+	background: #ded3ea!important;
+}
+
 @media (max-width: 991px) {
 	.month-display-compact .col_start_top {
 		width: 175px!important;
@@ -3289,7 +3558,7 @@ table {
 .compteTable .collabo td:not(:nth-child(3)){
 	border-top: 3px #D2B53F solid!important;
 }
-.compteTable .edit td:nth-last-child(4) {
+.compteTable .edit .month-cell-last {
 	border-right: 3px #D2B53F solid!important;
 }
 .compteTable .edit .td_total_border {
@@ -3302,7 +3571,7 @@ table {
 #datas.hide-editable-border .compteTable .collabo td:not(:nth-child(3)) {
 	border-top: 1px #8F999F solid!important;
 }
-#datas.hide-editable-border .compteTable .edit td:nth-last-child(4) {
+#datas.hide-editable-border .compteTable .edit .month-cell-last {
 	border-right: 1px #8F999F solid!important;
 }
 #datas.hide-editable-border .compteTable .edit .td_total_border {
@@ -3346,17 +3615,20 @@ table {
 	border-bottom: hidden!important;
 	background-color: #D6DBE2!important;
 }
+
 .th_solde_cache_2 {
 	border-top: hidden!important;
 	border-right: hidden!important;
 	border-bottom: hidden!important;
 	background-color: #BED0EA!important;
 }
+
 .revenuAnnuel {
 	font-weight: bold;
 	font-size: 16px!important;
 	border-radius: 0 0 18px 18px;
 }
+
 .gains-table .col_end_top_solde {
 	color: #2F4652;
 	border: 2px solid #617A87!important;
@@ -3365,12 +3637,129 @@ table {
 	background-color: #DCE8ED!important;
 	box-shadow: 0 3px 8px rgba(48, 65, 74, 0.16);
 }
+
 .gains-table .revenuAnnuel {
 	border: 2px solid #617A87!important;
 	border-top: 0!important;
 	border-radius: 0 0 18px 18px;
 	background-color: #EEF4F6!important;
 	box-shadow: 0 4px 8px rgba(48, 65, 74, 0.16);
+}
+
+.gains-table-layout {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: flex-start;
+}
+.gains-table-layout.has-annual-gain {
+	align-items: stretch;
+}
+.gains-table-layout .gains-table {
+	margin-bottom: 0;
+}
+.gains-table-layout.has-annual-gain .gains-table {
+	width: calc(100% - 210px);
+	flex: 0 0 calc(100% - 210px);
+}
+.gains-table-layout.annual-gain-only {
+	justify-content: flex-end;
+}
+.gains-table-layout.has-annual-gain .gains-table tr {
+	height: 34px;
+}
+.annual-gain-table {
+	width: 210px;
+	min-width: 210px;
+	height: 68px;
+	align-self: stretch;
+	margin: 0;
+	padding: 0;
+	table-layout: fixed;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: 18px;
+	overflow: hidden;
+	box-shadow: 0 4px 8px rgba(48, 65, 74, 0.16);
+}
+.annual-gain-table:not(.is-compact) tr {
+	height: 34px;
+}
+.annual-gain-table.is-compact {
+	height: auto;
+}
+.annual-gain-table.is-compact tr {
+	height: 100%;
+}
+.annual-gain-table th,
+.annual-gain-table td {
+	box-sizing: border-box;
+	vertical-align: middle;
+	border: 2px solid #617A87!important;
+}
+.annual-gain-table th {
+	color: #2F4652;
+	font-weight: 700;
+	background: #DCE8ED!important;
+}
+.annual-gain-table td {
+	font-size: 16px;
+	font-weight: 700;
+	text-align: center;
+	white-space: nowrap;
+	background: #EEF4F6!important;
+}
+
+.annual-gain-table:not(.is-compact) th {
+	border-bottom: 0!important;
+	border-radius: 18px 18px 0 0;
+}
+
+.annual-gain-table:not(.is-compact) td {
+	border-top: 0!important;
+	border-radius: 0 0 18px 18px;
+}
+
+.annual-gain-table.is-compact th,
+.annual-gain-table.is-compact td {
+	width: 50%;
+}
+
+.annual-gain-table.is-compact th {
+	border-right: 0!important;
+	border-radius: 18px 0 0 18px;
+}
+
+.annual-gain-table.is-compact td {
+	border-left-width: 1px!important;
+	border-radius: 0 18px 18px 0;
+}
+
+.gains-table-summary-columns-1 {
+	width: calc(100% - 70px);
+}
+.gains-table-summary-columns-2 {
+	width: calc(100% - 140px);
+}
+.gains-table-summary-columns-3 {
+	width: calc(100% - 210px);
+}
+
+@media (max-width: 575px) {
+	.gains-table-summary-columns-1,
+	.gains-table-summary-columns-2,
+	.gains-table-summary-columns-3 {
+		width: 100%;
+	}
+	.gains-table-layout.has-annual-gain {
+		flex-direction: column;
+	}
+	.gains-table-layout.has-annual-gain .gains-table,
+	.annual-gain-table {
+		width: 100%;
+		min-width: 100%;
+		flex-basis: auto;
+	}
 }
 
 /* BCK COLOR */
@@ -3514,4 +3903,343 @@ table {
 }
 .legend-subsection .legend-section-title {
 	margin-bottom: 10px;
+}
+
+/* Vue combinée de deux comptes */
+.account-combine-button.is-active {
+	background: #f0e9fb;
+	border-color: #7a4ab0;
+	color: #56317e;
+}
+
+.combined-view-caption {
+	display: block;
+	margin-top: 3px;
+	color: #62556f;
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+.account-combine-modal .modal-content {
+	border: 1px solid #d9c8eb;
+	border-radius: 8px;
+	box-shadow: 0 16px 42px rgba(40, 28, 53, 0.24);
+}
+
+.account-combine-modal .modal-header {
+	align-items: flex-start;
+	background: #f7f3fb;
+	border-bottom-color: #e4d9ef;
+}
+
+.account-modal-kicker {
+	display: block;
+	margin-bottom: 2px;
+	color: #71518f;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.combine-primary-account {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 12px;
+	background: #eef5f0;
+	border-left: 4px solid #3e7e55;
+	border-radius: 4px;
+}
+
+.combine-account-role {
+	color: #526158;
+	font-size: 0.78rem;
+	font-weight: 600;
+}
+
+.combine-account-fieldset {
+	min-width: 0;
+	margin: 18px 0 0;
+	padding: 0;
+	border: 0;
+}
+
+.combine-account-fieldset legend {
+	margin-bottom: 8px;
+	font-size: 0.86rem;
+	font-weight: 700;
+}
+
+.combine-account-list {
+	display: grid;
+	gap: 7px;
+}
+
+.combine-account-option {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr);
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 10px 12px;
+	background: #fff;
+	border: 1px solid #d8d8dd;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.combine-account-option:hover,
+.combine-account-option:has(input:checked) {
+	background: #f5effb;
+	border-color: #8154ae;
+}
+
+.combine-account-option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.combine-account-radio {
+	width: 17px;
+	height: 17px;
+	border: 2px solid #8c8792;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 3px #fff;
+}
+
+.combine-account-option input:checked + .combine-account-radio {
+	background: #70419e;
+	border-color: #70419e;
+}
+
+.combine-account-copy {
+	display: grid;
+	min-width: 0;
+}
+
+.combine-account-copy small {
+	color: #68636d;
+}
+
+.account-combine-footer {
+	display: flex;
+	gap: 8px;
+}
+
+.combine-exit-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-right: auto;
+	padding: 7px 9px;
+	color: #8b2f3b;
+	font-weight: 600;
+}
+
+.combined-add-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	margin-bottom: 4px;
+}
+
+.combined-account-target {
+	min-width: 92px;
+	max-width: 145px;
+	height: 28px;
+	padding: 2px 5px;
+	background: #fff;
+	border: 1px solid rgba(57, 45, 68, 0.35);
+	border-radius: 4px;
+	font-size: 0.72rem;
+}
+
+.merged-table-add-actions:has(.combined-account-target) {
+	flex-wrap: wrap;
+}
+
+.merged-table-add-actions .combined-account-target {
+	flex: 0 0 100%;
+	width: 100%;
+	max-width: none;
+}
+
+.merged-table-add-actions:has(.combined-account-target) button {
+	flex: 1 1 auto;
+	justify-content: center;
+	white-space: nowrap;
+}
+
+.merged-table-heading {
+	display: block;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.category-add-toolbar,
+.account-merged-table .merged-table-main-header .category-add-toolbar {
+	display: grid;
+	gap: 6px;
+	width: 100%;
+	margin-top: 7px;
+}
+
+.category-add-target {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 7px;
+	margin: 0;
+	color: #594d63;
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.category-add-target .combined-account-target {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	height: 30px;
+	padding: 3px 25px 3px 8px;
+	background-color: rgba(255, 255, 255, 0.92);
+	border: 1px solid #9b88ad;
+	border-radius: 5px;
+	color: #3f3547;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: none;
+}
+
+.category-add-buttons {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.category-header.add_cat .category-add-button,
+.account-merged-table .merged-table-main-header.add_cat .category-add-button {
+	position: static!important;
+	top: auto!important;
+	float: none!important;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+	min-height: 31px;
+	margin: 0;
+	padding: 5px 9px;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	font-size: 11px;
+	font-weight: 800;
+	line-height: 1;
+	white-space: nowrap;
+	box-shadow: 0 1px 2px rgba(40, 32, 46, 0.16);
+	transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.category-header.add_cat .category-add-button i {
+	display: inline-grid;
+	width: 17px;
+	height: 17px;
+	place-items: center;
+	border-radius: 50%;
+	font-size: 9px;
+}
+
+.category-header.add_cat .category-add-button-income,
+.account-merged-table .merged-table-main-header.add_cat .category-add-button-income {
+	background: #edf7ef;
+	border-color: #72a77d;
+	color: #245d31;
+}
+
+.category-header.add_cat .category-add-button-income i,
+.account-merged-table .merged-table-main-header.add_cat .category-add-button-income i {
+	background: #367c47;
+	color: #fff;
+}
+
+.category-header.add_cat .category-add-button-expense,
+.account-merged-table .merged-table-main-header.add_cat .category-add-button-expense {
+	background: #fbefef;
+	border-color: #bb7c7c;
+	color: #7b3030;
+}
+
+.category-header.add_cat .category-add-button-expense i,
+.account-merged-table .merged-table-main-header.add_cat .category-add-button-expense i {
+	background: #a64a4a;
+	color: #fff;
+}
+
+.category-header.add_cat .category-add-button:hover {
+	background: #fff;
+	box-shadow: 0 2px 5px rgba(40, 32, 46, 0.2);
+	transform: translateY(-1px);
+}
+
+.category-header.add_cat .category-add-button:focus-visible,
+.category-add-target .combined-account-target:focus-visible {
+	outline: 2px solid #5b3d73;
+	outline-offset: 2px;
+}
+
+.category-add-toolbar-single {
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: end;
+}
+
+.category-add-toolbar-single .category-add-target {
+	grid-template-columns: 1fr;
+	gap: 3px;
+	text-align: left;
+}
+
+@media (max-width: 575px) {
+	.category-add-target {
+		grid-template-columns: 1fr;
+		gap: 3px;
+		text-align: left;
+	}
+}
+
+.is-combined-account-table .account-source-badge {
+	display: inline-block;
+	max-width: 120px;
+	margin-top: 3px;
+	padding: 2px 5px;
+	overflow: hidden;
+	background: #eee5f8;
+	border: 1px solid #cab5df;
+	border-radius: 4px;
+	color: #59377a;
+	font-size: 0.65rem;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.is-combined-account-table .category-label-content {
+	align-items: flex-start;
+	flex-direction: column;
+}
+
+@media (max-width: 767px) {
+	.account-combine-footer {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.combine-exit-button {
+		justify-content: center;
+		margin-right: 0;
+	}
 }

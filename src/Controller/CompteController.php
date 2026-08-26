@@ -151,6 +151,9 @@ class CompteController extends AbstractController
 	public function show(Compte $compte, Request $request): Response
 	{
 		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$combinedCompte = $this->resolveCombinedCompte($request, $compte);
+		$viewComptes = array_values(array_filter([$compte, $combinedCompte]));
+		$viewCompteIds = array_map(fn (Compte $viewCompte): int => $viewCompte->getId(), $viewComptes);
 
 		// Current dates
 		$date = new \Datetime('now');
@@ -172,7 +175,7 @@ class CompteController extends AbstractController
 		] = $this->resolveMonthDisplay($request, $current_year, (int) $current_month, $year, $selected_month, $selected_year, $detail_months, $show_month_details);
 		$month_colspan = $this->monthColspan($visible_months, $detail_months, $show_month_details);
 		$display_month_years = $this->displayMonthYears($visible_month_years, $detail_months, $show_month_details);
-		$year_options = $this->yearOptions($compte->getId(), $year);
+		$year_options = $this->yearOptions($viewCompteIds, $year);
 		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
 		$other_comptes = array_values(array_filter(
 			$this->cr->getComptesByUser($this->getUser()),
@@ -181,16 +184,17 @@ class CompteController extends AbstractController
 
 		// Opérations
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
-		$operations_pos = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years);
-		$operations_neg = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years, false);
-		$operations_pos_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year));
-		$operations_neg_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false), false);
+		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
+		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
+		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
 
 		// Solde
-		$current_solde = round(
-			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
-			2
-		);
+		$current_solde = $this->currentBalance($viewCompteIds);
+		$combined_decouvert = array_sum(array_map(
+			fn (Compte $viewCompte): int => $viewCompte->getDecouvert(),
+			$viewComptes
+		));
 
 		// Solde Fin mois
 		$soldeFinMensuel = $this->soldeFinMensuel(
@@ -203,8 +207,8 @@ class CompteController extends AbstractController
 		);
 
 		// Color solde
-		$color_solde = $this->colorSolde($current_solde, $compte->getDecouvert());
-		$color_soldeFinMois = $this->colorSolde($soldeFinMensuel, $compte->getDecouvert());
+		$color_solde = $this->colorSolde($current_solde, $combined_decouvert);
+		$color_soldeFinMois = $this->colorSolde($soldeFinMensuel, $combined_decouvert);
 		$preferenceForm = $this->createForm(UserPreferenceType::class, $this->getUser()->getPreferences(), [
 			'action' => $this->generateUrl('user_preference', ['id' => $this->getUser()->getId()]),
 		]);
@@ -215,6 +219,9 @@ class CompteController extends AbstractController
 
 		return $this->render('compte/show.html.twig', [
 			'compte' => $compte,
+			'combined_compte' => $combinedCompte,
+			'view_comptes' => $viewComptes,
+			'combined_decouvert' => $combined_decouvert,
 
 			'year' => $year,
 			'months' => SELF::MONTHS,
@@ -266,6 +273,9 @@ class CompteController extends AbstractController
 	public function tables(Compte $compte, Request $request): Response
 	{
 		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$combinedCompte = $this->resolveCombinedCompte($request, $compte);
+		$viewComptes = array_values(array_filter([$compte, $combinedCompte]));
+		$viewCompteIds = array_map(fn (Compte $viewCompte): int => $viewCompte->getId(), $viewComptes);
 
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -291,17 +301,14 @@ class CompteController extends AbstractController
 
 		// Opérations
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
-		$operations_pos = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years);
-		$operations_neg = $this->operationsByYearsAndCompteAndSign($compte->getId(), $operation_years, false);
-		$operations_pos_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year));
-		$operations_neg_datas = $this->operations($this->or->OperationsByYearAndCompteAndSign($compte->getId(), $year, false), false);
+		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
+		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
+		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
 		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
 
 		// Solde
-		$solde = round(
-			($this->or->CompteSoldeActuel($compte->getId(), true) - $this->or->CompteSoldeActuel($compte->getId(), false)),
-			2
-		);
+		$solde = $this->currentBalance($viewCompteIds);
 
 		// Solde Fin mois
 		$soldeFinMensuel = $this->soldeFinMensuel(
@@ -321,6 +328,8 @@ class CompteController extends AbstractController
 
 		$render = $this->render('compte/table/_tables.html.twig', [
 			'compte' => $compte,
+			'combined_compte' => $combinedCompte,
+			'view_comptes' => $viewComptes,
 
 			'year' => $year,
 			'months' => SELF::MONTHS,
@@ -668,16 +677,17 @@ class CompteController extends AbstractController
 	/**
 	 * @return array{years: int[], budget: int[]}
 	 */
-	private function yearOptions(int $compteId, int $displayYear): array
+	private function yearOptions(array $compteIds, int $displayYear): array
 	{
 		$years = range(
 			max($displayYear - 5, $this->navigation_min_year),
 			min($displayYear + 5, $this->navigation_max_year)
 		);
-		$budgetYears = array_values(array_intersect(
-			$years,
-			$this->catr->yearsWithBudgetForCompte($compteId)
-		));
+		$budgetYears = [];
+		foreach ($compteIds as $compteId){
+			$budgetYears = array_merge($budgetYears, $this->catr->yearsWithBudgetForCompte($compteId));
+		}
+		$budgetYears = array_values(array_unique(array_intersect($years, $budgetYears)));
 
 		return [
 			'years' => $years,
@@ -695,6 +705,47 @@ class CompteController extends AbstractController
 		}
 
 		return $operations;
+	}
+
+	private function operationsByYearsAndComptesAndSign(array $compteIds, array $years, bool $sign = true): array
+	{
+		$operations = [];
+		foreach ($compteIds as $compteId){
+			$operations = array_merge(
+				$operations,
+				$this->operationsByYearsAndCompteAndSign($compteId, $years, $sign)
+			);
+		}
+
+		return $operations;
+	}
+
+	private function currentBalance(array $compteIds): float
+	{
+		$balance = 0.0;
+		foreach ($compteIds as $compteId){
+			$balance += (float) $this->or->CompteSoldeActuel($compteId, true);
+			$balance -= (float) $this->or->CompteSoldeActuel($compteId, false);
+		}
+
+		return round($balance, 2);
+	}
+
+	private function resolveCombinedCompte(Request $request, Compte $compte): ?Compte
+	{
+		$combinedCompteId = filter_var($request->query->get('avec'), FILTER_VALIDATE_INT);
+		if (false === $combinedCompteId || null === $combinedCompteId || $combinedCompteId === $compte->getId()){
+			return null;
+		}
+
+		$combinedCompte = $this->cr->find($combinedCompteId);
+		if (null === $combinedCompte){
+			throw $this->createNotFoundException('Le second compte est introuvable.');
+		}
+
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $combinedCompte);
+
+		return $combinedCompte;
 	}
 
 	private function operationMatchesVisibleMonthYears($operation, ?array $visibleMonthYears): bool

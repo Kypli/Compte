@@ -1,13 +1,25 @@
 {% set month_display_family = month_display|split('_')|first %}
+{% set combined_compte = combined_compte|default(null) %}
 {% set money_currency = money_currency|default(user.preferences.moneyCurrency|default('EUR')) %}
 {% set money_symbol = money_currency|money_symbol %}
-{% set displayed_categories = compte.categories
-	|filter(category => category.sign == signBool and category.year == year)
-	|sort((a, b) => a.position <=> b.position)
-%}
+{% set show_table_totals = user.preferences.showTableTotals ?? true %}
+{% set show_table_monthly_average = user.preferences.showTableMonthlyAverage ?? true %}
+{% set show_table_percentage = user.preferences.showTablePercentage ?? true %}
+{% set table_summary_colspan = (show_table_totals ? 1 : 0) + (show_table_monthly_average ? 1 : 0) + (show_table_percentage ? 1 : 0) %}
+{% set show_sub_categories = user.preferences.showSubCategories ?? true %}
+{% set label_colspan = show_sub_categories ? 2 : 1 %}
+{% set view_comptes = view_comptes|default([compte]) %}
+{% set displayed_categories = [] %}
+{% for table_compte in view_comptes %}
+	{% set account_categories = table_compte.categories
+		|filter(category => category.sign == signBool and category.year == year)
+		|sort((a, b) => a.position <=> b.position)
+	%}
+	{% set displayed_categories = displayed_categories|merge(account_categories) %}
+{% endfor %}
 
 <table
-	class="table compteTable center month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
+	class="table compteTable center{{ combined_compte ? ' is-combined-account-table' }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
 	data-sign="{{ signBool == 1 ? '1' : '0' }}"
 	data-category-reorder-url="{{ path('compte_category_reorder', {'id': compte.id}) }}"
 	data-category-reorder-token="{{ csrf_token('reorder-categories' ~ compte.id) }}"
@@ -16,14 +28,26 @@
 >
 	<thead>
 		<tr class="tr_head">
-			<th colspan='2' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat category-header col_start_top bck_{{ sign }}{{ user.preferences.comptegenreshow ? '' : ' category-header-single-row' }}'>
-				<button data-target="#modalCategory" data-toggle="modal">Ajout catégorie</button>
-				{{ 
-					sign == 'pos'
-						? "<span class='green pointeur_help' title='Tableau des revenus'>(+)</span>"
-						: "<span class='sign-pos pointeur_help' title='Tableau des dépenses'>(-)</span>"
-				}}
-				<span class="pointeur_help" title="Monnaie utilisee">(<span data-money-symbol>{{ money_symbol }}</span>)</span>
+			<th colspan='{{ label_colspan }}' {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class='add_cat category-header col_start_top bck_{{ sign }}{{ user.preferences.comptegenreshow ? '' : ' category-header-single-row' }}'>
+				{% if combined_compte %}
+					<span class="combined-add-controls category-add-toolbar category-add-toolbar-single">
+						<label class="category-add-target">
+							<span>Ajouter dans</span>
+							<select class="combined-account-target" aria-label="Compte cible pour la nouvelle catégorie">
+								{% for table_compte in view_comptes %}<option value="{{ table_compte.id }}">{{ table_compte.libelle }}</option>{% endfor %}
+							</select>
+						</label>
+						<button type="button" class="category-add-button {{ sign == 'pos' ? 'category-add-button-income' : 'category-add-button-expense' }}" data-target="#modalCategory" data-toggle="modal" aria-label="Ajouter une catégorie {{ sign == 'pos' ? "d'entrée" : 'de dépense' }}">
+							<i class="fa-solid fa-plus" aria-hidden="true"></i>
+							<span>Catégorie</span>
+						</button>
+					</span>
+				{% else %}
+					<button type="button" class="category-add-button {{ sign == 'pos' ? 'category-add-button-income' : 'category-add-button-expense' }}" data-accountid="{{ compte.id }}" data-target="#modalCategory" data-toggle="modal" aria-label="Ajouter une catégorie {{ sign == 'pos' ? "d'entrée" : 'de dépense' }}">
+						<i class="fa-solid fa-plus" aria-hidden="true"></i>
+						<span>Catégorie</span>
+					</button>
+				{% endif %}
 			</th>
 
 			{# MONTHS #}
@@ -53,9 +77,15 @@
 			{% endfor %}
 
 			{# TOTAL #}
-			<th id='total' class="year-total td_total_border done col_end_top">Total</th>
-			<th id='totalByMonth' class="year-total done col_end_top">X<span data-money-symbol>{{ money_symbol }}</span> / mois</th>
-			<th id='percent' class="year-total done col_end_top">%</th>
+			{% if show_table_totals %}
+				<th id='total' class="year-total td_total_border done col_end_top">Total</th>
+			{% endif %}
+			{% if show_table_monthly_average %}
+				<th id='totalByMonth' class="year-total{{ not show_table_totals ? ' td_total_border' }} done col_end_top">X<span data-money-symbol>{{ money_symbol }}</span> / mois</th>
+			{% endif %}
+			{% if show_table_percentage %}
+				<th id='percent' class="year-total{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }} done col_end_top">%</th>
+			{% endif %}
 		</tr>
 		{% if user.preferences.comptegenreshow %}
 			<tr class="tr_etat">
@@ -77,14 +107,14 @@
 						<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
 					{% endif %}
 				{% endfor %}
-				<th colspan="3" class="year-total td_total_border done"></th>
+				{% if table_summary_colspan > 0 %}<th colspan="{{ table_summary_colspan }}" class="year-total td_total_border done"></th>{% endif %}
 			</tr>
 		{% endif %}
 	</thead>
 	<tbody>
 		{% for category in displayed_categories %}
 			{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
-				<tr class='{{ loop.first ? "tr_operation_first" }} edit' data-category-row="{{ category.id }}">
+				<tr class='{{ loop.first ? "tr_operation_first" }} edit' data-category-row="{{ category.id }}" data-accountid="{{ category.compte.id }}">
 
 					{# CAT #}
 					{% if loop.first %}
@@ -93,13 +123,15 @@
 							data-toggle="modal"
 							data-id="{{ category.id }}"
 							data-focusa="cat_{{ category.id }}"
+							data-accountid="{{ category.compte.id }}"
 							data-category-drop-before="{{ category.id }}"
 							class='td_category_libelle'
 							rowspan='{{ category.subcategories|length }}'
 						>
 							<span class="category-label-content">
 								<span class="category-label-text">{{ category.libelle|capitalize }}</span>
-								{% if displayed_categories|length > 1 %}
+								{% if combined_compte %}<span class="account-source-badge" title="Compte source">{{ category.compte.libelle }}</span>{% endif %}
+								{% if not combined_compte and displayed_categories|length > 1 %}
 									<button
 										type="button"
 										class="category-drag-handle"
@@ -117,11 +149,13 @@
 					{% endif %}
 
 					{# SC #}
-					<td
+					{% if show_sub_categories %}
+						<td
 						data-target="#modalCategory"
 						data-toggle="modal"
 						data-id="{{ category.id }}"
 						data-focusa="sc_{{ subcategory.id }}"
+						data-accountid="{{ category.compte.id }}"
 						data-subcategory-drop-before="{{ subcategory.id }}"
 						data-subcategory-category-id="{{ category.id }}"
 						{% if loop.last %}data-subcategory-drop-end="{{ category.id }}"{% endif %}
@@ -129,7 +163,7 @@
 					>
 						<span class="subcategory-label-content">
 							<span class="subcategory-label-text">{{ subcategory.libelle|capitalize }}</span>
-							{% if category.subcategories|length > 1 %}
+							{% if not combined_compte and category.subcategories|length > 1 %}
 								<button
 									type="button"
 									class="subcategory-drag-handle"
@@ -144,7 +178,8 @@
 								</button>
 							{% endif %}
 						</span>
-					</td>
+						</td>
+					{% endif %}
 
 					{# OPE #}
 					{{ include('compte/table/_sc_operations.html.twig') }}

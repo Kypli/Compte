@@ -37,6 +37,8 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			SubCategoryFixtures::SUBCATEGORY_USER_NEG_1_3,
 			SubCategoryFixtures::SUBCATEGORY_USER_NEG_2_1,
 			SubCategoryFixtures::SUBCATEGORY_USER_NEG_2_2,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_LIQUIDE_POS_1_1,
+			SubCategoryFixtures::SUBCATEGORY_ADMIN_LIQUIDE_NEG_1_1,
 		];
 
 		for($i = 0; $i <= 500; $i++){
@@ -66,7 +68,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				$anticipe = rand(0, 1);
 			}
 
-			$subcategory = $subcategories[rand(0, 19)];
+			$subcategory = $subcategories[array_rand($subcategories)];
 
 			$entity = new Entity();
 			$entity
@@ -77,6 +79,37 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				->setDateLastAction($date_now)
 				->setLastAction('create')
 				->setSubcategory($this->getReference($subcategory))
+			;
+			$manager->persist($entity);
+		}
+
+		$cashOperations = [
+			[
+				'number' => 120,
+				'anticipe' => false,
+				'date' => new \DateTime('first day of this month 10:00'),
+				'comment' => 'Retrait pour les dépenses courantes',
+				'subcategory' => SubCategoryFixtures::SUBCATEGORY_ADMIN_LIQUIDE_POS_1_1,
+			],
+			[
+				'number' => 38.40,
+				'anticipe' => false,
+				'date' => new \DateTime('first day of this month 18:00 +4 days'),
+				'comment' => 'Achats en espèces',
+				'subcategory' => SubCategoryFixtures::SUBCATEGORY_ADMIN_LIQUIDE_NEG_1_1,
+			],
+		];
+
+		foreach ($cashOperations as $cashOperation) {
+			$entity = new Entity();
+			$entity
+				->setNumber($cashOperation['number'])
+				->setAnticipe($cashOperation['anticipe'])
+				->setDate($cashOperation['date'])
+				->setComment($cashOperation['comment'])
+				->setDateLastAction(new \DateTime())
+				->setLastAction('create')
+				->setSubcategory($this->getReference($cashOperation['subcategory']))
 			;
 			$manager->persist($entity);
 		}

@@ -33,6 +33,15 @@ $(document).ready(function(){
 			.hide()
 	}
 
+	function setActiveCompteId(compteId){
+		const datas = $('#datas')
+		datas.data('activecompteid', compteId || datas.data('compteid'))
+	}
+
+	function getActiveCompteId(){
+		return $('#datas').data('activecompteid') || $('#datas').data('compteid')
+	}
+
 	////////////
 	// ON EVENTS
 	////////////
@@ -42,6 +51,7 @@ $(document).ready(function(){
 	// Open Modal Category
 	$("body").on("click", ".td_category_libelle, .td_subcategory_libelle", function(e){
 		hideCategoryError()
+		setActiveCompteId($(this).data('accountid'))
 
 		let sign = $(this).parent().parent().parent().data('sign')
 		$('#cat_tab').data('sign', sign)
@@ -126,8 +136,14 @@ $(document).ready(function(){
 	// Add Cat from table
 	$("body").on("click", ".add_cat button", function(e){
 		hideCategoryError()
+		setActiveCompteId(
+			$(this).data('accountid') || $(this).closest('.add_cat').find('.combined-account-target').val()
+		)
 
-		let sign = $(this).parents('.table ').data('sign')
+		let sign = $(this).data('sign')
+		if (sign === undefined) {
+			sign = $(this).parents('.table').data('sign')
+		}
 		$('#cat_tab').data('sign', sign)
 		getAddCategory(sign)
 	})
@@ -215,7 +231,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_add', { id: $('#datas').data('compteid'), sign: sign }),
+			url: Routing.generate('compte_category_add', { id: getActiveCompteId(), sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
 				$('#cat_name').text('')
@@ -246,7 +262,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category', { id: $('#datas').data('compteid'), cat: cat_id, sign: sign }),
+			url: Routing.generate('compte_category', { id: getActiveCompteId(), cat: cat_id, sign: sign }),
 			timeout: 15000,
 			beforeSend: function(){
 				$('#cat_name').text('')
@@ -674,7 +690,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_delete', { id: $('#datas').data('compteid'), cat: cat_id }),
+			url: Routing.generate('compte_category_delete', { id: getActiveCompteId(), cat: cat_id }),
 			timeout: 15000,
 			// beforeSend: function(){
 
@@ -805,7 +821,7 @@ $(document).ready(function(){
 
 		$.ajax({
 			type: "POST",
-			url: Routing.generate('compte_category_save', { compte: $('#datas').data('compteid'), year: $('#datas').data('year') }),
+			url: Routing.generate('compte_category_save', { compte: getActiveCompteId(), year: $('#datas').data('year') }),
 			data: { datas: datas },
 			dataType: 'JSON',
 			timeout: 15000,

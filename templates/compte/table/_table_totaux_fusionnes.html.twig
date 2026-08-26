@@ -1,0 +1,75 @@
+{% set income_month_totals = operations_pos['totaux_mois']|default({}) %}
+{% set expense_month_totals = operations_neg['totaux_mois']|default({}) %}
+{% set merged_total_final = (operations_pos['total_final']|default(0)) + (operations_neg['total_final']|default(0)) %}
+{% set has_merged_totals = income_month_totals|length > 0 or expense_month_totals|length > 0 %}
+
+{# TOTAL FAIT / A VENIR #}
+<tr class="merged-table-detail-total-row">
+	<td colspan="{{ label_colspan }}" class="col_start_bottom merged-table-summary-label"></td>
+	{% for month in visible_months %}
+		{% set month_year = visible_month_years[month]|default(year) %}
+		{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
+		{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+		{% set done =
+			current_year > month_year or (current_year == month_year and month < current_month)
+				? 'done'
+				: current_year == month_year and month == current_month ? 'current' : ''
+		%}
+		{% set income_month = income_month_totals[month]|default({}) %}
+		{% set expense_month = expense_month_totals[month]|default({}) %}
+		{% set reel = (income_month['reel']|default(0)) + (expense_month['reel']|default(0)) %}
+		{% set anticipe = (income_month['anticipe']|default(0)) + (expense_month['anticipe']|default(0)) %}
+		{% set total = reel + anticipe %}
+
+		{% if month_is_collapsed %}
+			<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
+		{% elseif month_is_detailed %}
+			<td class="month-cell-start {{ done }} total_month_detail_{{ reel < 0 ? 'neg' : 'pos' }}" data-month="{{ month }}" data-year="{{ month_year }}">
+				{{ reel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+			<td class="month-cell-end {{ done }} total_month_detail_{{ anticipe < 0 ? 'neg' : 'pos' }}" data-month="{{ month }}" data-year="{{ month_year }}">
+				{{ anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% else %}
+			<td class="month-cell-span {{ done }} total_month_full_{{ total < 0 ? 'neg' : total > 0 ? 'pos' : 'neutre' }}" data-month="{{ month }}" data-year="{{ month_year }}">
+				{{ total|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% endif %}
+	{% endfor %}
+	{% if table_summary_colspan > 0 %}<td colspan="{{ table_summary_colspan }}" class="td_total bck_black"></td>{% endif %}
+</tr>
+
+{# TOTAL FAIT + A VENIR #}
+<tr class="merged-table-full-total-row">
+	<td colspan="{{ label_colspan }}" class="col_start_bottom merged-table-summary-label">Total</td>
+	{% for month in visible_months %}
+		{% set month_year = visible_month_years[month]|default(year) %}
+		{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
+		{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+		{% set done =
+			current_year > month_year or (current_year == month_year and month < current_month)
+				? 'done gras'
+				: current_year == month_year and month == current_month ? 'current' : ''
+		%}
+		{% set income_month = income_month_totals[month]|default({}) %}
+		{% set expense_month = expense_month_totals[month]|default({}) %}
+		{% set total = (income_month['total']|default(0)) + (expense_month['total']|default(0)) %}
+
+		{% if month_is_collapsed %}
+			<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
+		{% else %}
+			<td colspan="{{ month_is_detailed ? 2 : 1 }}" class="month-cell-span {{ done }} total_month_full_{{ total < 0 ? 'neg' : total > 0 ? 'pos' : 'neutre' }}" data-month="{{ month }}" data-year="{{ month_year }}">
+				{{ total|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% endif %}
+	{% endfor %}
+	{% if show_table_totals %}
+		<td class="year-total td_total souligne done">{{ merged_total_final|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	{% endif %}
+	{% if show_table_monthly_average %}
+		<td class="year-total{{ not show_table_totals ? ' td_total_border' }} done">{{ (display_month_count > 0 ? merged_total_final / display_month_count : 0)|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+	{% endif %}
+	{% if show_table_percentage %}
+		<td class="year-total{{ not show_table_totals and not show_table_monthly_average ? ' td_total_border' }} done">{{ has_merged_totals ? 100 : 0 }}</td>
+	{% endif %}
+</tr>

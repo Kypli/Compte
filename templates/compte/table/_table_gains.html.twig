@@ -1,14 +1,28 @@
 {% set month_display_family = month_display|split('_')|first %}
-<table class="table compteTable center gains-table month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}" data-table-key="gains">
+{% set show_monthly_gain = user.preferences.showBalanceTable ?? true %}
+{% set show_balance_cumulative = user.preferences.showBalanceCumulative ?? true %}
+{% set show_annual_gain = user.preferences.showAnnualGain ?? true %}
+{% set table_summary_column_count =
+	(user.preferences.showTableTotals ?? true ? 1 : 0)
+	+ (user.preferences.showTableMonthlyAverage ?? true ? 1 : 0)
+	+ (user.preferences.showTablePercentage ?? true ? 1 : 0) %}
+{% set revenuAnnuel = 0 %}
+{% for gain in gains %}
+	{% set revenuAnnuel = gain['cumule'] %}
+{% endfor %}
+
+{% set show_gain_grid = show_monthly_gain or show_balance_cumulative %}
+{% set annual_gain_compact = not show_monthly_gain or not show_balance_cumulative %}
+{% set annual_gain_integrated = show_annual_gain and not annual_gain_compact %}
+
+<div class="gains-table-layout{{ show_annual_gain and not annual_gain_integrated ? ' has-annual-gain' }}{{ not show_gain_grid ? ' annual-gain-only' }}">
+{% if show_gain_grid %}
+<table class="table compteTable center gains-table{{ annual_gain_integrated ? '' : ' gains-table-summary-columns-' ~ table_summary_column_count }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}" data-table-key="gains">
 
 	{# GAIN MENSUEL #}
+	{% if show_monthly_gain %}
 	<tr class='tr_head'>
 		<th colspan="4" class="th_solde_cache col_start_top alignRight centerHor">Gain mensuel</th>
-
-		{% set revenuAnnuel = 0 %}
-		{% for gain in gains %}
-			{% set revenuAnnuel = gain['cumule'] %}
-		{% endfor %}
 
 		{% for month in visible_months %}
 
@@ -37,15 +51,19 @@
 				<th colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible total_month_full_pos {{ done }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
 			{% endif %}
 		{% endfor %}
-		<th colspan="3" class="year-total col_end_top_solde th_solde_cache_2 souligne">{{ month_display == 'year' and display_month_count == 12 ? 'Gain annuel' : 'Gain sur la période' }}</th>
+		{% if annual_gain_integrated %}
+			<th colspan="3" class="year-total col_end_top_solde th_solde_cache_2 souligne">{{ month_display == 'year' and display_month_count == 12 ? 'Gain annuel' : 'Gain sur la période' }}</th>
+		{% endif %}
 	</tr>
+	{% endif %}
 
 	{# GAIN CUMULE #}
+	{% if show_balance_cumulative %}
 	<tr class='tr_head'>
 		<th class="th_solde_cache"></th>
-		<th colspan="3" class="th_solde_cache alignRight centerHor">Gain mensuel cumulé</th>
+		<th colspan="3" class="th_solde_cache alignRight centerHor">Solde mensuel cumulé</th>
 
-		{% for month in visible_months %}
+			{% for month in visible_months %}
 
 				{% set month_year = visible_month_years[month]|default(year) %}
 {% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
@@ -71,12 +89,37 @@
 			{% else %}
 				<th colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible centerHor {{ done }} total_month_full_pos">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
 			{% endif %}
-		{% endfor %}
-		<td
-			colspan="3"
-			class="year-total th_solde_cache_2 revenuAnnuel {{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}"
-		>
-			{{ revenuAnnuel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
-		</td>
+			{% endfor %}
+		{% if annual_gain_integrated %}
+			<td
+				colspan="3"
+				class="year-total th_solde_cache_2 revenuAnnuel {{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}"
+			>
+				{{ revenuAnnuel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+		{% endif %}
 	</tr>
+	{% endif %}
 </table>
+{% endif %}
+
+{% if show_annual_gain and not annual_gain_integrated %}
+	<table class="table compteTable center annual-gain-table{{ annual_gain_compact ? ' is-compact' }}">
+		{% if annual_gain_compact %}
+			<tr>
+				<th>{{ month_display == 'year' and display_month_count == 12 ? 'Gain annuel' : 'Gain sur la période' }}</th>
+				<td class="{{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+					{{ revenuAnnuel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+				</td>
+			</tr>
+		{% else %}
+			<tr><th>{{ month_display == 'year' and display_month_count == 12 ? 'Gain annuel' : 'Gain sur la période' }}</th></tr>
+			<tr>
+				<td class="{{ revenuAnnuel < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+					{{ revenuAnnuel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+				</td>
+			</tr>
+		{% endif %}
+	</table>
+{% endif %}
+</div>

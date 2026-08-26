@@ -35,6 +35,9 @@ export function updateTables(){
 		routeParams.money_currency = datasElement.dataset.moneycurrency || 'EUR'
 		routeParams.money_trim_zeros = datasElement.dataset.moneytrimzeros === '1' ? '1' : '0'
 		routeParams.money_show_zero_decimals = datasElement.dataset.moneyshowzerodecimals === '0' ? '0' : '1'
+		if (datasElement.dataset.combinedcompteid) {
+			routeParams.avec = datasElement.dataset.combinedcompteid
+		}
 	}
 	const selectedMonthValue = datasElement?.dataset.selectedmonth
 	const selectedYearValue = datasElement?.dataset.selectedyear
@@ -824,6 +827,18 @@ $(document).ready(function(){
 		if (typeof preferences.compteGenreShow === 'boolean') {
 			shouldUpdateTables = true
 		}
+		if (
+			typeof preferences.showTableTotals === 'boolean'
+			|| typeof preferences.showTableMonthlyAverage === 'boolean'
+			|| typeof preferences.showTablePercentage === 'boolean'
+			|| typeof preferences.showBalanceTable === 'boolean'
+			|| typeof preferences.showBalanceCumulative === 'boolean'
+			|| typeof preferences.showAnnualGain === 'boolean'
+			|| typeof preferences.showSubCategories === 'boolean'
+			|| typeof preferences.mergeIncomeExpenseTables === 'boolean'
+		) {
+			shouldUpdateTables = true
+		}
 		syncMoneySymbols()
 		syncMoneyAmounts()
 		if (shouldUpdateTables) {
@@ -1089,9 +1104,9 @@ $(document).ready(function(){
 			text: "Ce tableau regroupe les dépenses. Les montants négatifs et anticipés aident à préparer les sorties avant qu'elles soient réellement passées."
 		},
 		{
-			selector: '.gains-table',
+			selector: '.account-gains-section',
 			title: 'Tableau des gains',
-			text: "Ce tableau compare recettes et dépenses, puis affiche le gain mensuel et le cumul de solde mois après mois."
+			text: "Cette zone compare recettes et dépenses, puis affiche le gain mensuel, le gain annuel et le cumul de solde selon les options choisies."
 		},
 		{
 			selector: '.month-selector.current, .month-selector',
@@ -1862,19 +1877,24 @@ $(document).ready(function(){
 					const datas = document.getElementById('datas')
 					const accountTitle = document.querySelector('.account-title h1')
 					const overdraft = document.getElementById('overdraftAuthorization')
+					const combinedAccountLabel = datas?.dataset.combinedcomptelabel || ''
 					if (accountTitle) {
-						accountTitle.textContent = payload.account.libelle
+						accountTitle.textContent = combinedAccountLabel
+							? `${payload.account.libelle} + ${combinedAccountLabel}`
+							: payload.account.libelle
 					}
 					deleteAccountNames.forEach(element => {
 						element.textContent = payload.account.libelle
 					})
+					const combinedAccountOverdraft = Number(datas?.dataset.combinedcompteoverdraft || 0)
+					const totalOverdraft = Number(payload.account.decouvert || 0) + combinedAccountOverdraft
 					if (datas) {
-						const overdraftLimit = Number(payload.account.decouvert || 0) * -1
+						const overdraftLimit = totalOverdraft * -1
 						datas.dataset.decouvert = String(overdraftLimit)
 						$(datas).data('decouvert', overdraftLimit)
 					}
 					if (overdraft) {
-						overdraft.dataset.moneyAmount = payload.account.decouvert || 0
+						overdraft.dataset.moneyAmount = String(totalOverdraft)
 					}
 					syncMoneyAmounts()
 					setStatus('Mise à jour du tableau...', 'saving')

@@ -1,47 +1,55 @@
 Home
 	Trouver un logo
 
-User
-	Préférence
-		Comptes
-			- Afficher/Masquer
-				- Fin de tableau
-					- Total
-					- x€/mois
-					- %
-				- Tableau vert et rouge
-					- Zone d'édition jaune
-				- Tableau bleu (solde)
-					- Ligne du solde du compte en fin de mois
-					- Ligne du solde mensuel cumulé
-					- Solde annuel
-				- Légende
-				- Modal opérations
-					- Zone d'édition jaune
-				- Modal catégories
-					- Zone d'édition jaune
-			- Autoriser la suppr de catégory si présence d'opérations
-			- Mettre en haut tableau bleu (soldes)
-			- Fusionner les tableaux +/-
-			- Retirer les sub-catégories
-			- Saisir le nombre d'historiques à afficher
+Préférences
+	Monétaires
+		Affichage monétaires des chiffres par défaut
+		Monnaie (€, dollars...) par défaut
+	Langue
+		Langue du site
 
 Compte
 	Show
-		Interface
-			Tableau mois en cours plus distingué des autres
-			Liste des anomalies (A venir dépassé et montant fait dans le futur)
-			Afficher 3 dernières opérations avec pop-up historique des 15 dernières actions
-			Proposer un tutoriel
+		Sécurité
 			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
 
+		Paramètres du compte
+		Légendes
+  		Tutoriel
+		Année
+
+		Affichage
+			Affiche des colonnes
+			Format Monétaires
+			Monnaie utilisée
+			Tableau
+				Fusionner les données de plusieurs compte (liquide, compte 1....), possibilité de choisir le compte si opérations
+
+				Dans la modale affichage, section tableau, proposer d'afficher/Masquer:
+				Fin de tableau Total/x€/mois/%
+				Tableau bleu (solde) Ligne du solde mensuel cumulé / Gain annuel
+				les sub-catégorie
+				mais aussi de fusionner les tableaux recettes et dépenses
+
+		Anomalies
+			Pouvoir annuler les actions d'une journée entière
+			Option de correction anomalies -> changer vers une date future
+
+		Soldes
+			Texte au dessus des soldes -> mois en cours xxx
+
 		Tableau
-			Limiter le nombre de character, si dépasse => ... + reste en prop title
-			Pop-up de suggestion de correction d'erreur
-			Entité operation rajouter date_action_utilisateur pour historique
+			(+) et (-) remplacer par dépenses et recettes
+			Si affichage pas année entière, adapter les colonnes total, x€/mois et %
+			Si colonne a venir vide et dans le passé, retirer la colonne
+			replier une catégorie, replier toutes les catégories
+			mettre une balises sur ligne totaux dépenses/recette pour qu'elle reste en bas de page sans dépasser la haut du tableau
+			Catégories.sous catégories
+				Limiter le nombre de character, si dépasse => ... + reste en prop title
+			
 			Si ajout ope fait, ne pas proposer > date du jour
 			Si ajout ope a venir, ne pas proposer < date du jour
-			Glisser déposer les catégorie pour les changer de pos
+			glisser-déposer -> uniquement déposer avant, rajouter aussi déposer après
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création
@@ -58,10 +66,25 @@ Compte
 			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
 
 		Modal Category / Sub-cat
+			Zone d'édition jaune
 			Si pas de sous catégorie, en créer une avec le nom de la catégorie
 
-	Add
+		Style
+			Améliorer le contour des fond avec bordures
+
+		Paramètre
+			chiffre découvert
+			monnaie utilisées
+
+	Extra
 		Proposer des observateurs pour un compte
+
+	Fixtures
+		Cré moi un compte "Liquidités"
+
+	Page d'aide à la création de budget
+		Suggerer sort by alpha/int
+
 
 Tableau de bord
 	- Faire Crédit
