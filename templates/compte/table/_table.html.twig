@@ -118,6 +118,7 @@
 
 					{# CAT #}
 					{% if loop.first %}
+						{% set category_label_limit = category.subcategories|length >= 2 ? 36 : 18 %}
 						<td
 							data-target="#modalCategory"
 							data-toggle="modal"
@@ -129,7 +130,7 @@
 							rowspan='{{ category.subcategories|length }}'
 						>
 							<span class="category-label-content">
-								<span class="category-label-text">{{ category.libelle|capitalize }}</span>
+								<span class="category-label-text" title="{{ category.libelle|capitalize }}">{{ category.libelle|capitalize|smart_truncate(category_label_limit) }}</span>
 								{% if combined_compte %}<span class="account-source-badge" title="Compte source">{{ category.compte.libelle }}</span>{% endif %}
 								{% if not combined_compte and displayed_categories|length > 1 %}
 									<button
@@ -162,7 +163,7 @@
 						class='td_subcategory_libelle'
 					>
 						<span class="subcategory-label-content">
-							<span class="subcategory-label-text">{{ subcategory.libelle|capitalize }}</span>
+							<span class="subcategory-label-text" title="{{ subcategory.libelle|capitalize }}">{{ subcategory.libelle|capitalize|smart_truncate(22) }}</span>
 							{% if not combined_compte and category.subcategories|length > 1 %}
 								<button
 									type="button"

@@ -52,6 +52,26 @@
 								</div>
 								<div class="anomaly-solution">
 									<span class="anomaly-solution-label">Choisir une correction</span>
+									<div class="anomaly-postpone">
+										<label>
+											<input
+												type="date"
+												class="anomaly-postpone-date"
+												aria-label="Nouvelle date"
+												min="{{ 'tomorrow'|date('Y-m-d') }}"
+											>
+										</label>
+										<button
+											type="button"
+											class="resolve-anomaly-button resolve-anomaly-postpone"
+											data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+											data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+											data-resolution="postpone"
+										>
+											<i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+											<span>Reporter</span>
+										</button>
+									</div>
 									<button
 										type="button"
 										class="resolve-anomaly-button resolve-anomaly-realize"

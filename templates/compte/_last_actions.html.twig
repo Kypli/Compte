@@ -1,6 +1,7 @@
 {% set action_labels = {'create': 'Création', 'edit': 'Modification', 'del': 'Suppression', 'move': 'Déplacement'} %}
 {% set action_count = lastActions|length %}
 {% set latest = lastActions|first %}
+{% set can_undo_today_actions = canUndoTodayActions|default(false) %}
 
 <div class="last-actions{{ latest ? '' : ' is-empty' }}">
 	{% if latest %}
@@ -40,8 +41,22 @@
 	{% if latest %}
 		<div id="lastActionsPopover" class="last-actions-popover" role="tooltip">
 			<div class="last-actions-popover-title">
-				<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-				<span>15 dernières actions</span>
+				<span class="last-actions-popover-heading">
+					<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+					<span>15 dernières actions</span>
+				</span>
+				<button
+					type="button"
+					class="undo-today-actions"
+					data-url="{{ path('compte_operation_actions_today_undo', {'id': compte.id}) }}"
+					data-token="{{ csrf_token('undo-today-operation-actions' ~ compte.id) }}"
+					aria-label="Annuler toutes les actions d'aujourd'hui"
+					title="Annuler toutes les actions d'aujourd'hui"
+					{{ can_undo_today_actions ? '' : ' disabled' }}
+				>
+					<i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>
+					<span>Annuler aujourd'hui</span>
+				</button>
 			</div>
 			<ol class="last-actions-list">
 				{% for action in lastActions %}

@@ -116,6 +116,7 @@
 				</div>
 				<div class="account-title">
 					{% include('partiel/_h1.html.twig') with {'text': combined_compte ? compte.libelle ~ ' + ' ~ combined_compte.libelle : compte.libelle} %}
+					<span class="account-current-month" title="Mois en cours">{{ months[current_month]|capitalize }} {{ current_year }}</span>
 					{% if combined_compte %}
 						<span class="combined-view-caption">Vue combinée, données conservées dans leurs comptes respectifs</span>
 					{% endif %}

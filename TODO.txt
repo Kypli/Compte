@@ -17,30 +17,18 @@ Compte
 		Légendes
   		Tutoriel
 		Année
+		Anomalies
 
 		Affichage
 			Affiche des colonnes
 			Format Monétaires
 			Monnaie utilisée
 			Tableau
-				Fusionner les données de plusieurs compte (liquide, compte 1....), possibilité de choisir le compte si opérations
-
-				Dans la modale affichage, section tableau, proposer d'afficher/Masquer:
-				Fin de tableau Total/x€/mois/%
-				Tableau bleu (solde) Ligne du solde mensuel cumulé / Gain annuel
-				les sub-catégorie
-				mais aussi de fusionner les tableaux recettes et dépenses
-
-		Anomalies
-			Pouvoir annuler les actions d'une journée entière
-			Option de correction anomalies -> changer vers une date future
 
 		Soldes
 			Texte au dessus des soldes -> mois en cours xxx
 
 		Tableau
-			(+) et (-) remplacer par dépenses et recettes
-			Si affichage pas année entière, adapter les colonnes total, x€/mois et %
 			Si colonne a venir vide et dans le passé, retirer la colonne
 			replier une catégorie, replier toutes les catégories
 			mettre une balises sur ligne totaux dépenses/recette pour qu'elle reste en bas de page sans dépasser la haut du tableau

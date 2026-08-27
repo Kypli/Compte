@@ -257,6 +257,7 @@ class CompteController extends AbstractController
 			'gains' => $this->gains($operations_pos, $operations_neg, $display_month_years),
 
 			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()), // Last actions
+			'canUndoTodayActions' => $this->oar->hasUndoableActionsForCompteToday($compte->getId(), new \DateTimeImmutable('today')),
 			'anomalies' => $anomalies,
 			'account_preference_form' => $preferenceForm->createView(),
 			'account_settings_form' => $accountSettingsForm->createView(),
@@ -359,6 +360,7 @@ class CompteController extends AbstractController
 		$render_last_actions = $this->render('compte/_last_actions.html.twig', [
 			'compte' => $compte,
 			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()),
+			'canUndoTodayActions' => $this->oar->hasUndoableActionsForCompteToday($compte->getId(), new \DateTimeImmutable('today')),
 			'money_display_format' => $moneyDisplayFormat,
 			'money_currency' => $moneyCurrency,
 			'money_trim_zeros' => $moneyTrimZeros,
@@ -401,8 +403,20 @@ class CompteController extends AbstractController
 			return new JsonResponse(['resolved' => false, 'error' => "Cette operation n'est plus une anomalie."], Response::HTTP_CONFLICT);
 		}
 		$resolution = (string) $request->request->get('resolution');
-		if (!in_array($resolution, ['realize', 'delete'], true)){
+		if (!in_array($resolution, ['realize', 'delete', 'postpone'], true)){
 			return new JsonResponse(['resolved' => false, 'error' => 'Solution de correction invalide.'], Response::HTTP_BAD_REQUEST);
+		}
+
+		$futureDate = null;
+		if ('postpone' === $resolution){
+			$futureDateValue = (string) $request->request->get('future_date');
+			$futureDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $futureDateValue);
+			if (false === $futureDate || $futureDate->format('Y-m-d') !== $futureDateValue){
+				return new JsonResponse(['resolved' => false, 'error' => 'Date future invalide.'], Response::HTTP_BAD_REQUEST);
+			}
+			if ($futureDate < new \DateTimeImmutable('tomorrow')){
+				return new JsonResponse(['resolved' => false, 'error' => 'La nouvelle date doit etre future.'], Response::HTTP_CONFLICT);
+			}
 		}
 
 		$beforeSnapshot = $this->createOperationSnapshot($operation);
@@ -412,6 +426,7 @@ class CompteController extends AbstractController
 		$operation
 			->setAnticipe('realize' === $resolution ? false : $operation->isAnticipe())
 			->setActif('delete' !== $resolution)
+			->setDate(null !== $futureDate ? \DateTime::createFromImmutable($futureDate) : $operation->getDate())
 			->setLastAction($actionType)
 			->setDateLastAction(clone $actionDate)
 		;
@@ -1303,6 +1318,39 @@ class CompteController extends AbstractController
 		if (!$operationAction->isUndoable()){
 			return new JsonResponse(['undo' => false, 'error' => "Cette action n'est pas annulable."], Response::HTTP_CONFLICT);
 		}
+
+		return new JsonResponse($this->applyOperationActionUndo($compte, $operationAction));
+	}
+
+	#[Route('/{id}/operation/actions/today/undo', name: '_operation_actions_today_undo', methods: ['POST'])]
+	public function undoTodayOperationActions(Compte $compte, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return new JsonResponse(['undo' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('undo-today-operation-actions'.$compte->getId(), (string) $request->request->get('_token'))){
+			return new JsonResponse(['undo' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$undone = 0;
+		foreach ($this->oar->undoableActionsForCompteToday($compte->getId(), new \DateTimeImmutable('today')) as $operationAction){
+			if (!$operationAction->isUndoable() || $operationAction->isCancelled()){
+				continue;
+			}
+
+			$result = $this->applyOperationActionUndo($compte, $operationAction);
+			if (true === ($result['undo'] ?? false)){
+				++$undone;
+			}
+		}
+
+		return new JsonResponse(['undo' => true, 'undone' => $undone]);
+	}
+
+	private function applyOperationActionUndo(Compte $compte, OperationAction $operationAction): array
+	{
 		if ($operationAction->isSubCategoryMove()){
 			return $this->undoSubCategoryMoveAction($compte, $operationAction);
 		}
@@ -1320,7 +1368,7 @@ class CompteController extends AbstractController
 			$this->or->add($operation);
 			$this->oar->add($operationAction, true);
 
-			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+			return ['undo' => true, 'undoReverted' => true];
 		}
 
 		$beforeUndo = $this->createOperationSnapshot($operation);
@@ -1342,7 +1390,7 @@ class CompteController extends AbstractController
 		$this->or->add($operation);
 		$this->oar->add($operationAction, true);
 
-		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+		return ['undo' => true, 'undoReverted' => false];
 	}
 
 	private function recordOperationAction(
@@ -1362,7 +1410,7 @@ class CompteController extends AbstractController
 		$this->oar->add($action, true);
 	}
 
-	private function undoCategoryMoveAction(Compte $compte, OperationAction $action): JsonResponse
+	private function undoCategoryMoveAction(Compte $compte, OperationAction $action): array
 	{
 		$category = $action->getCategory();
 		$categories = $this->catr->findOrderedForBudget(
@@ -1380,7 +1428,7 @@ class CompteController extends AbstractController
 			;
 			$this->oar->add($action, true);
 
-			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+			return ['undo' => true, 'undoReverted' => true];
 		}
 
 		$this->restoreCategoryOrderSnapshot($compte, $action->getBeforeSnapshot());
@@ -1390,10 +1438,10 @@ class CompteController extends AbstractController
 		;
 		$this->oar->add($action, true);
 
-		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+		return ['undo' => true, 'undoReverted' => false];
 	}
 
-	private function undoSubCategoryMoveAction(Compte $compte, OperationAction $action): JsonResponse
+	private function undoSubCategoryMoveAction(Compte $compte, OperationAction $action): array
 	{
 		$category = $action->getCategory();
 		$subCategories = $this->scr->findOrderedForCategory($category->getId());
@@ -1407,7 +1455,7 @@ class CompteController extends AbstractController
 			;
 			$this->oar->add($action, true);
 
-			return new JsonResponse(['undo' => true, 'undoReverted' => true]);
+			return ['undo' => true, 'undoReverted' => true];
 		}
 
 		$this->restoreSubCategoryOrderSnapshot($compte, $action->getBeforeSnapshot());
@@ -1417,7 +1465,7 @@ class CompteController extends AbstractController
 		;
 		$this->oar->add($action, true);
 
-		return new JsonResponse(['undo' => true, 'undoReverted' => false]);
+		return ['undo' => true, 'undoReverted' => false];
 	}
 
 	/**

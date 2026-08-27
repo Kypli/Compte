@@ -758,6 +758,7 @@ $(document).ready(function(){
 	let accountTourOriginalLastActionsContent = null
 	let accountTourLastActionsDemoActive = false
 	let accountTourModalToken = 0
+	let accountTourBudgetMenuOpened = false
 
 	const setAccountPreferenceStatus = function(label, state = 'saved'){
 		if (!accountPreferencesStatus) {
@@ -1055,9 +1056,63 @@ $(document).ready(function(){
 
 	const accountTourDefinitions = [
 		{
+			selector: '.account-title-side-buttons',
+			title: 'Actions du compte',
+			html: "<p>Ces boutons pilotent le compte affiché.</p><ul><li><strong>Budgets</strong> change de compte quand plusieurs budgets existent.</li><li><strong>Paramètres</strong> modifie le nom, le découvert et les réglages du compte.</li><li><strong>Affichage</strong> ouvre les options du tableau, des mois, couleurs et comptes combinés.</li></ul>"
+		},
+		{
+			selector: '#budgetSwitcherButton',
+			highlightSelector: '#budgetSwitcherButton, #budgetSwitcherMenu',
+			title: 'Changer de budget',
+			text: "Quand plusieurs comptes sont disponibles, ce menu permet de passer rapidement d'un budget à l'autre en conservant la période affichée.",
+			before: () => openBudgetSwitcherForTour(),
+			modal: 'budgetSwitcher',
+			popoverPlacement: 'right'
+		},
+		{
+			selector: '#modalAccountSettings .modal-content',
+			highlightSelector: '#accountParametersButton, #modalAccountSettings .modal-content',
+			title: 'Paramètres du compte',
+			text: "Cette fenêtre sert à modifier les informations du compte et à gérer les actions sensibles liées au compte.",
+			before: () => openAccountSettingsModalForTour(),
+			modal: 'accountSettings'
+		},
+		{
+			selector: '#modalAccountDisplay .modal-content',
+			highlightSelector: '#accountDisplayButton, #modalAccountDisplay .modal-content',
+			title: "Options d'affichage",
+			html: "<p>Cette fenêtre regroupe les réglages de lecture du tableau.</p><ul><li>Choisir la période et les colonnes visibles.</li><li>Sélectionner les mois détaillés.</li><li>Ajuster couleurs, formats monétaires et options de tableau.</li></ul>",
+			before: () => openAccountDisplayModalForTour('display'),
+			modal: 'accountDisplay'
+		},
+		{
+			selector: '#accountDisplayPanelDetail',
+			highlightSelector: '#accountDisplayButton, #accountDisplayPanelDetail',
+			title: 'Onglet Mois',
+			html: "<p>Cet onglet choisit les mois détaillés affichés dans le tableau.</p><ul><li>Tu peux tout cocher d'un coup.</li><li>Tu peux aussi garder seulement les mois utiles pour alléger la lecture.</li></ul>",
+			before: () => openAccountDisplayModalForTour('detail'),
+			modal: 'accountDisplay'
+		},
+		{
+			selector: '#accountDisplayPanelPreferences',
+			highlightSelector: '#accountDisplayButton, #accountDisplayPanelPreferences',
+			title: 'Onglet Couleur',
+			html: "<p>Cet onglet règle le confort visuel du compte.</p><ul><li>Changer le fond de page.</li><li>Choisir la palette des tableaux.</li><li>Ces réglages sont enregistrés automatiquement.</li></ul>",
+			before: () => openAccountDisplayModalForTour('preferences'),
+			modal: 'accountDisplay'
+		},
+		{
+			selector: '#accountDisplayPanelAccounts',
+			highlightSelector: '#accountDisplayButton, #accountDisplayPanelAccounts',
+			title: 'Combiner les comptes',
+			html: "<p>L'onglet Combiner affiche deux comptes ensemble sans déplacer les opérations.</p><ul><li>Chaque ligne reste rattachée à son compte source.</li><li>Un compte déjà choisi peut être désélectionné en recliquant dessus.</li><li>Les tableaux peuvent aussi être fusionnés en un seul tableau entrées/dépenses via les préférences.</li></ul>",
+			before: () => openAccountDisplayModalForTour('accounts'),
+			modal: 'accountDisplay'
+		},
+		{
 			selector: '.account-header-action-buttons',
-			title: 'Aide et réglages',
-			text: "Les préférences règlent l'apparence, la légende explique les codes visuels, et le bouton Tutoriel relance cette aide quand tu veux."
+			title: 'Aide et repères',
+			text: "La légende explique les codes visuels, le bouton Tutoriel relance cet accompagnement, et les alertes gardent les anomalies visibles."
 		},
 		{
 			selector: '.balance-summary',
@@ -1072,7 +1127,7 @@ $(document).ready(function(){
 		{
 			selector: '#modalAnomalies .modal-content',
 			title: 'Fenêtre des anomalies',
-			html: "<p>La fenêtre détaille chaque opération prévue dont la date est dépassée.</p><ul><li>Valider l'opération la passe en montant réel.</li><li>Supprimer l'opération retire une prévision qui n'est plus utile.</li></ul>",
+			html: "<p>La fenêtre détaille chaque opération prévue dont la date est dépassée.</p><ul><li>Valider l'opération la passe en montant réel.</li><li>Reporter change sa date vers une date future.</li><li>Supprimer l'opération retire une prévision qui n'est plus utile.</li></ul>",
 			before: () => openAnomaliesModalForTour(),
 			modal: 'anomalies'
 		},
@@ -1083,25 +1138,26 @@ $(document).ready(function(){
 		},
 		{
 			selector: '#lastActionsPopover',
+			highlightSelector: '#last-actions-div .last-action-trigger, #lastActionsPopover',
 			title: 'Historique des actions',
-			html: "<p>Ce panneau liste les dernières modifications du compte.</p><ul><li>Chaque ligne précise le type d'action, la zone concernée, la date et le montant.</li><li>Le bouton de retour permet d'annuler ou de restaurer une action récente.</li></ul>",
+			html: "<p>Ce panneau liste les dernières modifications du compte.</p><ul><li>Chaque ligne précise le type d'action, la zone concernée, la date et le montant.</li><li>Le bouton de retour permet d'annuler ou de restaurer une action récente.</li><li>Le bouton Annuler aujourd'hui annule toutes les actions non annulées de la journée.</li></ul>",
 			before: () => openLastActionsPopoverForTour(),
 			modal: 'lastActions'
 		},
 		{
 			selector: '.account-view-controls',
 			title: 'Période et affichage',
-			text: "Change l'année affichée, puis choisis la largeur de lecture: année complète, période compacte ou mois courant."
+			text: "Le mois en cours est rappelé sous le titre de page. Change l'année affichée, puis choisis la largeur de lecture: année complète, période compacte ou mois courant."
 		},
 		{
-			selector: '.bck_pos .compteTable',
-			title: 'Tableau des recettes',
-			text: "Ce tableau regroupe les recettes par catégorie, sous-catégorie et mois. Les totaux permettent de suivre ce qui rentre sur la période."
+			selector: '.account-merged-table, .bck_pos .compteTable',
+			title: 'Tableau principal',
+			text: "Le tableau regroupe les opérations par catégorie, sous-catégorie et mois. Selon les préférences, recettes et dépenses peuvent être séparées ou fusionnées dans un seul tableau."
 		},
 		{
 			selector: '.bck_neg .compteTable',
 			title: 'Tableau des dépenses',
-			text: "Ce tableau regroupe les dépenses. Les montants négatifs et anticipés aident à préparer les sorties avant qu'elles soient réellement passées."
+			text: "Quand les tableaux ne sont pas fusionnés, cette zone regroupe les dépenses. Les montants négatifs et anticipés aident à préparer les sorties avant qu'elles soient réellement passées."
 		},
 		{
 			selector: '.account-gains-section',
@@ -1121,7 +1177,7 @@ $(document).ready(function(){
 		{
 			selector: accountTourCategoryCellSelector,
 			title: 'Catégories et sous-catégories',
-			text: "Les cellules de libellé ouvrent la gestion des catégories. Elles servent à structurer le budget avant de saisir les opérations mensuelles."
+			text: "Les cellules de libellé ouvrent la gestion des catégories. Les libellés longs sont raccourcis dans le tableau et restent disponibles au survol."
 		},
 		{
 			selector: '#modalCategory .modal-content',
@@ -1256,6 +1312,24 @@ $(document).ready(function(){
 		hideModalForTour(document.getElementById('modalAnomalies'))
 	}
 
+	const closeBudgetSwitcherForTour = function(){
+		const menu = document.getElementById('budgetSwitcherMenu')
+		const button = document.getElementById('budgetSwitcherButton')
+		if (menu) {
+			menu.hidden = true
+		}
+		button?.setAttribute('aria-expanded', 'false')
+		accountTourBudgetMenuOpened = false
+	}
+
+	const closeAccountSettingsModalForTour = function(){
+		hideModalForTour(document.getElementById('modalAccountSettings'))
+	}
+
+	const closeAccountDisplayModalForTour = function(){
+		hideModalForTour(document.getElementById('modalAccountDisplay'))
+	}
+
 	const restoreLastActionsAfterTour = function(){
 		const lastActionsContainer = document.getElementById('last-actions-div')
 		lastActionsContainer?.classList.remove('account-tour-last-actions-host')
@@ -1275,6 +1349,15 @@ $(document).ready(function(){
 	}
 
 	const closeTourModals = function(keepModal = null){
+		if (keepModal !== 'budgetSwitcher') {
+			closeBudgetSwitcherForTour()
+		}
+		if (keepModal !== 'accountSettings') {
+			closeAccountSettingsModalForTour()
+		}
+		if (keepModal !== 'accountDisplay') {
+			closeAccountDisplayModalForTour()
+		}
 		if (keepModal !== 'operation') {
 			closeOperationModalForTour()
 		}
@@ -1287,6 +1370,30 @@ $(document).ready(function(){
 		if (keepModal !== 'lastActions') {
 			closeLastActionsPopoverForTour()
 		}
+	}
+
+	const openBudgetSwitcherForTour = async function(){
+		const menu = document.getElementById('budgetSwitcherMenu')
+		const button = document.getElementById('budgetSwitcherButton')
+		if (!menu || !button) {
+			return
+		}
+
+		menu.hidden = false
+		button.setAttribute('aria-expanded', 'true')
+		accountTourBudgetMenuOpened = true
+		await waitForTourElement('#budgetSwitcherMenu', 1200)
+	}
+
+	const openAccountSettingsModalForTour = async function(){
+		await showModalForTour(document.getElementById('modalAccountSettings'), '#modalAccountSettings .modal-content')
+	}
+
+	const openAccountDisplayModalForTour = async function(tab = 'display'){
+		setAccountDisplayTab(tab)
+		await showModalForTour(document.getElementById('modalAccountDisplay'), '#modalAccountDisplay .modal-content')
+		setAccountDisplayTab(tab)
+		await waitForTourElement(`#modalAccountDisplay [data-account-display-panel="${tab}"]`, 1200)
 	}
 
 	const openLastActionsPopoverForTour = async function(){
@@ -1432,8 +1539,14 @@ $(document).ready(function(){
 				</div>
 				<div id="lastActionsPopover" class="last-actions-popover" role="tooltip">
 					<div class="last-actions-popover-title">
-						<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-						<span>15 dernières actions</span>
+						<span class="last-actions-popover-heading">
+							<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+							<span>15 dernières actions</span>
+						</span>
+						<button type="button" class="undo-today-actions" data-tour-demo="true" title="Annuler toutes les actions non annulées d'aujourd'hui">
+							<i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>
+							<span>Annuler aujourd'hui</span>
+						</button>
 					</div>
 					<ol class="last-actions-list">
 						<li class="last-actions-item">
@@ -1548,12 +1661,43 @@ $(document).ready(function(){
 		accountTourSteps = []
 		window.removeEventListener('resize', positionAccountTourPopover)
 		window.removeEventListener('scroll', positionAccountTourPopover, true)
-		document.removeEventListener('keydown', stopAccountTourOnEscape)
+		document.removeEventListener('keydown', handleAccountTourKeydown)
 	}
 
-	function stopAccountTourOnEscape(event){
+	const isAccountTourKeyboardShortcutBlocked = function(target){
+		return target?.closest?.('input, textarea, select, [contenteditable="true"]')
+	}
+
+	function handleAccountTourKeydown(event){
 		if ('Escape' === event.key) {
 			stopAccountTour()
+			return
+		}
+
+		if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || isAccountTourKeyboardShortcutBlocked(event.target)) {
+			return
+		}
+
+		if ('ArrowLeft' === event.key) {
+			if (accountTourIndex === 0) {
+				return
+			}
+
+			event.preventDefault()
+			accountTourIndex--
+			renderAccountTourStep(-1)
+			return
+		}
+
+		if ('ArrowRight' === event.key) {
+			event.preventDefault()
+			if (accountTourIndex >= accountTourSteps.length - 1) {
+				stopAccountTour()
+				return
+			}
+
+			accountTourIndex++
+			renderAccountTourStep(1)
 		}
 	}
 
@@ -1565,6 +1709,7 @@ $(document).ready(function(){
 		const rect = accountTourTarget.getBoundingClientRect()
 		const gap = 14
 		const activeTourModal = accountTourTarget.closest('.modal.account-tour-modal-active')
+		const currentStep = accountTourSteps[accountTourIndex] || {}
 		const popoverWidth = activeTourModal ? Math.min(340, window.innerWidth - 24) : Math.min(380, window.innerWidth - 24)
 		const measuredHeight = accountTourPopover.offsetHeight || 220
 		const clamp = function(value, min, max){
@@ -1595,6 +1740,15 @@ $(document).ready(function(){
 				} else {
 					top = window.innerHeight - measuredHeight - 12
 				}
+			}
+		} else if (currentStep.popoverPlacement === 'right') {
+			const centeredTop = rect.top + (rect.height / 2) - (measuredHeight / 2)
+			if (window.innerWidth - rect.right >= popoverWidth + gap + 12) {
+				left = rect.right + gap
+				top = centeredTop
+			} else if (rect.left >= popoverWidth + gap + 12) {
+				left = rect.left - popoverWidth - gap
+				top = centeredTop
 			}
 		} else if (top + measuredHeight > window.innerHeight - 12) {
 			top = rect.top - measuredHeight - gap
@@ -1722,7 +1876,7 @@ $(document).ready(function(){
 		renderAccountTourStep(1)
 		window.addEventListener('resize', positionAccountTourPopover)
 		window.addEventListener('scroll', positionAccountTourPopover, true)
-		document.addEventListener('keydown', stopAccountTourOnEscape)
+		document.addEventListener('keydown', handleAccountTourKeydown)
 	}
 
 	if (tutorialButton) {
@@ -1767,6 +1921,37 @@ $(document).ready(function(){
 				button.focus()
 			}
 		})
+	}
+	const accountCombineForm = document.querySelector('.account-combine-form')
+	if (accountCombineForm) {
+		const syncSelectedCombinedAccount = function(){
+			const checkedAccount = accountCombineForm.querySelector('input[name="avec"]:checked')
+			accountCombineForm.dataset.selectedAccount = checkedAccount?.value || ''
+			accountCombineForm.querySelectorAll('.combine-account-option').forEach(option => {
+				const input = option.querySelector('input[name="avec"]')
+				option.classList.toggle('is-selected', input?.checked || false)
+			})
+		}
+
+		syncSelectedCombinedAccount()
+		accountCombineForm.addEventListener('click', function(event){
+			const option = event.target.closest('.combine-account-option')
+			if (!option || !accountCombineForm.contains(option)) {
+				return
+			}
+
+			const input = option.querySelector('input[name="avec"]')
+			if (!input) {
+				return
+			}
+
+			if (accountCombineForm.dataset.selectedAccount === input.value) {
+				event.preventDefault()
+				input.checked = false
+				syncSelectedCombinedAccount()
+			}
+		})
+		accountCombineForm.addEventListener('change', syncSelectedCombinedAccount)
 	}
 	const accountSettingsModal = document.getElementById('modalAccountSettings')
 	if (accountSettingsModal) {
@@ -2227,6 +2412,37 @@ $(document).ready(function(){
 		})
 	})
 
+	$('body').on('click', '.undo-today-actions', function(){
+		const button = $(this)
+
+		if (button.data('tour-demo')) {
+			return
+		}
+
+		if (!confirm("Annuler toutes les actions non annulées d'aujourd'hui ?")) {
+			return
+		}
+
+		button.prop('disabled', true)
+		spinner(true)
+		$.ajax({
+			type: 'POST',
+			url: button.data('url'),
+			data: {
+				_token: button.data('token')
+			},
+			timeout: 20000,
+			success: function(){
+				updateTables()
+			},
+			error: function(error){
+				button.prop('disabled', false)
+				spinner(false)
+				console.log("Erreur lors de l'annulation des actions du jour: " + error)
+			}
+		})
+	})
+
 	$('body').on('click', '.last-action-trigger', function(event){
 		event.preventDefault()
 		const container = this.closest('.last-actions')
@@ -2419,16 +2635,29 @@ $(document).ready(function(){
 
 	$('body').on('click', '.resolve-anomaly-button', function(){
 		const button = $(this)
+		const data = {
+			_token: button.data('token'),
+			resolution: button.data('resolution')
+		}
+
+		if (data.resolution === 'postpone') {
+			const dateInput = button.closest('.anomaly-postpone').find('.anomaly-postpone-date')
+			const futureDate = dateInput.val()
+			if (!futureDate) {
+				dateInput.trigger('focus')
+				return
+			}
+
+			data.future_date = futureDate
+		}
+
 		button.prop('disabled', true)
 		spinner(true)
 
 		$.ajax({
 			type: 'POST',
 			url: button.data('url'),
-			data: {
-				_token: button.data('token'),
-				resolution: button.data('resolution')
-			},
+			data: data,
 			timeout: 15000,
 			success: function(){
 				updateTables()

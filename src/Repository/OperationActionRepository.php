@@ -61,6 +61,34 @@ class OperationActionRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return OperationAction[]
+     */
+    public function undoableActionsForCompteToday(int $compteId, \DateTimeInterface $day): array
+    {
+        $start = (new \DateTimeImmutable($day->format('Y-m-d')))->setTime(0, 0);
+        $end = $start->modify('+1 day');
+
+        return $this->accountQuery($compteId)
+            ->andWhere('action.cancelled = false')
+            ->andWhere('action.actionAt >= :start')
+            ->andWhere('action.actionAt < :end')
+            ->andWhere('(action.actionType = :createAction OR action.beforeSnapshot IS NOT NULL)')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->setParameter('createAction', 'create')
+            ->orderBy('action.actionAt', 'DESC')
+            ->addOrderBy('action.id', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function hasUndoableActionsForCompteToday(int $compteId, \DateTimeInterface $day): bool
+    {
+        return [] !== $this->undoableActionsForCompteToday($compteId, $day);
+    }
+
     public function findReusableAnomalyResolution(Operation $operation, string $resolution): ?OperationAction
     {
         $actionType = 'delete' === $resolution ? 'del' : 'edit';

@@ -829,6 +829,14 @@ body.account-background-grey {
 .account-title h1 {
 	margin: 0;
 }
+.account-current-month {
+	display: block;
+	margin-top: 4px;
+	color: #5F6B72;
+	font-size: 0.9rem;
+	font-weight: 700;
+	text-align: center;
+}
 .account-header-actions {
 	position: relative;
 	display: flex;
@@ -1539,6 +1547,32 @@ body.account-background-grey {
 	font-weight: 700;
 	text-transform: uppercase;
 }
+.anomaly-postpone {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 6px;
+	align-items: end;
+}
+.anomaly-postpone label {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 3px;
+	margin: 0;
+	color: #68737D;
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.anomaly-postpone-date {
+	min-height: 32px;
+	padding: 4px 7px;
+	color: #26323A;
+	font-size: 12px;
+	border: 1px solid #B8C1C8;
+	border-radius: 4px;
+	background: #FFFFFF;
+}
 .resolve-anomaly-button {
 	display: inline-flex;
 	min-height: 32px;
@@ -1559,6 +1593,17 @@ body.account-background-grey {
 	border-color: #28734C;
 	background: #28734C;
 	outline: 0;
+}
+.resolve-anomaly-postpone {
+	color: #78530E;
+	border-color: #C8A96D;
+	background: #FFF8E8;
+}
+.resolve-anomaly-postpone:hover,
+.resolve-anomaly-postpone:focus {
+	color: #FFFFFF;
+	border-color: #9A6B12;
+	background: #9A6B12;
 }
 .resolve-anomaly-delete {
 	color: #963434;
@@ -1806,8 +1851,46 @@ body.account-background-grey {
 	font-weight: 700;
 	border-bottom: 1px solid #D7DDE1;
 }
-.last-actions-popover-title i {
+.last-actions-popover-heading {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+.last-actions-popover-heading i {
 	color: #28734C;
+}
+.undo-today-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 32px;
+	margin-left: auto;
+	padding: 5px 9px;
+	color: #A83232;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.1;
+	cursor: pointer;
+	border: 1px solid #B9A2A2;
+	border-radius: 5px;
+	background: #FFF7F7;
+}
+.undo-today-actions:hover {
+	color: #FFFFFF;
+	border-color: #A83232;
+	background: #A83232;
+}
+.undo-today-actions:focus {
+	outline: 3px solid rgba(168, 50, 50, 0.22);
+	outline-offset: 1px;
+}
+.undo-today-actions:disabled {
+	color: #8B969E;
+	cursor: not-allowed;
+	border-color: #C4CACF;
+	background: #EDF0F2;
 }
 .last-actions-list {
 	max-height: 400px;
@@ -2997,6 +3080,14 @@ body.account-background-grey {
 	.last-actions-item {
 		grid-template-columns: 76px minmax(0, 1fr) 32px;
 	}
+	.undo-today-actions {
+		width: 32px;
+		min-width: 32px;
+		padding: 0;
+	}
+	.undo-today-actions span {
+		display: none;
+	}
 	.last-actions-item time {
 		display: none;
 	}
@@ -3086,7 +3177,7 @@ table {
 }
 .category-label-text {
 	min-width: 0;
-	overflow-wrap: anywhere;
+	overflow-wrap: normal;
 }
 .category-drag-handle {
 	display: inline-flex;
@@ -3142,7 +3233,7 @@ table {
 }
 .subcategory-label-text {
 	min-width: 0;
-	overflow-wrap: anywhere;
+	overflow-wrap: normal;
 }
 .category-drop-end {
 	position: relative;

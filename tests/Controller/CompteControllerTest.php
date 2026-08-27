@@ -518,6 +518,7 @@ class CompteControllerTest extends WebTestCase
 		self::assertSelectorTextContains('#modalAnomalies .anomaly-item', 'Date anticipée dépassée');
 		self::assertSelectorTextContains('#modalAnomalies .resolve-anomaly-realize', 'Marquer comme réalisée');
 		self::assertSelectorTextContains('#modalAnomalies .resolve-anomaly-delete', 'Supprimer la ligne');
+		self::assertSelectorTextContains('#modalAnomalies .resolve-anomaly-postpone', 'Reporter');
 		$button = $crawler->filter('#modalAnomalies .resolve-anomaly-realize')->first();
 
 		$this->client->xmlHttpRequest('POST', $button->attr('data-url'), [
@@ -620,6 +621,62 @@ class CompteControllerTest extends WebTestCase
 		$restoredOperation = $entityManager->find(Operation::class, $operationId);
 		self::assertTrue($restoredOperation->isActif());
 		self::assertTrue($restoredOperation->isAnticipe());
+	}
+
+	public function testOverdueAnticipatedOperationCanBePostponedToFutureDate(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$operation = $this->createOperation($this->positiveSubCategory, 45, true)
+			->setDate(new \DateTime('yesterday'))
+		;
+		$entityManager->persist($operation);
+		$entityManager->flush();
+		$operationId = $operation->getId();
+		$this->createdIds[Operation::class][] = $operationId;
+		$futureDate = (new \DateTimeImmutable('tomorrow'))->modify('+3 days');
+
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		$button = $crawler->filter('#modalAnomalies .resolve-anomaly-postpone')->first();
+		$this->client->xmlHttpRequest('POST', $button->attr('data-url'), [
+			'_token' => $button->attr('data-token'),
+			'resolution' => $button->attr('data-resolution'),
+			'future_date' => $futureDate->format('Y-m-d'),
+		]);
+
+		self::assertResponseIsSuccessful();
+		$response = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($response['resolved']);
+		self::assertSame('postpone', $response['resolution']);
+		$entityManager->clear();
+		$postponedOperation = $entityManager->find(Operation::class, $operationId);
+		self::assertNotNull($postponedOperation);
+		self::assertTrue($postponedOperation->isActif());
+		self::assertTrue($postponedOperation->isAnticipe());
+		self::assertSame($futureDate->format('Y-m-d'), $postponedOperation->getDate()->format('Y-m-d'));
+		self::assertSame('edit', $postponedOperation->getLastAction());
+	}
+
+	public function testAnomalyPostponeRejectsPastOrCurrentDate(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$operation = $this->createOperation($this->positiveSubCategory, 45, true)
+			->setDate(new \DateTime('yesterday'))
+		;
+		$entityManager->persist($operation);
+		$entityManager->flush();
+		$this->createdIds[Operation::class][] = $operation->getId();
+
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		$button = $crawler->filter('#modalAnomalies .resolve-anomaly-postpone')->first();
+		$this->client->xmlHttpRequest('POST', $button->attr('data-url'), [
+			'_token' => $button->attr('data-token'),
+			'resolution' => $button->attr('data-resolution'),
+			'future_date' => (new \DateTimeImmutable('today'))->format('Y-m-d'),
+		]);
+
+		self::assertResponseStatusCodeSame(409);
 	}
 
 	public function testMonthDisplayModesAlwaysIncludeCurrentMonth(): void
@@ -763,6 +820,40 @@ class CompteControllerTest extends WebTestCase
 
 		self::assertResponseIsSuccessful();
 		self::assertSelectorTextSame('.last-action-preview > .control-label', 'Dernière action');
+	}
+
+	public function testTodayActionsCanBeUndoneFromPopoverHeader(): void
+	{
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		$button = $crawler->filter('.last-actions-popover-title .undo-today-actions');
+
+		self::assertResponseIsSuccessful();
+		self::assertCount(1, $button);
+		self::assertNull($button->attr('disabled'));
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			$button->attr('data-url'),
+			['_token' => $button->attr('data-token')]
+		);
+
+		self::assertResponseIsSuccessful();
+		$response = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($response['undo']);
+		self::assertSame(2, $response['undone']);
+
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$entityManager->clear();
+		foreach ($this->createdIds[Operation::class] as $operationId){
+			$operation = $entityManager->find(Operation::class, $operationId);
+			self::assertNotNull($operation);
+			self::assertFalse($operation->isActif());
+			$action = $entityManager->getRepository(OperationAction::class)->findOneBy(['operation' => $operation]);
+			self::assertNotNull($action);
+			self::assertTrue($action->isCancelled());
+			self::assertNotNull($action->getUndoSnapshot());
+		}
 	}
 
 	public function testAnyCreatedOperationCanBeUndoneAndItsUndoCanBeReverted(): void
@@ -945,6 +1036,13 @@ class CompteControllerTest extends WebTestCase
 
 		$this->client->xmlHttpRequest(
 			'POST',
+			'/compte/'.$this->compte->getId().'/operation/actions/today/undo',
+			['_token' => 'invalid']
+		);
+		self::assertResponseStatusCodeSame(403);
+
+		$this->client->xmlHttpRequest(
+			'POST',
 			'/user/preference/'.$this->owner->getId().'/account-tutorial-seen',
 			['_token' => 'invalid']
 		);
@@ -993,6 +1091,9 @@ class CompteControllerTest extends WebTestCase
 		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/operation/action/1/undo');
 		self::assertResponseStatusCodeSame(403);
 
+		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/operation/actions/today/undo');
+		self::assertResponseStatusCodeSame(403);
+
 		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/anomaly/'.$this->createdIds[Operation::class][0].'/resolve');
 		self::assertResponseStatusCodeSame(403);
 
@@ -1030,6 +1131,9 @@ class CompteControllerTest extends WebTestCase
 		self::assertResponseStatusCodeSame(405);
 
 		$this->client->request('GET', '/compte/'.$this->compte->getId().'/operation/action/1/undo');
+		self::assertResponseStatusCodeSame(405);
+
+		$this->client->request('GET', '/compte/'.$this->compte->getId().'/operation/actions/today/undo');
 		self::assertResponseStatusCodeSame(405);
 
 		$this->client->request('GET', '/compte/'.$this->compte->getId().'/anomaly/1/resolve');
