@@ -633,6 +633,7 @@ class UserController extends AbstractController
 						'moneyTrimZeros' => $preferences->isMoneyTrimZeros(),
 						'moneyShowZeroDecimals' => $preferences->isMoneyShowZeroDecimals(),
 						'showEditableBorder' => $preferences->isShowEditableBorder(),
+						'anchorTableTotals' => $preferences->isAnchorTableTotals(),
 						'compteGenreShow' => $preferences->isCompteGenreShow(),
 						'showTableTotals' => $preferences->isShowTableTotals(),
 						'showTableMonthlyAverage' => $preferences->isShowTableMonthlyAverage(),

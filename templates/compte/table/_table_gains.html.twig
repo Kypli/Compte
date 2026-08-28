@@ -10,6 +10,13 @@
 {% for gain in gains %}
 	{% set revenuAnnuel = gain['cumule'] %}
 {% endfor %}
+{% if month_colspans is not defined %}
+	{% set month_colspans = {} %}
+	{% for month in visible_months %}
+		{% set month_key = 'm' ~ month %}
+		{% set month_colspans = month_colspans|merge({ (month_key): month in detail_months ? 2 : 1 }) %}
+	{% endfor %}
+{% endif %}
 
 {% set show_gain_grid = show_monthly_gain or show_balance_cumulative %}
 {% set annual_gain_compact = not show_monthly_gain or not show_balance_cumulative %}
@@ -27,8 +34,9 @@
 		{% for month in visible_months %}
 
 				{% set month_year = visible_month_years[month]|default(year) %}
-{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
-{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+{% set month_is_detailed = month in detail_months %}
+{% set month_is_collapsed = month not in detail_months %}
+			{% set month_colspan = month_colspans['m' ~ month]|default(1) %}
 			{% set done =
 				current_year > month_year or (current_year == month_year and month < current_month)
 					? 'done'
@@ -43,12 +51,12 @@
 			{% elseif gains[month] is defined %}
 				{% set number = gains[month]['gain'] %}
 
-				<th	colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+				<th	colspan='{{ month_colspan }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 				</th>
 
 			{% else %}
-				<th colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible total_month_full_pos {{ done }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
+				<th colspan='{{ month_colspan }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible total_month_full_pos {{ done }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
 			{% endif %}
 		{% endfor %}
 		{% if annual_gain_integrated %}
@@ -66,8 +74,9 @@
 			{% for month in visible_months %}
 
 				{% set month_year = visible_month_years[month]|default(year) %}
-{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
-{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+{% set month_is_detailed = month in detail_months %}
+{% set month_is_collapsed = month not in detail_months %}
+			{% set month_colspan = month_colspans['m' ~ month]|default(1) %}
 			{% set done =
 					current_year > month_year or (current_year == month_year and month < current_month)
 						? 'done'
@@ -82,12 +91,12 @@
 			{% elseif gains[month] is defined %}
 				{% set number = gains[month]['cumule'] %}
 
-				<th colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
+				<th colspan='{{ month_colspan }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible centerHor {{ done }} {{ number < 0 ? 'total_month_full_neg' : 'total_month_full_pos' }}">
 					{{ number|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 				</th>
 
 			{% else %}
-				<th colspan='{{ month_is_detailed ? 2 : 1 }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible centerHor {{ done }} total_month_full_pos">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
+				<th colspan='{{ month_colspan }}' data-month="{{ month }}" data-year="{{ month_year }}" class="month-cell-span month-visible centerHor {{ done }} total_month_full_pos">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</th>
 			{% endif %}
 			{% endfor %}
 		{% if annual_gain_integrated %}

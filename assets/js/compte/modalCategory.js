@@ -1,5 +1,6 @@
 // JS IMPORT
 import { updateTables } from './compte.js';
+import { notifySiteUpdate } from '../service/siteSync.js';
 
 // CSS
 import '../../styles/compte/modalCategory.css';
@@ -698,6 +699,7 @@ $(document).ready(function(){
 			success: function(response){
 				if (response.save == true){
 					console.log('ok')
+					notifySiteUpdate({ type: 'compte-category-deleted' })
 				}
 				updateTables()
 			},
@@ -831,6 +833,7 @@ $(document).ready(function(){
 			success: function(response){
 				if (response.save == true){
 					console.log('ok')
+					notifySiteUpdate({ type: 'compte-category-saved' })
 					updateTables()
 				} else {
 					showCategoryError(response.error)

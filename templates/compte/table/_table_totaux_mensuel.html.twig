@@ -1,28 +1,28 @@
 {# EMPTY TR #}
+{% set account_month_colspan = visible_months|reduce((span, month) => span + (month_colspans['m' ~ month]|default(1)), 0) %}
 <tr class="collabo">
 	<td
 		colspan="{{ label_colspan }}"
-		class="col_start_middle bck_{{ sign }} category-drop-end"
-		data-category-drop-end="true"
+		class="col_start_middle bck_{{ sign }}"
 		tabindex="-1"
-	>
-		<span class="category-drop-end-label">Dernière position</span>
-	</td>
-	<td colspan="{{ month_colspan }}" class="bck_{{ sign }}"></td>
-	{% if table_summary_colspan > 0 %}<td colspan="{{ table_summary_colspan }}" class="col_start_middle bck_{{ sign }}"></td>{% endif %}
+	></td>
+	<td colspan="{{ account_month_colspan }}" class="bck_{{ sign }} account-month-filler"></td>
+	{% if table_summary_colspan > 0 %}<td colspan="{{ table_summary_colspan }}" class="col_start_middle bck_{{ sign }} account-summary-filler"></td>{% endif %}
 </tr>
 
 {# TOTAUX #}
 
 	{# DETAILS (reel & anticipe) #}
-	<tr>
+	<tr class="account-total-row account-total-detail-row">
 		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}
 					{% set month_year = visible_month_years[month]|default(year) %}
-{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
-{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+{% set month_is_detailed = month in detail_months %}
+{% set month_is_collapsed = month not in detail_months %}
+				{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
+				{% set month_colspan = month_colspans['m' ~ month]|default(1) %}
 				{% set done =
 					current_year > month_year or (current_year == month_year and month < current_month)
 						? 'done'
@@ -38,12 +38,19 @@
 				{% if month_is_collapsed %}
 					<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
 				{% elseif month_is_detailed %}
-					<td class="month-cell-start {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
+					<td
+						colspan="{{ show_anticipation_column ? 1 : 2 }}"
+						class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done }} total_month_detail_{{ sign }}"
+						data-month="{{ month }}"
+						data-year="{{ month_year }}"
+					>
 						{{ reel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 					</td>
-					<td class="month-cell-end {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
-						{{ anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
-					</td>
+					{% if show_anticipation_column %}
+						<td class="month-cell-end {{ done }} total_month_detail_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
+							{{ anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+						</td>
+					{% endif %}
 				{% else %}
 					<td class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
 						{{ total|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
@@ -57,14 +64,15 @@
 	</tr>
 
 	{# FULL #}
-	<tr>
+	<tr class="account-total-row account-total-full-row">
 		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}
 					{% set month_year = visible_month_years[month]|default(year) %}
-{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
-{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+{% set month_is_detailed = month in detail_months %}
+{% set month_is_collapsed = month not in detail_months %}
+				{% set month_colspan = month_colspans['m' ~ month]|default(1) %}
 				{% set done =
 						current_year > month_year or (current_year == month_year and month < current_month)
 							? 'done gras'
@@ -76,11 +84,11 @@
 				{% if month_is_collapsed %}
 					<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
 				{% elseif operations['totaux_mois'][month] is defined %}
-					<td colspan="{{ month_is_detailed ? 2 : 1 }}" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
+					<td colspan="{{ month_colspan }}" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">
 						{{ operations['totaux_mois'][month]['total']|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 					</td>
 				{% else %}
-					<td colspan="{{ month_is_detailed ? 2 : 1 }}" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+					<td colspan="{{ month_colspan }}" class="month-cell-span {{ done }} total_month_full_{{ sign }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 				{% endif %}
 			{% endfor %}
 		{% else %}

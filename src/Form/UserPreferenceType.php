@@ -60,6 +60,17 @@ class UserPreferenceType extends AbstractType
 				]
 			)
 			->add(
+				'anchorTableTotals',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Garder les totaux visibles en bas de page',
+					'attr' => [
+						'class' => 'checkType',
+					],
+				]
+			)
+			->add(
 				'showTableTotals',
 				CheckboxType::class,
 				[

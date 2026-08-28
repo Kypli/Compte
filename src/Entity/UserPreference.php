@@ -51,6 +51,9 @@ class UserPreference
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $showEditableBorder = true;
 
+    #[ORM\Column(type: "boolean", options: ["default" => false])]
+    private $anchorTableTotals = false;
+
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $showTableTotals = true;
 
@@ -221,6 +224,18 @@ class UserPreference
     public function setShowEditableBorder(bool $showEditableBorder): self
     {
         $this->showEditableBorder = $showEditableBorder;
+
+        return $this;
+    }
+
+    public function isAnchorTableTotals(): bool
+    {
+        return $this->anchorTableTotals;
+    }
+
+    public function setAnchorTableTotals(bool $anchorTableTotals): self
+    {
+        $this->anchorTableTotals = $anchorTableTotals;
 
         return $this;
     }

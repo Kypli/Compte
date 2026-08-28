@@ -8,12 +8,36 @@
 {% set table_summary_colspan = (show_table_totals ? 1 : 0) + (show_table_monthly_average ? 1 : 0) + (show_table_percentage ? 1 : 0) %}
 {% set show_sub_categories = user.preferences.showSubCategories ?? true %}
 {% set label_colspan = show_sub_categories ? 2 : 1 %}
-{% set merged_table_colspan = label_colspan + month_colspan + table_summary_colspan %}
 {% set merged_sections = [
 	{'operations': operations_pos, 'sign': 'pos', 'signBool': true},
 	{'operations': operations_neg, 'sign': 'neg', 'signBool': false}
 ] %}
 {% set view_comptes = view_comptes|default([compte]) %}
+{% set income_month_totals = operations_pos['totaux_mois']|default({}) %}
+{% set expense_month_totals = operations_neg['totaux_mois']|default({}) %}
+{% if month_anticipation_visible is not defined %}
+	{% set month_anticipation_visible = {} %}
+	{% for key in visible_months %}
+		{% set month_key = 'm' ~ key %}
+		{% set month_year = visible_month_years[key]|default(year) %}
+		{% set month_is_past = current_year > month_year or (current_year == month_year and key < current_month) %}
+		{% set income_anticipation_count = income_month_totals[key]['anticipe_count']|default(0) %}
+		{% set expense_anticipation_count = expense_month_totals[key]['anticipe_count']|default(0) %}
+		{% set month_has_anticipation = income_anticipation_count > 0 or expense_anticipation_count > 0 %}
+		{% set month_anticipation_visible = month_anticipation_visible|merge({ (month_key): not month_is_past or month_has_anticipation }) %}
+	{% endfor %}
+{% endif %}
+{% if month_colspans is not defined %}
+	{% set month_colspans = {} %}
+	{% for key in visible_months %}
+		{% set month_key = 'm' ~ key %}
+		{% set month_colspans = month_colspans|merge({ (month_key): key in detail_months ? 2 : 1 }) %}
+	{% endfor %}
+{% endif %}
+{% set merged_table_colspan = label_colspan + table_summary_colspan %}
+{% for month in visible_months %}
+	{% set merged_table_colspan = merged_table_colspan + month_colspans['m' ~ month]|default(1) %}
+{% endfor %}
 
 <table
 	class="table compteTable account-merged-table center{{ combined_compte ? ' is-combined-account-table' }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
@@ -52,8 +76,9 @@
 				{% set month = months[key] %}
 				{% set month_year = visible_month_years[key]|default(year) %}
 				{% set month_label = month|capitalize ~ (month_year != year ? ' ' ~ month_year : '') %}
-				{% set month_is_detailed = user.preferences.comptegenreshow and key in detail_months %}
-				{% set month_is_collapsed = user.preferences.comptegenreshow and key not in detail_months %}
+				{% set month_is_detailed = key in detail_months %}
+				{% set month_is_collapsed = key not in detail_months %}
+				{% set month_colspan = month_colspans['m' ~ key]|default(1) %}
 				{% set done =
 					current_year > month_year or (current_year == month_year and key < current_month)
 						? 'done'
@@ -62,7 +87,7 @@
 							: 'normal'
 				%}
 				<th
-					colspan="{{ month_is_detailed ? 2 : 1 }}"
+					colspan="{{ month_colspan }}"
 					class="month-visible month-selector month-cell-span merged-table-month-header {{ done }}{{ month_is_collapsed ? ' month-detail-collapsed' : '' }}"
 					data-month="{{ key }}"
 					data-year="{{ month_year }}"
@@ -96,8 +121,16 @@
 							: current_year == month_year and month == current_month ? 'current' : ''
 					%}
 					{% if month_is_detailed %}
-						<td class="month-cell-start {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">Fait</td>
-						<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">A ven.</td>
+						{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
+						<td
+							colspan="{{ show_anticipation_column ? 1 : 2 }}"
+							class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done }}"
+							data-month="{{ month }}"
+							data-year="{{ month_year }}"
+						>Fait</td>
+						{% if show_anticipation_column %}
+							<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">A ven.</td>
+						{% endif %}
 					{% else %}
 						<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
 					{% endif %}
@@ -122,6 +155,7 @@
 			{% endfor %}
 
 			{% for category in displayed_categories %}
+				{% set is_last_displayed_category = loop.last %}
 				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
 					<tr class="{{ loop.first ? 'tr_operation_first' }} edit" data-category-row="{{ category.id }}" data-accountid="{{ category.compte.id }}">
 						{% if loop.first %}
@@ -133,7 +167,7 @@
 								data-focusa="cat_{{ category.id }}"
 								data-accountid="{{ category.compte.id }}"
 								data-category-drop-before="{{ category.id }}"
-								class="td_category_libelle"
+								class="td_category_libelle{{ is_last_displayed_category ? ' account-last-category-label' }}"
 								rowspan="{{ category.subcategories|length }}"
 							>
 								<span class="category-label-content">
@@ -166,7 +200,7 @@
 								data-subcategory-drop-before="{{ subcategory.id }}"
 								data-subcategory-category-id="{{ category.id }}"
 								{% if loop.last %}data-subcategory-drop-end="{{ category.id }}"{% endif %}
-								class="td_subcategory_libelle"
+								class="td_subcategory_libelle{{ is_last_displayed_category and loop.last ? ' account-last-subcategory-label' }}"
 							>
 								<span class="subcategory-label-content">
 									<span class="subcategory-label-text" title="{{ subcategory.libelle|capitalize }}">{{ subcategory.libelle|capitalize|smart_truncate(22) }}</span>

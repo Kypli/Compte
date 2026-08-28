@@ -11,13 +11,12 @@ Préférences
 Compte
 	Show
 		Sécurité
-			Si multi page, lancer une requête régulière pour check si pas d'autre action et mettre à jour si besoin la page
-
 		Paramètres du compte
 		Légendes
   		Tutoriel
 		Année
 		Anomalies
+		Soldes
 
 		Affichage
 			Affiche des colonnes
@@ -25,19 +24,14 @@ Compte
 			Monnaie utilisée
 			Tableau
 
-		Soldes
-			Texte au dessus des soldes -> mois en cours xxx
-
-		Tableau
-			Si colonne a venir vide et dans le passé, retirer la colonne
+  		Tableau
 			replier une catégorie, replier toutes les catégories
-			mettre une balises sur ligne totaux dépenses/recette pour qu'elle reste en bas de page sans dépasser la haut du tableau
-			Catégories.sous catégories
-				Limiter le nombre de character, si dépasse => ... + reste en prop title
+			Catégories
+			sous catégories
 			
 			Si ajout ope fait, ne pas proposer > date du jour
 			Si ajout ope a venir, ne pas proposer < date du jour
-			glisser-déposer -> uniquement déposer avant, rajouter aussi déposer après
+			zone bleu padding bottom
 
 		Modal Operations
 			Suggestion (selon opérations répété) lors d'une création

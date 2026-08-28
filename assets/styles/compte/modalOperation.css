@@ -20,8 +20,8 @@
 
 /* TH */
 #operation_tab th:not(.th_switch, .th_date, .th_comment, .th_actions){
-	width: 90px!important;
-	min-width: 90px!important;
+	width: 112px!important;
+	min-width: 112px!important;
 }
 #operation_tab .th_switch {
 	width: 30px!important;
@@ -53,8 +53,10 @@
 
 /* INPUT */
 #operation_tab .inputNumber, #operation_tab .inputAnticipe {
-	width: 85px!important;
-	max-width: 85px!important;
+	box-sizing: border-box;
+	width: 108px!important;
+	max-width: 108px!important;
+	text-align: right;
 }
 #operation_tab .inputDay {
 	width: 45px!important;

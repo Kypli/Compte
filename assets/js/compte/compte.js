@@ -2,14 +2,18 @@
 import './modalOperation.js';
 import './modalCategory.js';
 import { money_display, money_symbol } from '../service/service.js';
+import { notifySiteUpdate } from '../service/siteSync.js';
 
 // CSS
 import '../../styles/compte/compte.css';
 
 let selectedMonth = null
 let selectedYear = null
+let stickyTotalsOverlay = null
+let stickyTotalsFrame = null
 let categoryMove = null
 let subCategoryMove = null
+const lastSessionOperationCellStorageKey = 'compte.lastSessionOperationCell'
 
 ////////////
 // EXPORT FONCTIONS
@@ -57,9 +61,13 @@ export function updateTables(){
 		},
 		success: function(response){
 			$('#tables').empty().append(response.render)
+			collapseEmptyPastAnticipationColumns()
 			syncMoneySymbols()
 			restoreSelectedMonths()
+			updateStickyTotalRows()
+			scheduleAnchoredTotalRowsUpdate()
 			centerCompactTables()
+			applyLastSessionOperationCellMarker()
 			$('#last-actions-div').empty().append(response.render_last_actions)
 			if (response.render_anomalies !== undefined) {
 				$('#anomalies-div').empty().append(response.render_anomalies)
@@ -387,17 +395,255 @@ function applySelectedMonth(){
 	})
 
 	expandDisplayedMonth()
+	syncMonthWidthsWithGains()
+	scheduleAnchoredTotalRowsUpdate()
 }
 
 function resetSelectedMonthWidths(){
 	document.querySelectorAll('.compteTable').forEach(table => {
-		table.querySelectorAll('.month-width-expanded').forEach(cell => {
+		table.querySelectorAll('.month-width-expanded, .month-width-synced').forEach(cell => {
 			cell.classList.remove('month-width-expanded')
+			cell.classList.remove('month-width-synced')
 			cell.style.removeProperty('width')
 			cell.style.removeProperty('min-width')
 			cell.style.removeProperty('max-width')
 		})
 	})
+}
+
+export function rememberLastSessionOperationCell(cellData){
+	if (!cellData || !cellData.scId || !cellData.month || !cellData.year) {
+		return
+	}
+
+	sessionStorage.setItem(lastSessionOperationCellStorageKey, JSON.stringify({
+		scId: String(cellData.scId),
+		month: String(cellData.month),
+		year: String(cellData.year),
+		anticipe: String(cellData.anticipe) === '1' ? '1' : '0'
+	}))
+}
+
+window.addEventListener('compte-site-sync-message', function(event){
+	rememberLastSessionOperationCell(event.detail?.lastOperationCell)
+})
+
+function monthWidthFloor(cell){
+	const colspan = Number(cell.getAttribute('colspan')) || 1
+
+	return colspan > 1 ? 89 : 44
+}
+
+function setSyncedMonthWidth(cell, width){
+	cell.classList.add('month-width-synced')
+	cell.style.setProperty('width', `${width}px`, 'important')
+	cell.style.setProperty('min-width', `${width}px`, 'important')
+	cell.style.setProperty('max-width', `${width}px`, 'important')
+}
+
+function syncMonthWidthsWithGains(){
+	const gainsTable = document.querySelector('.gains-table')
+	if (!gainsTable) {
+		return
+	}
+
+	const referenceWidths = new Map()
+	gainsTable.querySelectorAll('tr:first-child .month-visible[data-month][data-year]').forEach(monthHeader => {
+		const key = `${monthHeader.dataset.month}-${monthHeader.dataset.year}`
+		const width = Math.max(monthHeader.getBoundingClientRect().width - 1, monthWidthFloor(monthHeader))
+		referenceWidths.set(key, width)
+	})
+
+	if (referenceWidths.size === 0) {
+		return
+	}
+
+	document.querySelectorAll('.compteTable:not(.gains-table):not(.annual-gain-table)').forEach(table => {
+		table.querySelectorAll('[data-month][data-year]').forEach(cell => {
+			if (cell.classList.contains('month-detail-collapsed')) {
+				return
+			}
+
+			const key = `${cell.dataset.month}-${cell.dataset.year}`
+			const monthWidth = referenceWidths.get(key)
+			if (!monthWidth) {
+				return
+			}
+
+			const cellWidth = cell.classList.contains('month-cell-start') || cell.classList.contains('month-cell-end')
+				? monthWidth / 2
+				: monthWidth
+			setSyncedMonthWidth(cell, cellWidth)
+		})
+	})
+}
+
+function updateStickyTotalRows(){
+	document.querySelectorAll('.compteTable:not(.gains-table):not(.annual-gain-table)').forEach(table => {
+		const fullTotalRow = table.querySelector('.account-total-full-row')
+		if (!fullTotalRow) {
+			return
+		}
+
+		table.style.setProperty('--sticky-full-total-row-height', `${fullTotalRow.getBoundingClientRect().height}px`)
+	})
+}
+
+function scheduleAnchoredTotalRowsUpdate(){
+	if (stickyTotalsFrame) {
+		window.cancelAnimationFrame(stickyTotalsFrame)
+	}
+
+	stickyTotalsFrame = window.requestAnimationFrame(function(){
+		stickyTotalsFrame = null
+		updateAnchoredTotalRows()
+	})
+}
+
+function ensureStickyTotalsOverlay(){
+	if (stickyTotalsOverlay) {
+		return stickyTotalsOverlay
+	}
+
+	stickyTotalsOverlay = document.createElement('div')
+	stickyTotalsOverlay.className = 'account-sticky-totals-overlay'
+	stickyTotalsOverlay.setAttribute('aria-hidden', 'true')
+	document.body.appendChild(stickyTotalsOverlay)
+
+	return stickyTotalsOverlay
+}
+
+function hideStickyTotalsOverlay(){
+	if (stickyTotalsOverlay) {
+		stickyTotalsOverlay.classList.remove('is-visible')
+		stickyTotalsOverlay.replaceChildren()
+	}
+}
+
+function syncStickyTotalsPalette(overlay){
+	const datas = document.getElementById('datas')
+	if (!datas) {
+		return
+	}
+
+	const datasStyle = window.getComputedStyle(datas)
+	;[
+		'--table-category-bg',
+		'--table-total-bg',
+		'--table-past-bg',
+		'--table-current-bg',
+		'--table-future-bg',
+		'--table-selection'
+	].forEach(property => {
+		overlay.style.setProperty(property, datasStyle.getPropertyValue(property))
+	})
+}
+
+function stickyTotalRowsFor(table){
+	return [
+		table.querySelector('.account-total-detail-row'),
+		table.querySelector('.account-total-full-row')
+	].filter(Boolean)
+}
+
+function activeStickyTotalsTable(){
+	const datas = document.getElementById('datas')
+	if (!datas?.classList.contains('anchor-table-totals')) {
+		return null
+	}
+
+	const viewportBottom = window.innerHeight
+	return Array.from(document.querySelectorAll('.compteTable:not(.gains-table):not(.annual-gain-table)')).find(table => {
+		const rows = stickyTotalRowsFor(table)
+		if (rows.length === 0) {
+			return false
+		}
+
+		const tableRect = table.getBoundingClientRect()
+		const rowsHeight = rows.reduce((height, row) => height + row.getBoundingClientRect().height, 0)
+
+		return tableRect.top < viewportBottom - rowsHeight && tableRect.bottom > viewportBottom
+	}) || null
+}
+
+function cloneCellJustifyContent(cell){
+	const textAlign = window.getComputedStyle(cell).textAlign
+
+	if (['left', 'start'].includes(textAlign)) {
+		return 'flex-start'
+	}
+
+	if (['right', 'end'].includes(textAlign)) {
+		return 'flex-end'
+	}
+
+	return 'center'
+}
+
+function stickyTotalsGridFor(table, rows, tableRect){
+	const firstRowTop = rows[0].getBoundingClientRect().top
+	const lastRowBottom = rows[rows.length - 1].getBoundingClientRect().bottom
+	const grid = document.createElement('div')
+	grid.className = 'account-sticky-totals-grid'
+	grid.style.width = `${tableRect.width}px`
+	grid.style.height = `${lastRowBottom - firstRowTop}px`
+
+	rows.forEach(row => {
+		const rowRect = row.getBoundingClientRect()
+		const cloneRow = document.createElement('div')
+		cloneRow.className = `${row.className} account-sticky-totals-grid-row`
+		cloneRow.style.top = `${rowRect.top - firstRowTop}px`
+		cloneRow.style.width = `${tableRect.width}px`
+		cloneRow.style.height = `${rowRect.height}px`
+
+		Array.from(row.children).forEach(cell => {
+			const cellRect = cell.getBoundingClientRect()
+			const cloneCell = cell.cloneNode(true)
+			cloneCell.classList.add('account-sticky-totals-cell')
+			cloneCell.removeAttribute('colspan')
+			cloneCell.removeAttribute('rowspan')
+			cloneCell.style.left = `${cellRect.left - tableRect.left}px`
+			cloneCell.style.top = '0'
+			cloneCell.style.width = `${cellRect.width}px`
+			cloneCell.style.height = `${cellRect.height}px`
+			cloneCell.style.justifyContent = cloneCellJustifyContent(cell)
+			cloneRow.appendChild(cloneCell)
+		})
+
+		grid.appendChild(cloneRow)
+	})
+
+	return grid
+}
+
+function updateAnchoredTotalRows(){
+	const table = activeStickyTotalsTable()
+	if (!table) {
+		hideStickyTotalsOverlay()
+		return
+	}
+
+	const viewport = table.closest('.compte-table-viewport')
+	const tableRect = table.getBoundingClientRect()
+	const viewportRect = viewport?.getBoundingClientRect() || tableRect
+	const overlayLeft = Math.max(viewportRect.left, 0)
+	const overlayRight = Math.min(viewportRect.right, window.innerWidth)
+	const overlayWidth = Math.max(overlayRight - overlayLeft, 0)
+	if (overlayWidth <= 0) {
+		hideStickyTotalsOverlay()
+		return
+	}
+
+	const overlay = ensureStickyTotalsOverlay()
+	syncStickyTotalsPalette(overlay)
+	const stickyRows = stickyTotalRowsFor(table)
+	const grid = stickyTotalsGridFor(table, stickyRows, tableRect)
+	grid.style.transform = `translateX(${tableRect.left - overlayLeft}px)`
+
+	overlay.replaceChildren(grid)
+	overlay.style.left = `${overlayLeft}px`
+	overlay.style.width = `${overlayWidth}px`
+	overlay.classList.add('is-visible')
 }
 
 function expandDisplayedMonth(){
@@ -426,7 +672,7 @@ function expandDisplayedMonth(){
 		}
 
 		const monthWidth = monthHeader.getBoundingClientRect().width
-		const expandedWidth = monthWidth * 1.2
+		const expandedWidth = Math.max(monthWidth * 1.2, monthWidthFloor(monthHeader))
 
 		monthHeader.classList.add('month-width-expanded')
 		monthHeader.style.setProperty('width', `${expandedWidth}px`, 'important')
@@ -493,6 +739,158 @@ function centerCompactTables(){
 	})
 }
 
+function getLastSessionOperationCell(){
+	try {
+		return JSON.parse(sessionStorage.getItem(lastSessionOperationCellStorageKey) || 'null')
+	} catch (error) {
+		sessionStorage.removeItem(lastSessionOperationCellStorageKey)
+		return null
+	}
+}
+
+function operationCellMatchesMarker(cell, marker){
+	return cell.dataset.scid === marker.scId
+		&& cell.dataset.month === marker.month
+		&& cell.dataset.year === marker.year
+}
+
+function applyLastSessionOperationCellMarker(){
+	document.querySelectorAll('.last-session-operation-cell').forEach(cell => {
+		cell.classList.remove('last-session-operation-cell')
+	})
+
+	const marker = getLastSessionOperationCell()
+	if (!marker || !marker.scId || !marker.month || !marker.year) {
+		return
+	}
+
+	const matchingCells = Array.from(document.querySelectorAll('.compteTable .edit td[data-scid][data-month][data-year]'))
+		.filter(cell => operationCellMatchesMarker(cell, marker))
+
+	const expectedCell = matchingCells.find(cell => (cell.dataset.anticipe === '1' ? '1' : '0') === marker.anticipe)
+	const fallbackCell = matchingCells.find(cell => cell.classList.contains('month-cell-span')) || matchingCells[0]
+	const cell = expectedCell || fallbackCell
+
+	if (cell) {
+		cell.classList.add('last-session-operation-cell')
+	}
+}
+
+function uniqueOrderedValues(elements, dataName){
+	const values = []
+	elements.forEach(element => {
+		const value = element.dataset?.[dataName]
+		if (value && !values.includes(value)) {
+			values.push(value)
+		}
+	})
+
+	return values
+}
+
+function nextOrderedValueAfter(values, targetValue, excludedValue){
+	const filteredValues = values.filter(value => value !== excludedValue)
+	const targetIndex = filteredValues.indexOf(targetValue)
+
+	return targetIndex >= 0 ? filteredValues[targetIndex + 1] || '' : ''
+}
+
+function targetIsAfterSource(values, sourceValue, targetValue){
+	const sourceIndex = values.indexOf(sourceValue)
+	const targetIndex = values.indexOf(targetValue)
+
+	return sourceIndex >= 0 && targetIndex > sourceIndex
+}
+
+function updateCategoryDropLabels(){
+	if (!categoryMove) {
+		return
+	}
+
+	categoryMove.table.querySelectorAll('[data-category-drop-before]').forEach(target => {
+		target.classList.remove('is-category-drop-after', 'is-category-drop-first', 'is-category-drop-last')
+		if (
+			target.dataset.categoryDropBefore
+			&& target.dataset.categoryDropBefore !== categoryMove.categoryId
+			&& target.dataset.categoryDropBefore === categoryMove.categoryOrder[0]
+		) {
+			target.classList.add('is-category-drop-first')
+			return
+		}
+		if (
+			target.dataset.categoryDropBefore
+			&& target.dataset.categoryDropBefore !== categoryMove.categoryId
+			&& targetIsAfterSource(categoryMove.categoryOrder, categoryMove.categoryId, target.dataset.categoryDropBefore)
+		) {
+			target.classList.add(target.dataset.categoryDropBefore === categoryMove.categoryOrder[categoryMove.categoryOrder.length - 1]
+				? 'is-category-drop-last'
+				: 'is-category-drop-after'
+			)
+		}
+	})
+}
+
+function updateSubCategoryDropLabels(){
+	if (!subCategoryMove) {
+		return
+	}
+
+	subCategoryMove.table.querySelectorAll('[data-subcategory-drop-before], [data-subcategory-drop-end]').forEach(target => {
+		target.classList.remove('is-subcategory-drop-after', 'is-subcategory-drop-first')
+		if (
+			target.classList.contains('is-subcategory-drop-available')
+			&& target.dataset.subcategoryDropBefore
+			&& target.dataset.subcategoryDropBefore !== subCategoryMove.subCategoryId
+			&& target.dataset.subcategoryDropBefore === subCategoryMove.subCategoryOrder[0]
+		) {
+			target.classList.add('is-subcategory-drop-first')
+		}
+		if (
+			target.classList.contains('is-subcategory-drop-available')
+			&& target.dataset.subcategoryDropBefore
+			&& target.dataset.subcategoryDropBefore !== subCategoryMove.subCategoryId
+			&& targetIsAfterSource(subCategoryMove.subCategoryOrder, subCategoryMove.subCategoryId, target.dataset.subcategoryDropBefore)
+		) {
+			target.classList.add('is-subcategory-drop-after')
+		}
+	})
+}
+
+function categoryBeforeIdForTarget(target){
+	if (target.dataset.categoryDropEnd !== undefined) {
+		return ''
+	}
+
+	const targetCategoryId = target.dataset.categoryDropBefore ?? ''
+	if (
+		targetCategoryId
+		&& categoryMove
+		&& targetIsAfterSource(categoryMove.categoryOrder, categoryMove.categoryId, targetCategoryId)
+	) {
+		return nextOrderedValueAfter(categoryMove.categoryOrder, targetCategoryId, categoryMove.categoryId)
+	}
+
+	return targetCategoryId
+}
+
+function subCategoryBeforeIdForTarget(target){
+	if (!subCategoryMove) {
+		return target.dataset.subcategoryDropBefore ?? ''
+	}
+
+	const targetSubCategoryId = target.dataset.subcategoryDropBefore ?? ''
+	const shouldDropAfter = targetSubCategoryId
+		&& targetIsAfterSource(subCategoryMove.subCategoryOrder, subCategoryMove.subCategoryId, targetSubCategoryId)
+	if (target.dataset.subcategoryDropEnd !== undefined && shouldDropAfter) {
+		return ''
+	}
+	if (shouldDropAfter) {
+		return nextOrderedValueAfter(subCategoryMove.subCategoryOrder, targetSubCategoryId, subCategoryMove.subCategoryId)
+	}
+
+	return targetSubCategoryId
+}
+
 function startCategoryMove(handle){
 	const table = handle.closest('.compteTable')
 	if (!table) {
@@ -502,6 +900,7 @@ function startCategoryMove(handle){
 	clearCategoryMove()
 	categoryMove = {
 		categoryId: handle.dataset.categoryId,
+		categoryOrder: uniqueOrderedValues(table.querySelectorAll('[data-category-drop-before]'), 'categoryDropBefore'),
 		handle,
 		table
 	}
@@ -510,9 +909,10 @@ function startCategoryMove(handle){
 	table.querySelectorAll(`[data-category-row="${handle.dataset.categoryId}"]`).forEach(row => {
 		row.classList.add('category-sort-source')
 	})
-	table.querySelectorAll('[data-category-drop-before], [data-category-drop-end]').forEach(target => {
+	table.querySelectorAll('[data-category-drop-before]').forEach(target => {
 		target.setAttribute('tabindex', '0')
 	})
+	updateCategoryDropLabels()
 }
 
 function startSubCategoryMove(handle){
@@ -526,6 +926,12 @@ function startSubCategoryMove(handle){
 	subCategoryMove = {
 		subCategoryId: handle.dataset.subcategoryId,
 		categoryId: handle.dataset.subcategoryCategoryId,
+		subCategoryOrder: uniqueOrderedValues(
+			Array.from(table.querySelectorAll('[data-subcategory-drop-before]')).filter(target => {
+				return target.dataset.subcategoryCategoryId === handle.dataset.subcategoryCategoryId
+			}),
+			'subcategoryDropBefore'
+		),
 		handle,
 		table
 	}
@@ -546,6 +952,7 @@ function startSubCategoryMove(handle){
 			target.classList.add('is-subcategory-drop-available')
 		}
 	})
+	updateSubCategoryDropLabels()
 }
 
 function clearCategoryMove(){
@@ -555,14 +962,11 @@ function clearCategoryMove(){
 
 	categoryMove.handle?.setAttribute('aria-grabbed', 'false')
 	categoryMove.table?.classList.remove('category-sort-active')
-	categoryMove.table?.querySelectorAll('.category-sort-source, .is-category-drop-target').forEach(element => {
-		element.classList.remove('category-sort-source', 'is-category-drop-target')
+	categoryMove.table?.querySelectorAll('.category-sort-source, .is-category-drop-target, .is-category-drop-after, .is-category-drop-first, .is-category-drop-last').forEach(element => {
+		element.classList.remove('category-sort-source', 'is-category-drop-target', 'is-category-drop-after', 'is-category-drop-first', 'is-category-drop-last')
 	})
 	categoryMove.table?.querySelectorAll('[data-category-drop-before]').forEach(target => {
 		target.removeAttribute('tabindex')
-	})
-	categoryMove.table?.querySelectorAll('[data-category-drop-end]').forEach(target => {
-		target.setAttribute('tabindex', '-1')
 	})
 	categoryMove = null
 }
@@ -574,8 +978,8 @@ function clearSubCategoryMove(){
 
 	subCategoryMove.handle?.setAttribute('aria-grabbed', 'false')
 	subCategoryMove.table?.classList.remove('subcategory-sort-active')
-	subCategoryMove.table?.querySelectorAll('.subcategory-sort-source, .is-subcategory-drop-target, .is-subcategory-drop-available').forEach(element => {
-		element.classList.remove('subcategory-sort-source', 'is-subcategory-drop-target', 'is-subcategory-drop-available')
+	subCategoryMove.table?.querySelectorAll('.subcategory-sort-source, .is-subcategory-drop-target, .is-subcategory-drop-available, .is-subcategory-drop-after, .is-subcategory-drop-first').forEach(element => {
+		element.classList.remove('subcategory-sort-source', 'is-subcategory-drop-target', 'is-subcategory-drop-available', 'is-subcategory-drop-after', 'is-subcategory-drop-first')
 	})
 	subCategoryMove.table?.querySelectorAll('[data-subcategory-drop-before], [data-subcategory-drop-end]').forEach(target => {
 		target.removeAttribute('tabindex')
@@ -590,7 +994,7 @@ function moveCategory(target){
 
 	const table = categoryMove.table
 	const categoryId = categoryMove.categoryId
-	const beforeId = target.dataset.categoryDropBefore ?? ''
+	const beforeId = categoryBeforeIdForTarget(target)
 	if (beforeId === categoryId) {
 		clearCategoryMove()
 		return
@@ -608,7 +1012,10 @@ function moveCategory(target){
 		},
 		timeout: 15000
 	})
-		.done(function(){
+		.done(function(response){
+			if (response.moved == true){
+				notifySiteUpdate({ type: 'compte-category-reordered' })
+			}
 			updateTables()
 		})
 		.fail(function(error){
@@ -634,7 +1041,7 @@ function moveSubCategory(target){
 
 	const table = subCategoryMove.table
 	const subCategoryId = subCategoryMove.subCategoryId
-	const beforeId = target.dataset.subcategoryDropBefore ?? ''
+	const beforeId = subCategoryBeforeIdForTarget(target)
 	if (beforeId === subCategoryId) {
 		clearSubCategoryMove()
 		return
@@ -653,7 +1060,10 @@ function moveSubCategory(target){
 		},
 		timeout: 15000
 	})
-		.done(function(){
+		.done(function(response){
+			if (response.moved == true){
+				notifySiteUpdate({ type: 'compte-subcategory-reordered' })
+			}
 			updateTables()
 		})
 		.fail(function(error){
@@ -724,14 +1134,87 @@ function spinner(etat){
 		: $('.spinner').addClass('hide').hide()
 }
 
+function cssAttributeValue(value){
+	return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+function collapseMonthInRow(row, month, year, monthColspan){
+	const cells = Array.from(row.children).filter(cell => cell.dataset?.month === month && cell.dataset?.year === year)
+	if (cells.length === 0) {
+		return
+	}
+
+	if (cells.length === 1) {
+		cells[0].setAttribute('colspan', String(monthColspan))
+		return
+	}
+
+	const startCell = cells.find(cell => cell.dataset.anticipe === '0' || cell.classList.contains('month-cell-start')) || cells[0]
+	const endCells = cells.filter(cell => cell !== startCell && (cell.dataset.anticipe === '1' || cell.classList.contains('month-cell-end')))
+
+	startCell.setAttribute('colspan', String(monthColspan))
+	startCell.classList.remove('month-cell-start')
+	startCell.classList.add('month-cell-span', 'month-anticipation-hidden')
+	endCells.forEach(cell => cell.remove())
+}
+
+function collapseEmptyPastAnticipationColumns(){
+	const accountTables = Array.from(document.querySelectorAll('.compteTable:not(.gains-table):not(.annual-gain-table)'))
+	const maxMonthColspans = new Map()
+
+	accountTables.forEach(table => {
+		const monthHeaders = Array.from(table.querySelectorAll('thead .month-selector[data-month][data-year]'))
+		monthHeaders.forEach(header => {
+			const month = header.dataset.month
+			const year = header.dataset.year
+			const key = `${month}-${year}`
+
+			if (!header.classList.contains('done')) {
+				maxMonthColspans.set(key, Math.max(maxMonthColspans.get(key) || 1, Number(header.getAttribute('colspan')) || 1))
+				return
+			}
+
+			const monthSelector = `[data-month="${cssAttributeValue(month)}"][data-year="${cssAttributeValue(year)}"]`
+			const anticipationCells = Array.from(table.querySelectorAll(`tbody tr.edit td${monthSelector}[data-anticipe="1"]`))
+			const hasAnticipationData = anticipationCells.some(cell => cell.textContent.trim() !== '')
+
+			if (hasAnticipationData) {
+				maxMonthColspans.set(key, Math.max(maxMonthColspans.get(key) || 1, Number(header.getAttribute('colspan')) || 1))
+				return
+			}
+
+			const monthColspan = Math.max(Number(header.getAttribute('colspan')) || 1, 1)
+			header.setAttribute('colspan', String(monthColspan))
+			header.classList.add('month-anticipation-hidden')
+			table.querySelectorAll('tr').forEach(row => collapseMonthInRow(row, month, year, monthColspan))
+			maxMonthColspans.set(key, Math.max(maxMonthColspans.get(key) || 1, monthColspan))
+		})
+
+		const monthSpan = monthHeaders.reduce((span, header) => span + (Number(header.getAttribute('colspan')) || 1), 0)
+		const fillerCell = table.querySelector('tbody tr.collabo > .account-month-filler')
+		if (fillerCell) {
+			fillerCell.setAttribute('colspan', String(monthSpan))
+		}
+	})
+
+	document.querySelectorAll('.gains-table [data-month][data-year].month-visible').forEach(cell => {
+		const key = `${cell.dataset.month}-${cell.dataset.year}`
+		cell.setAttribute('colspan', String(maxMonthColspans.get(key) || 1))
+	})
+}
+
 $(document).ready(function(){
 	const initialDatasElement = document.getElementById('datas')
 	selectedMonth = initialDatasElement?.dataset.selectedmonth || document.querySelector('.month-selector.current')?.dataset.month || null
 	selectedYear = selectedMonth
 		? (initialDatasElement?.dataset.selectedyear || document.querySelector(`.month-selector[data-month="${selectedMonth}"]`)?.dataset.year || initialDatasElement?.dataset.year || null)
 		: null
+	collapseEmptyPastAnticipationColumns()
 	applySelectedMonth()
+	updateStickyTotalRows()
+	scheduleAnchoredTotalRowsUpdate()
 	centerCompactTables()
+	applyLastSessionOperationCellMarker()
 	const accountPreferencesButton = document.getElementById('accountPreferencesButton')
 	const accountPreferencesPanel = document.getElementById('accountPreferencesPanel')
 	const accountPreferencesForm = document.querySelector('[data-account-preference-autosave]')
@@ -758,6 +1241,14 @@ $(document).ready(function(){
 	let accountTourOriginalLastActionsContent = null
 	let accountTourLastActionsDemoActive = false
 	let accountTourModalToken = 0
+
+	window.addEventListener('scroll', scheduleAnchoredTotalRowsUpdate, { passive: true })
+	window.addEventListener('resize', scheduleAnchoredTotalRowsUpdate)
+	document.addEventListener('scroll', function(event){
+		if (event.target?.classList?.contains('compte-table-viewport')) {
+			scheduleAnchoredTotalRowsUpdate()
+		}
+	}, true)
 	let accountTourBudgetMenuOpened = false
 
 	const setAccountPreferenceStatus = function(label, state = 'saved'){
@@ -804,6 +1295,13 @@ $(document).ready(function(){
 		})
 		datas.classList.add(`table-palette-${preferences.tablePalette || 'classic'}`)
 		datas.classList.toggle('hide-editable-border', preferences.showEditableBorder === false)
+		if (typeof preferences.anchorTableTotals === 'boolean') {
+			datas.classList.toggle('anchor-table-totals', preferences.anchorTableTotals)
+			datas.dataset.anchortabletotals = preferences.anchorTableTotals ? '1' : '0'
+			$(datas).data('anchortabletotals', preferences.anchorTableTotals ? 1 : 0)
+			updateStickyTotalRows()
+			scheduleAnchoredTotalRowsUpdate()
+		}
 		if (preferences.moneyDisplayFormat) {
 			datas.dataset.moneydisplayformat = preferences.moneyDisplayFormat
 			$(datas).data('moneydisplayformat', preferences.moneyDisplayFormat)
@@ -966,6 +1464,7 @@ $(document).ready(function(){
 				})
 				.then(payload => {
 					applyAccountPreferences(payload.preferences)
+					notifySiteUpdate({ type: 'compte-preferences-saved' })
 					setAccountPreferenceStatus('Enregistré', 'saved')
 				})
 				.catch(error => {
@@ -2011,6 +2510,7 @@ $(document).ready(function(){
 
 			deleteForm.addEventListener('submit', function(event){
 				if (deleteConfirmed) {
+					notifySiteUpdate({ type: 'compte-deleted' })
 					return
 				}
 
@@ -2084,6 +2584,7 @@ $(document).ready(function(){
 					syncMoneyAmounts()
 					setStatus('Mise à jour du tableau...', 'saving')
 					return Promise.resolve(updateTables()).then(() => {
+						notifySiteUpdate({ type: 'compte-settings-saved' })
 						setStatus('Enregistré', 'success')
 						closeAccountSettings()
 					})
@@ -2401,7 +2902,10 @@ $(document).ready(function(){
 				_token: button.data('token')
 			},
 			timeout: 15000,
-			success: function(){
+			success: function(response){
+				if (response.undo == true){
+					notifySiteUpdate({ type: 'compte-action-undone' })
+				}
 				updateTables()
 			},
 			error: function(error){
@@ -2432,7 +2936,10 @@ $(document).ready(function(){
 				_token: button.data('token')
 			},
 			timeout: 20000,
-			success: function(){
+			success: function(response){
+				if (response.undo == true){
+					notifySiteUpdate({ type: 'compte-today-actions-undone' })
+				}
 				updateTables()
 			},
 			error: function(error){
@@ -2505,7 +3012,7 @@ $(document).ready(function(){
 		dataTransfer.setData('text/plain', this.dataset.subcategoryId)
 	})
 
-	$('body').on('dragover dragenter', '[data-category-drop-before], [data-category-drop-end]', function(event){
+	$('body').on('dragover dragenter', '[data-category-drop-before]', function(event){
 		if (!categoryMove || this.closest('.compteTable') !== categoryMove.table) {
 			return
 		}
@@ -2540,7 +3047,7 @@ $(document).ready(function(){
 		event.originalEvent.dataTransfer.dropEffect = 'move'
 	})
 
-	$('body').on('dragleave', '[data-category-drop-before], [data-category-drop-end]', function(event){
+	$('body').on('dragleave', '[data-category-drop-before]', function(event){
 		if (!this.contains(event.relatedTarget)) {
 			this.classList.remove('is-category-drop-target')
 		}
@@ -2552,7 +3059,7 @@ $(document).ready(function(){
 		}
 	})
 
-	$('body').on('drop', '[data-category-drop-before], [data-category-drop-end]', function(event){
+	$('body').on('drop', '[data-category-drop-before]', function(event){
 		if (!categoryMove) {
 			return
 		}
@@ -2572,7 +3079,7 @@ $(document).ready(function(){
 		moveSubCategory(this)
 	})
 
-	$('body').on('keydown', '[data-category-drop-before], [data-category-drop-end]', function(event){
+	$('body').on('keydown', '[data-category-drop-before]', function(event){
 		if (!categoryMove || !['Enter', ' '].includes(event.key)) {
 			return
 		}
@@ -2605,7 +3112,7 @@ $(document).ready(function(){
 			return
 		}
 
-		const target = event.target.closest('[data-category-drop-before], [data-category-drop-end]')
+		const target = event.target.closest('[data-category-drop-before]')
 		if (!target || target.closest('.compteTable') !== categoryMove.table) {
 			return
 		}
@@ -2659,7 +3166,10 @@ $(document).ready(function(){
 			url: button.data('url'),
 			data: data,
 			timeout: 15000,
-			success: function(){
+			success: function(response){
+				if (response.resolved == true){
+					notifySiteUpdate({ type: 'compte-anomaly-resolved', resolution: data.resolution })
+				}
 				updateTables()
 			},
 			error: function(error){

@@ -560,6 +560,12 @@ body.account-background-grey {
 	border: 3px solid #D2B53F!important;
 	background-color: var(--table-current-bg);
 }
+.legend-background-last-session-operation {
+	border: 2px solid #90CAF9!important;
+	color: #1F2933;
+	box-shadow: inset 0 0 0 2px #90CAF9!important;
+	background-color: var(--table-current-bg);
+}
 .legend-text-sample.anticipe {
 	border-left: 1px solid #555555!important;
 }
@@ -3235,18 +3241,10 @@ table {
 	min-width: 0;
 	overflow-wrap: normal;
 }
-.category-drop-end {
-	position: relative;
-}
-.category-drop-end-label {
-	display: none;
-}
-.category-sort-active [data-category-drop-before],
-.category-sort-active [data-category-drop-end] {
+.category-sort-active [data-category-drop-before] {
 	cursor: pointer;
 }
-.category-sort-active [data-category-drop-before]::after,
-.category-sort-active [data-category-drop-end]::after {
+.category-sort-active [data-category-drop-before]::after {
 	position: absolute;
 	z-index: 5;
 	top: 4px;
@@ -3267,8 +3265,14 @@ table {
 	background: rgba(255, 255, 255, 0.92);
 	pointer-events: none;
 }
-.category-sort-active [data-category-drop-end]::after {
+.category-sort-active .is-category-drop-last::after {
 	content: "Dernière position";
+}
+.category-sort-active .is-category-drop-first::after {
+	content: "Première position";
+}
+.category-sort-active .is-category-drop-after::after {
+	content: "Déposer après";
 }
 .category-sort-active .category-sort-source .td_category_libelle::after {
 	color: #5E6870;
@@ -3302,17 +3306,23 @@ table {
 	font-weight: 700;
 	line-height: 1.15;
 	text-align: center;
-	content: "Deposer avant";
+	content: "Déposer avant";
 	border: 2px dashed #7C878D;
 	background: rgba(255, 255, 255, 0.92);
 	pointer-events: none;
 }
 .subcategory-sort-active .is-subcategory-drop-available[data-subcategory-drop-end]::after {
-	content: "Derniere position";
+	content: "Dernière position";
+}
+.subcategory-sort-active .is-subcategory-drop-first::after {
+	content: "Première position";
+}
+.subcategory-sort-active .is-subcategory-drop-after::after {
+	content: "Déposer après";
 }
 .subcategory-sort-active .subcategory-sort-source .td_subcategory_libelle::after {
 	color: #5E6870;
-	content: "En deplacement";
+	content: "En déplacement";
 	border-color: #A0A8AD;
 	background: rgba(232, 235, 237, 0.96);
 }
@@ -3379,8 +3389,14 @@ table {
 .compteTable .month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection);
 }
+.compteTable .month-anticipation-hidden.month-column-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection)!important;
+}
 .compteTable .month-selector.month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection);
+}
+.compteTable .month-selector.month-anticipation-hidden.month-column-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection)!important;
 }
 .gains-table tr:first-child .month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection);
@@ -3408,6 +3424,24 @@ table {
 	color: #F3F6F8!important;
 	font-size: 10px;
 	letter-spacing: 0;
+}
+.compteTable .last-session-operation-cell {
+	box-shadow: inset 0 0 0 2px #90CAF9!important;
+}
+.compteTable .month-cell-start.last-session-operation-cell.month-column-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -2px 0 #90CAF9, inset 0 2px #90CAF9, inset 0 -2px #90CAF9!important;
+}
+.compteTable .month-cell-end.last-session-operation-cell.month-column-selected {
+	box-shadow: inset -3px 0 var(--table-selection), inset 2px 0 #90CAF9, inset 0 2px #90CAF9, inset 0 -2px #90CAF9!important;
+}
+.compteTable .month-cell-span.last-session-operation-cell.month-column-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 2px #90CAF9, inset 0 -2px #90CAF9!important;
+}
+.month-display-year .month-visible:not(.month-detail-collapsed),
+.month-display-year .month-anticipation-hidden:not(.month-detail-collapsed) {
+	min-width: 89px!important;
+	white-space: nowrap;
+	word-break: normal;
 }
 .month-display-compact {
 	margin-right: auto;
@@ -3646,8 +3680,12 @@ table {
 .compteTable tbody > .edit:first-child > td:not(.counterEdit){
 	border-top: 3px #D2B53F solid!important;
 }
-.compteTable .collabo td:not(:nth-child(3)){
+.compteTable .collabo .account-month-filler {
 	border-top: 3px #D2B53F solid!important;
+}
+.compteTable .account-last-category-label,
+.compteTable .account-last-subcategory-label {
+	border-bottom: 3px #D2B53F solid!important;
 }
 .compteTable .edit .month-cell-last {
 	border-right: 3px #D2B53F solid!important;
@@ -3659,8 +3697,12 @@ table {
 	border-left: 0!important;
 }
 #datas.hide-editable-border .compteTable tbody > .edit:first-child > td:not(.counterEdit),
-#datas.hide-editable-border .compteTable .collabo td:not(:nth-child(3)) {
+#datas.hide-editable-border .compteTable .collabo .account-month-filler {
 	border-top: 1px #8F999F solid!important;
+}
+#datas.hide-editable-border .compteTable .account-last-category-label,
+#datas.hide-editable-border .compteTable .account-last-subcategory-label {
+	border-bottom: 1px #8F999F solid!important;
 }
 #datas.hide-editable-border .compteTable .edit .month-cell-last {
 	border-right: 1px #8F999F solid!important;
@@ -3668,10 +3710,60 @@ table {
 #datas.hide-editable-border .compteTable .edit .td_total_border {
 	border-left: 4px #4E5B62 solid!important;
 }
+.account-sticky-totals-overlay {
+	position: fixed;
+	right: auto;
+	bottom: 0;
+	display: none;
+	z-index: 1040;
+	overflow: hidden;
+	pointer-events: none;
+	box-shadow: 0 -4px 10px rgba(42, 49, 54, 0.2);
+}
+.account-sticky-totals-overlay.is-visible {
+	display: block;
+}
+.account-sticky-totals-overlay .account-sticky-totals-grid {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.account-sticky-totals-overlay .account-sticky-totals-grid-row {
+	position: absolute;
+	left: 0;
+}
+.account-sticky-totals-overlay .account-sticky-totals-cell {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	margin: 0;
+	padding: 3px;
+	min-width: 0!important;
+	box-sizing: border-box;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	word-break: normal;
+	border: 1px #8F999F solid;
+	font-size: 13px;
+	background-color: var(--table-future-bg, #F7F5F2)!important;
+}
+.account-sticky-totals-overlay .account-sticky-totals-cell.done {
+	background-color: var(--table-past-bg, #E5E1DA)!important;
+}
+.account-sticky-totals-overlay .account-sticky-totals-cell.current {
+	background-color: var(--table-current-bg, #EFECE7)!important;
+}
+.account-sticky-totals-overlay .account-sticky-totals-cell.bck_black,
+.account-sticky-totals-overlay .account-sticky-totals-cell.account-summary-filler,
+.account-sticky-totals-overlay .account-sticky-totals-cell.col_start_bottom {
+	background-color: transparent!important;
+	border-color: transparent!important;
+}
 
 .compteTable .edit td:hover:not(.counterEdit), /* tout les TD edit */
 .compteTable .edit .anticipe:hover:has(+ td), /* TD avant .anticipe */
-.compteTable .edit td:hover:not(.counterEdit, .anticipe, .td_category_libelle, .td_subcategory_libelle) + td, /* TD après edit */
+.compteTable .edit td:hover:not(.counterEdit, .anticipe, .month-anticipation-hidden, .td_category_libelle, .td_subcategory_libelle) + td, /* TD après edit */
 .jauni{
 	cursor: pointer;
 	text-decoration: underline;

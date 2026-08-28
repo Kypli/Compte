@@ -1,5 +1,6 @@
 // MODULE
 import './modules/modules.js';
+import { initSiteSync } from './js/service/siteSync.js';
 
 // CSS
 import './styles/app.css';
@@ -69,5 +70,6 @@ const initPasswordToggles = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
 	initToaster();
+	initSiteSync();
 	initPasswordToggles();
 });

@@ -53,6 +53,16 @@ body {
 	transform: translateY(-14px);
 }
 
+#toaster.toaster-refresh {
+	gap: 8px;
+}
+
+#toaster .toaster-refresh-link {
+	color: #ffffff;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
 h1 {
 	--c: #888;
 	color: #090;

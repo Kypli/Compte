@@ -15,8 +15,9 @@
 		{% set reel = 0 %}
 		{% set blink = '' %}
 		{% set anticipe = 0 %}
-		{% set month_is_detailed = user.preferences.comptegenreshow and month in detail_months %}
-		{% set month_is_collapsed = user.preferences.comptegenreshow and month not in detail_months %}
+		{% set month_is_detailed = month in detail_months %}
+		{% set month_is_collapsed = month not in detail_months %}
+		{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
 		{% set done =
 				current_year > month_year or (current_year == month_year and month < current_month)
 					? 'done '
@@ -44,7 +45,8 @@
 		{% elseif month_is_detailed %}
 			{# REEL #}
 			<td
-				class="month-cell-start {{ done|trim }}"
+				colspan="{{ show_anticipation_column ? 1 : 2 }}"
+				class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done|trim }}"
 				data-month="{{ month }}" data-year="{{ month_year }}"
 				data-scid="{{ subcategory.id }}"
 				data-anticipe="0"
@@ -55,16 +57,18 @@
 			</td>
 
 			{# ANTICIPE #}
-			<td
-				class='month-cell-end {{ done }}{{ blink }}anticipe{{ loop.last ? ' month-cell-last' }}'
-				data-month="{{ month }}" data-year="{{ month_year }}"
-				data-scid="{{ subcategory.id }}"
-				data-anticipe="1"
-				data-target="#modalOperation"
-				data-toggle="modal"
-			>
-				{{ anticipe == 0 ? '' : anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
-			</td>
+			{% if show_anticipation_column %}
+				<td
+					class='month-cell-end {{ done }}{{ blink }}anticipe{{ loop.last ? ' month-cell-last' }}'
+					data-month="{{ month }}" data-year="{{ month_year }}"
+					data-scid="{{ subcategory.id }}"
+					data-anticipe="1"
+					data-target="#modalOperation"
+					data-toggle="modal"
+				>
+					{{ anticipe == 0 ? '' : anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+				</td>
+			{% endif %}
 		{% else %}
 			<td
 				class="month-cell-span {{ done|trim }}{{ blink }}{{ loop.last ? ' month-cell-last' }}"

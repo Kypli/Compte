@@ -165,7 +165,8 @@ class CompteController extends AbstractController
 		$year = $this->resolveYear($request, $current_year);
 		$selected_year = $this->resolveSelectedYear($request, $year);
 		$detail_months = $this->resolveDetailMonths($request);
-		$show_month_details = $this->getUser()->getPreferences()->isCompteGenreShow();
+		// This preference only hides the "Fait / A venir" label row; month columns remain detailed.
+		$show_month_details = true;
 		[
 			$month_display,
 			$visible_months,
@@ -186,6 +187,14 @@ class CompteController extends AbstractController
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
 		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
 		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$table_operations_pos = $this->operations($operations_pos, true, $display_month_years);
+		$table_operations_neg = $this->operations($operations_neg, false, $display_month_years);
+		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
+		$month_anticipation_visible_neg = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
+		$month_anticipation_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_anticipation_visible_pos, $month_anticipation_visible_neg);
+		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
+		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
+		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
 		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
 		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
 
@@ -247,8 +256,14 @@ class CompteController extends AbstractController
 			'current_year' => $current_year,
 			'current_month' => $current_month,
 
-			'operations_pos' => $this->operations($operations_pos, true, $display_month_years),
-			'operations_neg' => $this->operations($operations_neg, false, $display_month_years),
+			'operations_pos' => $table_operations_pos,
+			'operations_neg' => $table_operations_neg,
+			'month_anticipation_visible_pos' => $month_anticipation_visible_pos,
+			'month_anticipation_visible_neg' => $month_anticipation_visible_neg,
+			'month_anticipation_visible_merged' => $month_anticipation_visible_merged,
+			'month_colspans_pos' => $month_colspans_pos,
+			'month_colspans_neg' => $month_colspans_neg,
+			'month_colspans_merged' => $month_colspans_merged,
 
 			'color_solde' => $color_solde, // Couleur d'alerte du solde
 			'color_soldeFinMois' => $color_soldeFinMois, // Couleur d'alerte du solde
@@ -291,7 +306,8 @@ class CompteController extends AbstractController
 		$year = $this->resolveYear($request, $current_year);
 		$selected_year = $this->resolveSelectedYear($request, $year);
 		$detail_months = $this->resolveDetailMonths($request);
-		$show_month_details = $this->getUser()->getPreferences()->isCompteGenreShow();
+		// This preference only hides the "Fait / A venir" label row; month columns remain detailed.
+		$show_month_details = true;
 		[
 			$month_display,
 			$visible_months,
@@ -304,6 +320,14 @@ class CompteController extends AbstractController
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
 		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
 		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$table_operations_pos = $this->operations($operations_pos, true, $display_month_years);
+		$table_operations_neg = $this->operations($operations_neg, false, $display_month_years);
+		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
+		$month_anticipation_visible_neg = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
+		$month_anticipation_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_anticipation_visible_pos, $month_anticipation_visible_neg);
+		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
+		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
+		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
 		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
 		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
 		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
@@ -347,8 +371,14 @@ class CompteController extends AbstractController
 			'current_year' => $current_year,
 			'current_month' => $current_month,
 
-			'operations_pos' => $this->operations($operations_pos, true, $display_month_years),
-			'operations_neg' => $this->operations($operations_neg, false, $display_month_years),
+			'operations_pos' => $table_operations_pos,
+			'operations_neg' => $table_operations_neg,
+			'month_anticipation_visible_pos' => $month_anticipation_visible_pos,
+			'month_anticipation_visible_neg' => $month_anticipation_visible_neg,
+			'month_anticipation_visible_merged' => $month_anticipation_visible_merged,
+			'month_colspans_pos' => $month_colspans_pos,
+			'month_colspans_neg' => $month_colspans_neg,
+			'month_colspans_merged' => $month_colspans_merged,
 
 			'gains' => $this->gains($operations_pos, $operations_neg, $display_month_years),
 			'money_display_format' => $moneyDisplayFormat,
@@ -659,6 +689,47 @@ class CompteController extends AbstractController
 		}, 0);
 	}
 
+	private function monthAnticipationVisibility(array $visibleMonths, array $visibleMonthYears, array $operationsDatas, int $currentYear, int $currentMonth): array
+	{
+		$visibility = [];
+		foreach ($visibleMonths as $month){
+			$month = (int) $month;
+			$monthYear = (int) ($visibleMonthYears[$month] ?? $currentYear);
+			$monthIsPast = $currentYear > $monthYear || ($currentYear === $monthYear && $month < $currentMonth);
+			$hasAnticipation = (int) ($operationsDatas['totaux_mois'][$month]['anticipe_count'] ?? 0) > 0;
+			$visibility['m'.$month] = !$monthIsPast || $hasAnticipation;
+		}
+
+		return $visibility;
+	}
+
+	private function mergeMonthAnticipationVisibility(array $visibleMonths, array ...$visibilityMaps): array
+	{
+		$visibility = [];
+		foreach ($visibleMonths as $month){
+			$key = 'm'.((int) $month);
+			$visibility[$key] = false;
+			foreach ($visibilityMaps as $visibilityMap){
+				$visibility[$key] = $visibility[$key] || (bool) ($visibilityMap[$key] ?? false);
+			}
+		}
+
+		return $visibility;
+	}
+
+	private function monthColspans(array $visibleMonths, array $detailMonths): array
+	{
+		$detailMonths = array_map('intval', $detailMonths);
+		$colspans = [];
+		foreach ($visibleMonths as $month){
+			$month = (int) $month;
+			$key = 'm'.$month;
+			$colspans[$key] = in_array($month, $detailMonths, true) ? 2 : 1;
+		}
+
+		return $colspans;
+	}
+
 	private function displayMonthYears(array $visibleMonthYears, array $detailMonths, bool $showDetails): array
 	{
 		if (!$showDetails){
@@ -822,6 +893,10 @@ class CompteController extends AbstractController
 				isset($operations['totaux_mois'][$mois]['anticipe'])
 					? $operations['totaux_mois'][$mois]['anticipe'] += $number
 					: $operations['totaux_mois'][$mois]['anticipe'] = $number
+				;
+				isset($operations['totaux_mois'][$mois]['anticipe_count'])
+					? $operations['totaux_mois'][$mois]['anticipe_count']++
+					: $operations['totaux_mois'][$mois]['anticipe_count'] = 1
 				;
 			}
 

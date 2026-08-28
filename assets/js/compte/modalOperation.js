@@ -1,8 +1,9 @@
 // JS IMPORT
 import { ucFirst } from '../service/service.js';
-import { updateTables } from './compte.js';
+import { rememberLastSessionOperationCell, updateTables } from './compte.js';
 import { money_display } from '../service/service.js';
 import { number_toInput } from '../service/service.js';
+import { notifySiteUpdate } from '../service/siteSync.js';
 
 // CSS
 import '../../styles/compte/modalOperation.css';
@@ -45,7 +46,8 @@ $(document).ready(function(){
 			sign = $(this).parent().parent().parent().data('sign'),
 			month = $(this).data('month'),
 			months = $('#datas').data('months'),
-			year = $(this).data('year') || $('#datas').data('year')
+			year = $(this).data('year') || $('#datas').data('year'),
+			anticipe = $(this).data('anticipe') == 1 ? 1 : 0
 		;
 
 		$('#modalOperation .modal-header')
@@ -56,7 +58,7 @@ $(document).ready(function(){
 			.removeClass(sign ? 'border_neg' : 'border_pos')
 			.addClass(sign ? 'border_pos' : 'border_neg')
 
-		getOperationsDatas(sc_id, sign, months, month, year)
+		getOperationsDatas(sc_id, sign, months, month, year, anticipe)
 	})
 
 
@@ -192,7 +194,7 @@ $(document).ready(function(){
 
 	/** Chargement **/
 
-	function getOperationsDatas(sc_id, sign, months, month, year){
+	function getOperationsDatas(sc_id, sign, months, month, year, anticipe){
 
 		$.ajax({
 			type: "POST",
@@ -210,7 +212,7 @@ $(document).ready(function(){
 				_tboby = response.tBodyRender
 
 				meta2(response.category_libelle, response.subcategory_libelle, sign)
-				showTbody(_tboby, year, month, response.days_in_month, sc_id, sign)
+				showTbody(_tboby, year, month, response.days_in_month, sc_id, sign, anticipe)
 
 				response.operations.length == 0
 					? $('#butFullToggleFormMod').prop('disabled', true) && addOpe()
@@ -264,7 +266,7 @@ $(document).ready(function(){
 	}
 
 	// Show Tbody
-	function showTbody(render, year, month, daysInMonth, sc_id, sign){
+	function showTbody(render, year, month, daysInMonth, sc_id, sign, anticipe){
 
 		// Update tbody
 		$('#operation_tab tbody')
@@ -273,6 +275,7 @@ $(document).ready(function(){
 			.data('daysinmonth', daysInMonth)
 			.data('scid', sc_id)
 			.data('sign', sign)
+			.data('anticipe', anticipe)
 		;
 
 		// Clean Tbody
@@ -919,30 +922,44 @@ $(document).ready(function(){
 			sc_id = $('#operation_tab tbody').data('scid'),
 			month = $('#operation_tab tbody').data('month'),
 			year = $('#operation_tab tbody').data('year'),
-			sign = $('#operation_tab tbody').data('sign')
+			sign = $('#operation_tab tbody').data('sign'),
+			modifiedAnticipe = $('#operation_tab tbody').data('anticipe') == 1 ? 1 : 0
 		;
 
 		$("#operation_tab tbody tr").not('#solde_tr_collabo, #tr_solde').each(function(index, value){
+			const row = $(this)
 
 			let
 				id_array = value.id.split('_'),
 				id = id_array[2] ? id_array[2] : null,
-				number = $(this).find('.inputNumber').val() == undefined
-					? number_toInput($(this).find('.td_number').text().trim())
-					: number_toInput($(this).find('.inputNumber').val()),
-				anticipe = $(this).find('.inputAnticipe').val() == undefined
-					? number_toInput($(this).find('.td_anticipe').text().trim())
-					: number_toInput($(this).find('.inputAnticipe').val()),
-				day = $(this).find('.inputDay').val() == undefined
-					? $(this).find('.td_date').text().substring(0, 2)
-					: $(this).find('.inputDay').val(),
-				comment = $(this).find('.inputComment').val() == undefined
-					? $(this).find('.td_comment').text()
-					: $(this).find('.inputComment').val(),
-				del = $(this).hasClass('tr_del')
+				number = row.find('.inputNumber').val() == undefined
+					? number_toInput(row.find('.td_number').text().trim())
+					: number_toInput(row.find('.inputNumber').val()),
+				anticipe = row.find('.inputAnticipe').val() == undefined
+					? number_toInput(row.find('.td_anticipe').text().trim())
+					: number_toInput(row.find('.inputAnticipe').val()),
+				day = row.find('.inputDay').val() == undefined
+					? row.find('.td_date').text().substring(0, 2)
+					: row.find('.inputDay').val(),
+				comment = row.find('.inputComment').val() == undefined
+					? row.find('.td_comment').text()
+					: row.find('.inputComment').val(),
+				del = row.hasClass('tr_del')
 					? 1
 					: 0
 			;
+
+			if (
+				row.hasClass('tr_add')
+				|| row.hasClass('tr_del')
+				|| row.hasClass('tr_edit')
+				|| row.find('.inputNumber, .inputAnticipe, .inputDay, .inputComment').length > 0
+			) {
+				const rowTargetsAnticipation = row.find('.inputAnticipe').length > 0
+					|| (row.find('.td_anticipe').text().trim() !== '' && row.find('.td_number').text().trim() === '')
+
+				modifiedAnticipe = rowTargetsAnticipation ? 1 : 0
+			}
 
 			if (number != null || anticipe != null){
 				datas.push({
@@ -967,6 +984,17 @@ $(document).ready(function(){
 			beforeSend: function(){
 			},
 			success: function(response){
+				if (response.save == true){
+					const lastOperationCell = {
+						scId: sc_id,
+						month: month,
+						year: year,
+						anticipe: modifiedAnticipe
+					}
+
+					rememberLastSessionOperationCell(lastOperationCell)
+					notifySiteUpdate({ type: 'compte-operation-saved', lastOperationCell: lastOperationCell })
+				}
 				updateTables()
 			},
 			error: function(error){

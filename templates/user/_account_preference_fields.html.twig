@@ -23,6 +23,10 @@
 			{{ form_label(form.showEditableBorder) }}
 			{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
 		</div>
+		<div class="preference-toggle-row">
+			{{ form_label(form.anchorTableTotals) }}
+			{{ form_widget(form.anchorTableTotals, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+		</div>
 		<div class="preference-group-label">Afficher les colonnes</div>
 		<div class="preference-toggle-row preference-toggle-row-nested">
 			<label for="{{ form.showTableTotals.vars.id }}">Total</label>
