@@ -1,8 +1,10 @@
 {% for month in visible_months %}
 		{% set month_year = visible_month_years[month]|default(year) %}
 {% set month_is_detailed = month in detail_months %}
-{% set month_is_collapsed = month not in detail_months %}
+	{% set month_is_collapsed = month not in detail_months %}
 	{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
+	{% set show_real_column = not month_is_future %}
+	{% set month_is_future = current_year < month_year or (current_year == month_year and month > current_month) %}
 	{% set done =
 			current_year > month_year or (current_year == month_year and month < current_month)
 				? 'done'
@@ -12,16 +14,23 @@
 	%}
 	{% if month_is_collapsed %}
 		<td class="month-cell-span month-detail-collapsed {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}"></td>
-	{% elseif month_is_detailed %}
+	{% elseif month_is_detailed and show_real_column %}
 		<td
 			colspan="{{ show_anticipation_column ? 1 : 2 }}"
-			class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} total_month_detail_{{ sign }} {{ done }}"
+			class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }}{{ month_is_future ? ' month-total-detail-hidden' }} total_month_detail_{{ sign }} {{ done }}"
 			data-month="{{ month }}"
 			data-year="{{ month_year }}"
 		>{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 		{% if show_anticipation_column %}
-			<td class="month-cell-end total_month_detail_{{ sign }} {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+			<td class="month-cell-end{{ month_is_future ? ' month-total-detail-hidden' }} total_month_detail_{{ sign }} {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 		{% endif %}
+	{% elseif month_is_detailed %}
+		<td
+			colspan="2"
+			class="month-cell-span month-real-hidden month-total-detail-hidden total_month_detail_{{ sign }} {{ done }}"
+			data-month="{{ month }}"
+			data-year="{{ month_year }}"
+		>{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 	{% else %}
 		<td class="month-cell-span total_month_full_{{ sign }} {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
 	{% endif %}

@@ -24,7 +24,7 @@
 
 <div class="gains-table-layout{{ show_annual_gain and not annual_gain_integrated ? ' has-annual-gain' }}{{ not show_gain_grid ? ' annual-gain-only' }}">
 {% if show_gain_grid %}
-<table class="table compteTable center gains-table{{ annual_gain_integrated ? '' : ' gains-table-summary-columns-' ~ table_summary_column_count }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}" data-table-key="gains">
+<table class="table compteTable center gains-table{{ annual_gain_integrated ? '' : ' gains-table-summary-columns-' ~ table_summary_column_count }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] and display_month_count != 12 ? ' month-display-compact' }}{{ display_month_count == 12 ? ' month-display-full-range month-display-year' }}" data-table-key="gains">
 
 	{# GAIN MENSUEL #}
 	{% if show_monthly_gain %}

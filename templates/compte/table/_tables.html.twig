@@ -11,7 +11,7 @@
 		<div class="col-12 pt-2 account-table-section account-tables-merged">
 			<h3 class="account-table-section-title account-table-section-title-merged">Tableau des entrées et dépenses</h3>
 			<div class="compte-table-viewport">
-				{% include('compte/table/_table_merged.html.twig') with {'month_anticipation_visible': month_anticipation_visible_merged, 'month_colspans': month_colspans_merged} %}
+				{% include('compte/table/_table_merged.html.twig') with {'month_anticipation_visible': month_anticipation_visible_merged, 'month_real_visible': month_real_visible_merged, 'month_colspans': month_colspans_merged} %}
 			</div>
 		</div>
 	{% else %}
@@ -19,7 +19,7 @@
 		<div class="col-12 pt-2 bck_pos account-table-section account-table-section-income">
 			<h3 class="account-table-section-title account-table-section-title-income">Tableau des entrées</h3>
 			<div class="compte-table-viewport">
-				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true, 'month_anticipation_visible': month_anticipation_visible_pos, 'month_colspans': month_colspans_pos } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true, 'month_anticipation_visible': month_anticipation_visible_pos, 'month_real_visible': month_real_visible_pos, 'month_colspans': month_colspans_pos } %}
 			</div>
 		</div>
 
@@ -27,7 +27,7 @@
 		<div class="col-12 pt-2 bck_neg account-table-section account-table-section-expense">
 			<h3 class="account-table-section-title account-table-section-title-expense">Tableau des dépenses</h3>
 			<div class="compte-table-viewport">
-				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false, 'month_anticipation_visible': month_anticipation_visible_neg, 'month_colspans': month_colspans_neg } %}
+				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false, 'month_anticipation_visible': month_anticipation_visible_neg, 'month_real_visible': month_real_visible_neg, 'month_colspans': month_colspans_neg } %}
 			</div>
 		</div>
 	{% endif %}

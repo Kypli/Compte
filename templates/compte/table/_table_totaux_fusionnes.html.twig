@@ -26,23 +26,35 @@
 		{% set reel = (income_month['reel']|default(0)) + (expense_month['reel']|default(0)) %}
 		{% set anticipe = (income_month['anticipe']|default(0)) + (expense_month['anticipe']|default(0)) %}
 		{% set total = reel + anticipe %}
+		{% set reel_count = (income_month['reel_count']|default(0)) + (expense_month['reel_count']|default(0)) %}
+		{% set month_is_future = current_year < month_year or (current_year == month_year and month > current_month) %}
+		{% set hide_future_month_detail = month_is_future and reel_count == 0 %}
 
 		{% if month_is_collapsed %}
 			<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>
-		{% elseif month_is_detailed %}
+		{% elseif month_is_detailed and not hide_future_month_detail %}
 			<td
 				colspan="{{ show_anticipation_column ? 1 : 2 }}"
-				class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done }} total_month_detail_{{ reel < 0 ? 'neg' : 'pos' }}"
+				class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }}{{ hide_future_month_detail ? ' month-total-detail-hidden' }} {{ done }} total_month_detail_{{ reel < 0 ? 'neg' : 'pos' }}"
 				data-month="{{ month }}"
 				data-year="{{ month_year }}"
 			>
 				{{ reel|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 			</td>
 			{% if show_anticipation_column %}
-				<td class="month-cell-end {{ done }} total_month_detail_{{ anticipe < 0 ? 'neg' : 'pos' }}" data-month="{{ month }}" data-year="{{ month_year }}">
+			<td class="month-cell-end{{ hide_future_month_detail ? ' month-total-detail-hidden' }} {{ done }} total_month_detail_{{ anticipe < 0 ? 'neg' : 'pos' }}" data-month="{{ month }}" data-year="{{ month_year }}">
 					{{ anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
 				</td>
 			{% endif %}
+		{% elseif month_is_detailed %}
+			<td
+				colspan="2"
+				class="month-cell-span month-real-hidden month-total-detail-hidden {{ done }} total_month_detail_{{ anticipe < 0 ? 'neg' : 'pos' }}"
+				data-month="{{ month }}"
+				data-year="{{ month_year }}"
+			>
+				{{ anticipe|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
 		{% else %}
 			<td class="month-cell-span {{ done }} total_month_full_{{ total < 0 ? 'neg' : total > 0 ? 'pos' : 'neutre' }}" data-month="{{ month }}" data-year="{{ month_year }}">
 				{{ total|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}

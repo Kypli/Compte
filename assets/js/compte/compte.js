@@ -9,6 +9,7 @@ import '../../styles/compte/compte.css';
 
 let selectedMonth = null
 let selectedYear = null
+let yearDisplayNavigationYear = null
 let stickyTotalsOverlay = null
 let stickyTotalsFrame = null
 let categoryMove = null
@@ -405,7 +406,6 @@ function applySelectedMonth(){
 		})
 	})
 
-	expandDisplayedMonth()
 	syncMonthWidthsWithGains()
 	scheduleAnchoredTotalRowsUpdate()
 }
@@ -662,41 +662,6 @@ function updateAnchoredTotalRows(){
 	overlay.classList.add('is-visible')
 }
 
-function expandDisplayedMonth(){
-	const datasElement = document.getElementById('datas')
-	const selectedMonthHeader = selectedMonth
-		? document.querySelector(`.month-selector[data-month="${selectedMonth}"][data-year="${selectedYear || datasElement?.dataset.year || ''}"]`)
-		: null
-	const currentMonthHeader = document.querySelector('.month-selector.current')
-	const expandedMonth = selectedMonthHeader
-		? selectedMonth
-		: String($('#datas').data('monthdisplay')).startsWith('current')
-			? currentMonthHeader?.dataset.month
-			: null
-	const expandedYear = selectedMonthHeader
-		? selectedMonthHeader.dataset.year
-		: currentMonthHeader?.dataset.year
-
-	if (!expandedMonth) {
-		return
-	}
-
-	document.querySelectorAll('.compteTable').forEach(table => {
-		const monthHeader = table.querySelector(`tr:first-child .month-visible[data-month="${expandedMonth}"][data-year="${expandedYear}"]`)
-		if (!monthHeader) {
-			return
-		}
-
-		const monthWidth = monthHeader.getBoundingClientRect().width
-		const expandedWidth = Math.max(monthWidth * 1.2, monthWidthFloor(monthHeader))
-
-		monthHeader.classList.add('month-width-expanded')
-		monthHeader.style.setProperty('width', `${expandedWidth}px`, 'important')
-		monthHeader.style.setProperty('min-width', `${expandedWidth}px`, 'important')
-		monthHeader.style.setProperty('max-width', `${expandedWidth}px`, 'important')
-	})
-}
-
 function restoreSelectedMonths(){
 	applySelectedMonth()
 }
@@ -726,6 +691,153 @@ function toggleSelectedMonth(month, year){
 	centerCompactTables()
 }
 
+function isMonthVisible(month, year){
+	return null !== document.querySelector(`.month-selector[data-month="${month}"][data-year="${year}"]`)
+}
+
+function nextMonthSelection(month, year, direction){
+	let nextMonth = Number.parseInt(month, 10) + direction
+	let nextYear = Number.parseInt(year, 10)
+
+	if (nextMonth < 1) {
+		nextMonth = 12
+		nextYear -= 1
+	} else if (nextMonth > 12) {
+		nextMonth = 1
+		nextYear += 1
+	}
+
+	return { month: String(nextMonth), year: String(nextYear) }
+}
+
+function setMonthDisplayForSelection(monthDisplay, range){
+	const datasElement = document.getElementById('datas')
+	const monthDisplayInput = document.getElementById('monthDisplay')
+	const customBasis = document.getElementById('monthCustomBasis')
+	const beforeInput = document.getElementById('monthRangeBefore')
+	const afterInput = document.getElementById('monthRangeAfter')
+	const detailMonths = getSelectedDetailMonths().join(',')
+	const url = new URL(window.location.href)
+
+	if (monthDisplayInput) {
+		monthDisplayInput.value = monthDisplay
+	}
+	if (customBasis && isCustomMonthDisplayMode(monthDisplay)) {
+		customBasis.value = monthDisplay
+	}
+	if (beforeInput) {
+		beforeInput.value = range.months_before
+	}
+	if (afterInput) {
+		afterInput.value = range.months_after
+	}
+	if (datasElement) {
+		datasElement.dataset.monthdisplay = monthDisplay
+		datasElement.dataset.monthsbefore = String(range.months_before)
+		datasElement.dataset.monthsafter = String(range.months_after)
+		datasElement.dataset.detailmonths = detailMonths
+		$(datasElement)
+			.data('monthdisplay', monthDisplay)
+			.data('monthsbefore', range.months_before)
+			.data('monthsafter', range.months_after)
+			.data('detailmonths', detailMonths)
+	}
+	url.searchParams.set('months', monthDisplay)
+	url.searchParams.set('months_before', String(range.months_before))
+	url.searchParams.set('months_after', String(range.months_after))
+	url.searchParams.set('detail_months', detailMonths)
+	url.searchParams.set('detail_months_set', '1')
+	window.history.replaceState(window.history.state, '', url)
+	syncMonthRangeFields()
+}
+
+function moveSelectedMonth(month, year, direction){
+	const datasElement = document.getElementById('datas')
+	if (!datasElement) {
+		return
+	}
+
+	const target = nextMonthSelection(month, year, direction)
+	if (Number.parseInt(target.year, 10) < 1000 || Number.parseInt(target.year, 10) > 9999) {
+		return
+	}
+
+	const previousSelection = { month: selectedMonth, year: selectedYear }
+	const previousYearDisplayNavigationYear = yearDisplayNavigationYear
+	const previousDisplay = {
+		mode: datasElement.dataset.monthdisplay || 'year',
+		range: getMonthRangeParams()
+	}
+	const targetIsVisible = isMonthVisible(target.month, target.year)
+	let nextDisplay = previousDisplay.mode
+	let nextRange = previousDisplay.range
+
+	if ('year' === previousDisplay.mode && !targetIsVisible) {
+		yearDisplayNavigationYear = datasElement.dataset.year || null
+		nextDisplay = 'custom_selected'
+		nextRange = direction > 0
+			? { months_before: 11, months_after: 0 }
+			: { months_before: 0, months_after: 11 }
+	} else if ('custom_selected' === previousDisplay.mode && yearDisplayNavigationYear === target.year) {
+		nextDisplay = 'year'
+		nextRange = { months_before: 1, months_after: 3 }
+		yearDisplayNavigationYear = null
+	} else if (!targetIsVisible && !isSelectedMonthDisplayMode(previousDisplay.mode)) {
+		nextDisplay = isCustomMonthDisplayMode(previousDisplay.mode)
+			? 'custom_selected'
+			: previousDisplay.mode.replace('_current', '_selected')
+	}
+
+	selectedMonth = target.month
+	selectedYear = target.year
+	syncSelectedMonthControls()
+
+	const reloadTables = nextDisplay !== previousDisplay.mode || isSelectedMonthDisplayMode(nextDisplay)
+	if (!reloadTables) {
+		applySelectedMonth()
+		centerCompactTables()
+		return
+	}
+
+	setMonthDisplayForSelection(nextDisplay, nextRange)
+	setMonthDisplayControlsDisabled(true)
+	$('#monthCustomBasis, #monthRangeBefore, #monthRangeAfter, #monthCustomApply').prop('disabled', true)
+	updateTables()
+		.fail(function(){
+			selectedMonth = previousSelection.month
+			selectedYear = previousSelection.year
+			yearDisplayNavigationYear = previousYearDisplayNavigationYear
+			setMonthDisplayForSelection(previousDisplay.mode, previousDisplay.range)
+			syncSelectedMonthControls()
+			applySelectedMonth()
+			centerCompactTables()
+		})
+		.always(function(){
+			setMonthDisplayControlsDisabled(false)
+			$('#monthCustomBasis, #monthRangeBefore, #monthRangeAfter, #monthCustomApply').prop('disabled', false)
+		})
+}
+
+function monthNavigationOrigin(target){
+	if (target instanceof Element && target.closest('input, textarea, select, button, a, [contenteditable="true"], .modal.show')) {
+		return null
+	}
+
+	if (selectedMonth && selectedYear) {
+		return { month: selectedMonth, year: selectedYear }
+	}
+
+	const monthSelector = target instanceof Element ? target.closest('.month-selector') : null
+	if (monthSelector) {
+		return { month: monthSelector.dataset.month, year: monthSelector.dataset.year }
+	}
+
+	const currentMonthSelector = document.querySelector('.month-selector.current')
+	return currentMonthSelector
+		? { month: currentMonthSelector.dataset.month, year: currentMonthSelector.dataset.year }
+		: null
+}
+
 function centerCompactTables(){
 	document.querySelectorAll('.compte-table-viewport').forEach(viewport => {
 		const table = viewport.querySelector('.month-display-compact')
@@ -733,25 +845,9 @@ function centerCompactTables(){
 			return
 		}
 
-		const visibleMonths = table.querySelectorAll('tr:first-child .month-visible')
-		if (!visibleMonths.length) {
-			return
-		}
-
 		table.style.marginLeft = '0px'
 		table.style.marginRight = '0px'
-
-		const firstMonth = visibleMonths[0]
-		const lastMonth = visibleMonths[visibleMonths.length - 1]
-		const monthsCenter = (firstMonth.offsetLeft + lastMonth.offsetLeft + lastMonth.offsetWidth) / 2
-		const viewportCenter = viewport.clientWidth / 2
-		const tableWidth = table.offsetWidth
-
-		const leftSpace = Math.max(0, viewportCenter - monthsCenter)
-		const rightSpace = Math.max(0, viewportCenter - (tableWidth - monthsCenter))
-		table.style.marginLeft = `${leftSpace}px`
-		table.style.marginRight = `${rightSpace}px`
-		viewport.scrollLeft = leftSpace + monthsCenter - viewportCenter
+		viewport.scrollLeft = 0
 	})
 }
 
@@ -3065,6 +3161,20 @@ $(document).ready(function(){
 		})
 	})
 
+	document.addEventListener('keydown', function(event){
+		if (event.altKey || event.ctrlKey || event.metaKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+			return
+		}
+
+		const origin = monthNavigationOrigin(event.target)
+		if (!origin?.month || !origin.year) {
+			return
+		}
+
+		event.preventDefault()
+		moveSelectedMonth(origin.month, origin.year, 'ArrowRight' === event.key ? 1 : -1)
+	})
+
 	syncDetailMonthSummary()
 	syncMonthRangeFields()
 
@@ -3153,6 +3263,7 @@ $(document).ready(function(){
 	})
 
 	$('body').on('change', '#monthDisplay', function(){
+		yearDisplayNavigationYear = null
 		const monthDisplayInput = this
 		const datas = $('#datas')
 		const previousMonthDisplay = datas.data('monthdisplay')
@@ -3209,6 +3320,7 @@ $(document).ready(function(){
 	})
 
 	$('body').on('click', '#monthCustomApply', function(){
+		yearDisplayNavigationYear = null
 		const datas = $('#datas')
 		const previousMonthDisplay = datas.data('monthdisplay')
 		const previousBefore = document.getElementById('datas')?.dataset.monthsbefore || '1'
@@ -3604,6 +3716,11 @@ $(document).ready(function(){
 			searchInput.dispatchEvent(new Event('input', { bubbles: true }))
 		}
 		this.setAttribute('aria-expanded', willShow ? 'true' : 'false')
+		const icon = this.querySelector('i')
+		if (icon) {
+			icon.classList.toggle('fa-eye', willShow)
+			icon.classList.toggle('fa-eye-slash', !willShow)
+		}
 		this.querySelector('span').textContent = willShow ? 'Voir les anomalies' : 'Voir les ignorées'
 	})
 
@@ -3618,12 +3735,23 @@ $(document).ready(function(){
 
 	// Td anticipe jauni
 	$("body .anticipe").hover(
-		function(){ $(this).prev().addClass('jauni') },
-		function(){	$(this).prev().removeClass('jauni')	}
+		function(){
+			if (!$(this).hasClass('month-real-hidden')){
+				$(this).prev().addClass('jauni')
+			}
+		},
+		function(){
+			if (!$(this).hasClass('month-real-hidden')){
+				$(this).prev().removeClass('jauni')
+			}
+		}
 	)
 
 	// Td anticipe jauni après reload tbody
 	$("body").on("mouseover", ".anticipe", function(e){
+		if ($(this).hasClass('month-real-hidden')){
+			return
+		}
 
 		$(this).prev().addClass('jauni')
 		$(this).hover(

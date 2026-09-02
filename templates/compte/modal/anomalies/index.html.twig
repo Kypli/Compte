@@ -152,7 +152,10 @@
 
 				{% if ignored_anomalies|default([]) is not empty %}
 					<section id="ignoredAnomalies" class="ignored-anomalies" data-ignored-anomalies hidden>
-						<h5>Anomalies ignorées</h5>
+						<header class="ignored-anomalies-header">
+							<h5><i class="fa-solid fa-eye-slash" aria-hidden="true"></i> Anomalies ignorées</h5>
+							<span class="ignored-anomalies-count">{{ ignored_anomalies|length }}</span>
+						</header>
 						<ul class="anomalies-list">
 							{% for anomaly in ignored_anomalies %}
 								{% set category = anomaly.subcategory.category %}

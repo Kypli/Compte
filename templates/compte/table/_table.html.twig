@@ -28,6 +28,16 @@
 		{% set month_anticipation_visible = month_anticipation_visible|merge({ (month_key): not month_is_past or month_has_anticipation }) %}
 	{% endfor %}
 {% endif %}
+{% if month_real_visible is not defined %}
+	{% set month_real_visible = {} %}
+	{% for key in visible_months %}
+		{% set month_key = 'm' ~ key %}
+		{% set month_year = visible_month_years[key]|default(year) %}
+		{% set month_is_future = current_year < month_year or (current_year == month_year and key > current_month) %}
+		{% set month_has_real = operations['totaux_mois'][key]['reel_count']|default(0) > 0 %}
+		{% set month_real_visible = month_real_visible|merge({ (month_key): not month_is_future or month_has_real }) %}
+	{% endfor %}
+{% endif %}
 {% if month_colspans is not defined %}
 	{% set month_colspans = {} %}
 	{% for key in visible_months %}
@@ -37,7 +47,7 @@
 {% endif %}
 
 <table
-	class="table compteTable center{{ combined_compte ? ' is-combined-account-table' }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] ? ' month-display-compact' }}"
+	class="table compteTable center{{ combined_compte ? ' is-combined-account-table' }} month-display-{{ month_display }} month-display-{{ month_display_family }}{{ month_display_family in ['one', 'current', 'custom'] and display_month_count != 12 ? ' month-display-compact' }}{{ display_month_count == 12 ? ' month-display-full-range month-display-year' }}"
 	data-sign="{{ signBool == 1 ? '1' : '0' }}"
 	data-category-reorder-url="{{ path('compte_category_reorder', {'id': compte.id}) }}"
 	data-category-reorder-token="{{ csrf_token('reorder-categories' ~ compte.id) }}"
@@ -123,14 +133,20 @@
 					%}
 					{% if month_is_detailed %}
 						{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
-						<td
-							colspan="{{ show_anticipation_column ? 1 : 2 }}"
-							class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done }}"
-							data-month="{{ month }}"
-							data-year="{{ month_year }}"
-						>Fait</td>
-						{% if show_anticipation_column %}
-							<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}">A ven.</td>
+						{% set month_is_future = current_year < month_year or (current_year == month_year and month > current_month) %}
+						{% set show_real_column = not month_is_future or operations['totaux_mois'][month]['reel_count']|default(0) > 0 %}
+						{% if show_real_column %}
+							<td
+								colspan="{{ show_anticipation_column ? 1 : 2 }}"
+								class="{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done }}"
+								data-month="{{ month }}"
+								data-year="{{ month_year }}"
+							>Fait</td>
+							{% if show_anticipation_column %}
+								<td class="month-cell-end {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}" title="À venir">A ven.</td>
+							{% endif %}
+						{% else %}
+							<td colspan="2" class="month-cell-span month-real-hidden {{ done }}" data-month="{{ month }}" data-year="{{ month_year }}" title="À venir">A ven.</td>
 						{% endif %}
 					{% else %}
 						<td class="month-cell-span {{ done }} month-detail-collapsed" data-month="{{ month }}" data-year="{{ month_year }}"></td>

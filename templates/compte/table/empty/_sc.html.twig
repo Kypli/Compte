@@ -1,8 +1,10 @@
 {% for month in visible_months %}
 		{% set month_year = visible_month_years[month]|default(year) %}
 {% set month_is_detailed = month in detail_months %}
-{% set month_is_collapsed = month not in detail_months %}
+	{% set month_is_collapsed = month not in detail_months %}
 	{% set show_anticipation_column = month_anticipation_visible['m' ~ month]|default(true) %}
+	{% set month_is_future = current_year < month_year or (current_year == month_year and month > current_month) %}
+	{% set show_real_column = not month_is_future or operations['totaux_mois'][month]['reel_count']|default(0) > 0 %}
 	{% set done =
 			current_year > month_year or (current_year == month_year and month < current_month)
 				? 'done'
@@ -17,24 +19,37 @@
 			data-month="{{ month }}" data-year="{{ month_year }}"
 		></td>
 	{% elseif month_is_detailed %}
-		{# REEL #}
-		<td
-			colspan="{{ show_anticipation_column ? 1 : 2 }}"
-			class='{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done|trim }}'
-			data-month="{{ month }}" data-year="{{ month_year }}"
-			data-scid="{{ subcategory.id }}"
-			data-sign="{{ sign }}"
-			data-anticipe="0"
-			data-target="#modalOperation"
-			data-toggle="modal"
-		>
-			{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
-		</td>
-
-		{# ANTICIPE #}
-		{% if show_anticipation_column %}
+		{% if show_real_column %}
+			{# REEL #}
 			<td
-				class='month-cell-end {{ done|trim }} anticipe{{ loop.last ? ' month-cell-last' }}'
+				colspan="{{ show_anticipation_column ? 1 : 2 }}"
+				class='{{ show_anticipation_column ? 'month-cell-start' : 'month-cell-span month-anticipation-hidden' }} {{ done|trim }}'
+				data-month="{{ month }}" data-year="{{ month_year }}"
+				data-scid="{{ subcategory.id }}"
+				data-sign="{{ sign }}"
+				data-anticipe="0"
+				data-target="#modalOperation"
+				data-toggle="modal"
+			>
+				{{ 0|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}
+			</td>
+
+			{# ANTICIPE #}
+			{% if show_anticipation_column %}
+				<td
+					class='month-cell-end {{ done|trim }} anticipe{{ loop.last ? ' month-cell-last' }}'
+					data-month="{{ month }}" data-year="{{ month_year }}"
+					data-scid="{{ subcategory.id }}"
+					data-sign="{{ sign }}"
+					data-anticipe="1"
+					data-target="#modalOperation"
+					data-toggle="modal"
+				></td>
+			{% endif %}
+		{% else %}
+			<td
+				colspan="2"
+				class='month-cell-span month-real-hidden {{ done|trim }} anticipe{{ loop.last ? ' month-cell-last' }}'
 				data-month="{{ month }}" data-year="{{ month_year }}"
 				data-scid="{{ subcategory.id }}"
 				data-sign="{{ sign }}"

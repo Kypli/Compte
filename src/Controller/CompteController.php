@@ -217,6 +217,9 @@ class CompteController extends AbstractController
 		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
 		$month_anticipation_visible_neg = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
 		$month_anticipation_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_anticipation_visible_pos, $month_anticipation_visible_neg);
+		$month_real_visible_pos = $this->monthRealVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
+		$month_real_visible_neg = $this->monthRealVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
+		$month_real_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_real_visible_pos, $month_real_visible_neg);
 		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
@@ -286,6 +289,9 @@ class CompteController extends AbstractController
 			'month_anticipation_visible_pos' => $month_anticipation_visible_pos,
 			'month_anticipation_visible_neg' => $month_anticipation_visible_neg,
 			'month_anticipation_visible_merged' => $month_anticipation_visible_merged,
+			'month_real_visible_pos' => $month_real_visible_pos,
+			'month_real_visible_neg' => $month_real_visible_neg,
+			'month_real_visible_merged' => $month_real_visible_merged,
 			'month_colspans_pos' => $month_colspans_pos,
 			'month_colspans_neg' => $month_colspans_neg,
 			'month_colspans_merged' => $month_colspans_merged,
@@ -362,6 +368,9 @@ class CompteController extends AbstractController
 		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
 		$month_anticipation_visible_neg = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
 		$month_anticipation_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_anticipation_visible_pos, $month_anticipation_visible_neg);
+		$month_real_visible_pos = $this->monthRealVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
+		$month_real_visible_neg = $this->monthRealVisibility($visible_months, $visible_month_years, $table_operations_neg, $current_year, (int) $current_month);
+		$month_real_visible_merged = $this->mergeMonthAnticipationVisibility($visible_months, $month_real_visible_pos, $month_real_visible_neg);
 		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
@@ -414,6 +423,9 @@ class CompteController extends AbstractController
 			'month_anticipation_visible_pos' => $month_anticipation_visible_pos,
 			'month_anticipation_visible_neg' => $month_anticipation_visible_neg,
 			'month_anticipation_visible_merged' => $month_anticipation_visible_merged,
+			'month_real_visible_pos' => $month_real_visible_pos,
+			'month_real_visible_neg' => $month_real_visible_neg,
+			'month_real_visible_merged' => $month_real_visible_merged,
 			'month_colspans_pos' => $month_colspans_pos,
 			'month_colspans_neg' => $month_colspans_neg,
 			'month_colspans_merged' => $month_colspans_merged,
@@ -776,6 +788,20 @@ class CompteController extends AbstractController
 		return $visibility;
 	}
 
+	private function monthRealVisibility(array $visibleMonths, array $visibleMonthYears, array $operationsDatas, int $currentYear, int $currentMonth): array
+	{
+		$visibility = [];
+		foreach ($visibleMonths as $month){
+			$month = (int) $month;
+			$monthYear = (int) ($visibleMonthYears[$month] ?? $currentYear);
+			$monthIsFuture = $currentYear < $monthYear || ($currentYear === $monthYear && $month > $currentMonth);
+			$hasReal = (int) ($operationsDatas['totaux_mois'][$month]['reel_count'] ?? 0) > 0;
+			$visibility['m'.$month] = !$monthIsFuture || $hasReal;
+		}
+
+		return $visibility;
+	}
+
 	private function mergeMonthAnticipationVisibility(array $visibleMonths, array ...$visibilityMaps): array
 	{
 		$visibility = [];
@@ -1061,6 +1087,10 @@ class CompteController extends AbstractController
 				isset($operations['totaux_mois'][$mois]['reel'])
 					? $operations['totaux_mois'][$mois]['reel'] += $number
 					: $operations['totaux_mois'][$mois]['reel'] = $number
+				;
+				isset($operations['totaux_mois'][$mois]['reel_count'])
+					? $operations['totaux_mois'][$mois]['reel_count']++
+					: $operations['totaux_mois'][$mois]['reel_count'] = 1
 				;
 
 			// Anticipe

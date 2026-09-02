@@ -2055,20 +2055,62 @@ body.account-background-grey {
 	text-align: center;
 }
 .ignored-anomalies {
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid #DCE1E4;
+	margin: 0;
+	padding: 2px 0 0;
+}
+.ignored-anomalies-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 38px;
+	padding: 0 7px;
+	border-bottom: 1px solid #C9D0D4;
+	background: #EEF1F2;
 }
 .ignored-anomalies h5 {
-	margin: 0 0 4px;
-	color: #59656C;
+	margin: 0;
+	color: #46545C;
 	font-size: 12px;
 	font-weight: 800;
 	text-transform: uppercase;
 }
+.ignored-anomalies h5 i {
+	margin-right: 5px;
+	color: #65747C;
+}
+.ignored-anomalies-count {
+	display: inline-flex;
+	min-width: 22px;
+	height: 22px;
+	align-items: center;
+	justify-content: center;
+	padding: 0 6px;
+	color: #45535A;
+	font-size: 11px;
+	font-weight: 800;
+	border: 1px solid #B9C2C7;
+	border-radius: 50%;
+	background: #FFFFFF;
+}
 .anomaly-item.is-ignored {
-	background: #F7F8F8;
-	filter: saturate(0.65);
+	padding-right: 7px;
+	padding-left: 7px;
+	border-color: #D2D9DC;
+	background: #F7F9F9;
+}
+.anomaly-item.is-ignored .anomaly-icon {
+	color: #5D6B73;
+	border-color: #C1CACF;
+	background: #EDF1F2;
+}
+.anomaly-item.is-ignored .anomaly-description strong {
+	color: #445159;
+}
+.anomaly-item.is-ignored .anomaly-description small {
+	color: #647078;
+}
+#modalAnomalies .modal-footer [data-toggle-ignored-anomalies] {
+	margin-right: auto;
 }
 #modalAnomalies .modal-dialog,
 #modalAnomalies .anomalies-modal-content {
@@ -4155,7 +4197,6 @@ table {
 	background-color: var(--table-past-bg)!important;
 }
 .current, .current td {
-	padding-bottom: 5px!important;
 	background-color: var(--table-current-bg)!important;
 }
 .month-selector {
@@ -4187,7 +4228,12 @@ table {
 	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 -2px #8F989F;
 }
 .compteTable .tr_head .month-selector.current {
+	padding-bottom: 5px!important;
 	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 2px #8F989F;
+}
+.compteTable .tr_head .month-selector {
+	height: 31px;
+	vertical-align: middle;
 }
 .compteTable .month-cell-start.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection);
@@ -4198,13 +4244,15 @@ table {
 .compteTable .month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection);
 }
-.compteTable .month-anticipation-hidden.month-column-selected {
+.compteTable .month-anticipation-hidden.month-column-selected,
+.compteTable .month-real-hidden.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection)!important;
 }
 .compteTable .month-selector.month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection);
 }
-.compteTable .month-selector.month-anticipation-hidden.month-column-selected {
+.compteTable .month-selector.month-anticipation-hidden.month-column-selected,
+.compteTable .month-selector.month-real-hidden.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection)!important;
 }
 .gains-table tr:first-child .month-cell-span.month-column-selected {
@@ -4250,21 +4298,22 @@ table {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 2px #90CAF9, inset 0 -2px #90CAF9!important;
 }
 .month-display-year .month-visible:not(.month-detail-collapsed),
-.month-display-year .month-anticipation-hidden:not(.month-detail-collapsed) {
+.month-display-year .month-anticipation-hidden:not(.month-detail-collapsed),
+.month-display-year .month-real-hidden:not(.month-detail-collapsed) {
 	min-width: 89px!important;
 	white-space: nowrap;
 	word-break: normal;
 }
 .month-display-compact {
-	margin-right: auto;
-	margin-left: auto;
+	margin-right: 0;
+	margin-left: 0;
 }
 .month-display-three,
 .month-display-custom {
 	width: max-content!important;
 	min-width: max-content!important;
-	margin-right: auto;
-	margin-left: auto;
+	margin-right: 0;
+	margin-left: 0;
 }
 .month-display-one {
 	width: max-content!important;
@@ -4273,6 +4322,12 @@ table {
 .month-display-current {
 	width: max-content!important;
 	min-width: max-content!important;
+}
+.month-display-full-range {
+	width: 100%!important;
+	min-width: 100%!important;
+	margin-right: 0!important;
+	margin-left: 0!important;
 }
 .month-display-three .month-visible {
 	width: 110px;
@@ -4351,6 +4406,8 @@ table {
 }
 
 .account-tables-layout {
+	min-width: 0;
+	max-width: 100%;
 	gap: 8px;
 	margin: 14px 0 0 2px!important;
 	padding: 6px;
@@ -4361,6 +4418,8 @@ table {
 }
 
 .account-tables-layout > .account-table-section {
+	min-width: 0;
+	max-width: 100%;
 	padding: 7px 7px 8px!important;
 	overflow: hidden;
 	border: 0;
@@ -4489,7 +4548,8 @@ table {
 }
 
 @media (max-width: 767px) {
-	.compte-table-viewport {
+.compte-table-viewport {
+	min-width: 0;
 		width: calc(100% + 24px);
 		margin-left: -12px;
 	}
@@ -4499,6 +4559,9 @@ table {
 .anticipe {
 	color: purple;
 	border-left: hidden!important;
+}
+.compteTable .month-real-hidden.anticipe {
+	border-left: 1px solid #8F999F!important;
 }
 .blink_me {
 	animation: blinker 3s linear infinite;
@@ -4607,19 +4670,20 @@ table {
 .compteTable .account-total-detail-row > .month-anticipation-hidden.done {
 	color: transparent!important;
 	background-color: transparent!important;
-	border-color: transparent!important;
-	box-shadow: none!important;
 }
 .account-sticky-totals-overlay .account-total-detail-row > .month-anticipation-hidden.done {
 	color: transparent!important;
 	background-color: transparent!important;
-	border-color: transparent!important;
-	box-shadow: none!important;
+}
+.compteTable .account-total-detail-row > .month-total-detail-hidden,
+.account-sticky-totals-overlay .account-total-detail-row > .month-total-detail-hidden {
+	color: transparent!important;
+	background-color: transparent!important;
 }
 
 .compteTable .edit td:hover:not(.counterEdit), /* tout les TD edit */
 .compteTable .edit .anticipe:hover:has(+ td), /* TD avant .anticipe */
-.compteTable .edit td:hover:not(.counterEdit, .anticipe, .month-anticipation-hidden, .td_category_libelle, .td_subcategory_libelle) + td, /* TD après edit */
+.compteTable .edit td:hover:not(.counterEdit, .anticipe, .month-anticipation-hidden, .month-real-hidden, .td_category_libelle, .td_subcategory_libelle) + td, /* TD après edit */
 .jauni{
 	cursor: pointer;
 	text-decoration: underline;

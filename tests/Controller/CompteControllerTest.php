@@ -1013,6 +1013,47 @@ class CompteControllerTest extends WebTestCase
 		self::assertStringContainsString('Aucune anomalie détectée', $response['render_anomalies_modal']);
 	}
 
+	public function testFutureMonthTotalsHideTheDetailRowWhenOnlyAnticipatedOperationsExist(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$futureDate = new \DateTime('first day of next month');
+		$anticipatedOperation = $this->createOperation($this->positiveSubCategory, 35, true)
+			->setDate($futureDate)
+		;
+		$entityManager->persist($anticipatedOperation);
+		$entityManager->flush();
+		$this->createdIds[Operation::class][] = $anticipatedOperation->getId();
+
+		$this->client->loginUser($this->owner);
+		$this->client->request('GET', '/compte/'.$this->compte->getId());
+		$futureMonth = $futureDate->format('n');
+		$futureYear = $futureDate->format('Y');
+		$detailSelector = sprintf(
+			'.account-table-section-income .account-total-detail-row .month-total-detail-hidden[data-month="%s"][data-year="%s"]',
+			$futureMonth,
+			$futureYear
+		);
+
+		self::assertResponseIsSuccessful();
+		self::assertCount(1, $this->client->getCrawler()->filter($detailSelector));
+		self::assertSelectorExists(sprintf(
+			'.account-table-section-income .account-total-full-row [data-month="%s"][data-year="%s"]',
+			$futureMonth,
+			$futureYear
+		));
+
+		$doneOperation = $this->createOperation($this->positiveSubCategory, 12, false)
+			->setDate(clone $futureDate)
+		;
+		$entityManager->persist($doneOperation);
+		$entityManager->flush();
+		$this->createdIds[Operation::class][] = $doneOperation->getId();
+
+		$this->client->request('GET', '/compte/'.$this->compte->getId());
+		self::assertResponseIsSuccessful();
+		self::assertCount(0, $this->client->getCrawler()->filter($detailSelector));
+	}
+
 	public function testAnomaliesCanBeSearchedAndIgnoredOperationsCanBeReactivated(): void
 	{
 		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
@@ -1264,6 +1305,34 @@ class CompteControllerTest extends WebTestCase
 		self::assertCount(3, $crawler->filter('.compte-table-viewport'));
 		self::assertCount(1, $crawler->filter('.bck_pos #month_'.$currentMonth));
 		self::assertCount(1, $crawler->filter('.bck_pos table.month-display-current.month-display-compact'));
+	}
+
+	public function testCustomSelectedMonthDisplayCanCrossYearBoundaries(): void
+	{
+		$this->client->loginUser($this->owner);
+		$currentYear = (int) date('Y');
+
+		$crawler = $this->client->request(
+			'GET',
+			'/compte/'.$this->compte->getId().'?year='.$currentYear.'&months=custom_selected&selected_month=1&selected_year='.($currentYear + 1).'&months_before=11&months_after=0'
+		);
+		self::assertResponseIsSuccessful();
+		self::assertCount(12, $crawler->filter('.bck_pos th[id^="month_"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos #month_1[data-year="'.($currentYear + 1).'"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos #month_2[data-year="'.$currentYear.'"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos table.month-display-full-range.month-display-year'));
+		self::assertCount(0, $crawler->filter('.bck_pos table.month-display-compact'));
+
+		$crawler = $this->client->request(
+			'GET',
+			'/compte/'.$this->compte->getId().'?year='.$currentYear.'&months=custom_selected&selected_month=12&selected_year='.($currentYear - 1).'&months_before=0&months_after=11'
+		);
+		self::assertResponseIsSuccessful();
+		self::assertCount(12, $crawler->filter('.bck_pos th[id^="month_"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos #month_12[data-year="'.($currentYear - 1).'"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos #month_11[data-year="'.$currentYear.'"]'));
+		self::assertCount(1, $crawler->filter('.bck_pos table.month-display-full-range.month-display-year'));
+		self::assertCount(0, $crawler->filter('.bck_pos table.month-display-compact'));
 	}
 
 	public function testLastActionsPopoverIsLimitedToFifteenEntries(): void
