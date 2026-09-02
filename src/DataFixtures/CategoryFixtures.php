@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Category as Entity;
+use App\Entity\Compte;
 
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -30,7 +31,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 		$entity
 			->setLibelle('travail')
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_POS_1, $entity);
 		$manager->persist($entity);
@@ -40,7 +41,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setLibelle('assurance')
 			->setPosition(2)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_POS_2, $entity);
 		$manager->persist($entity);
@@ -51,7 +52,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setLibelle('loisirs')
 			->setSign(false)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_NEG_1, $entity);
 		$manager->persist($entity);
@@ -63,7 +64,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setSign(false)
 			->setPosition(2)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_NEG_2, $entity);
 		$manager->persist($entity);
@@ -73,7 +74,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 		$entity
 			->setLibelle('travail')
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_USER))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_USER, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_USER_POS_1, $entity);
 		$manager->persist($entity);
@@ -83,7 +84,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setLibelle('assurance')
 			->setPosition(2)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_USER))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_USER, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_USER_POS_2, $entity);
 		$manager->persist($entity);
@@ -94,7 +95,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setLibelle('loisir')
 			->setSign(false)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_USER))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_USER, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_USER_NEG_1, $entity);
 		$manager->persist($entity);
@@ -105,7 +106,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setSign(false)
 			->setPosition(2)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_USER))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_USER, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_USER_NEG_2, $entity);
 		$manager->persist($entity);
@@ -115,7 +116,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 		$entity
 			->setLibelle('Alimentation du compte')
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_LIQUIDE_POS_1, $entity);
 		$manager->persist($entity);
@@ -126,7 +127,7 @@ class CategoryFixtures extends Fixture implements DependentFixtureInterface, Fix
 			->setLibelle('Dépenses en espèces')
 			->setSign(false)
 			->setYear(date('Y'))
-			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE))
+			->setCompte($this->getReference(CompteFixtures::COMPTE_ADMIN_LIQUIDE, Compte::class))
 		;
 		$this->addReference(self::CATEGORY_ADMIN_LIQUIDE_NEG_1, $entity);
 		$manager->persist($entity);

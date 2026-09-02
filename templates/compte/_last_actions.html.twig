@@ -3,6 +3,7 @@
 {% set latest = lastActions|first %}
 {% set can_undo_today_actions = canUndoTodayActions|default(false) %}
 {% set can_edit_compte = is_granted('COMPTE_EDIT', compte) %}
+{% set show_action_authors = compte.users|length >= 2 %}
 
 <div class="last-actions{{ latest ? '' : ' is-empty' }}">
 	{% if latest %}
@@ -86,10 +87,13 @@
 							<small>
 								{% if is_move %}
 									Position {{ action.beforeSnapshot.position }} → {{ action.afterSnapshot.position }}
-								{% else %}
-									{{ action.displayDate|date('d/m/Y') }} &middot; {{ action.displayNumber|money_display(money_display_format|default(app.user.preferences.moneyDisplayFormat|default('comma')), money_currency|default(app.user.preferences.moneyCurrency|default('EUR')), money_trim_zeros|default(app.user.preferences.moneyTrimZeros|default(false)), (money_show_zero_decimals ?? (app.user.preferences.moneyShowZeroDecimals ?? true))) }}
-								{% endif %}
-							</small>
+							{% else %}
+								{{ action.displayDate|date('d/m/Y') }} &middot; {{ action.displayNumber|money_display(money_display_format|default(app.user.preferences.moneyDisplayFormat|default('comma')), money_currency|default(app.user.preferences.moneyCurrency|default('EUR')), money_trim_zeros|default(app.user.preferences.moneyTrimZeros|default(false)), (money_show_zero_decimals ?? (app.user.preferences.moneyShowZeroDecimals ?? true))) }}
+							{% endif %}
+							{% if show_action_authors and action.author %}
+								&middot; Par {{ action.author.userIdentifier }}
+							{% endif %}
+						</small>
 						</span>
 						<time datetime="{{ action.actionAt|date('c') }}">{{ action.actionAt|date('d/m H:i') }}</time>
 						{% if can_edit_compte %}

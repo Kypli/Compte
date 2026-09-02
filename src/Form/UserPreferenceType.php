@@ -60,6 +60,17 @@ class UserPreferenceType extends AbstractType
 				]
 			)
 			->add(
+				'showAssociateTotals',
+				CheckboxType::class,
+				[
+					'required' => false,
+					'label' => 'Afficher les encadrés des personnes associées',
+					'attr' => [
+						'class' => 'checkType',
+					],
+				]
+			)
+			->add(
 				'anchorTableTotals',
 				CheckboxType::class,
 				[
@@ -159,8 +170,8 @@ class UserPreferenceType extends AbstractType
 					'expanded' => true,
 					'multiple' => false,
 					'choices' => [
-						'1 234.56' => 'dot',
 						'1 234,56' => 'comma',
+						'1 234.56' => 'dot',
 						'1 234€56' => 'euro_cents',
 						'1.234,56' => 'german',
 					],

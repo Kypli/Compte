@@ -1,0 +1,29 @@
+{% set summaries = associate_summaries|default([]) %}
+{% if summaries|length > 0 %}
+	<td rowspan="{{ rowspan|default(2) }}" colspan="{{ label_colspan }}" class="associate-summary-cell">
+		<div class="associate-summary-list" aria-label="Répartition des montants par associé">
+			{% for associate in summaries %}
+				{% set income = associate.income.total_final|default(0) %}
+				{% set expense = associate.expense.total_final|default(0) %}
+				{% set total = variant == 'merged' ? income + expense : variant == 'income' ? income : expense %}
+				{% set displayed_total = total|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) %}
+				{% set displayed_income = income|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) %}
+				{% set displayed_expense = expense|money_display(money_display_format, money_currency, money_trim_zeros, money_show_zero_decimals) %}
+				{% set summary_title = variant == 'merged'
+					? associate.name ~ ' - Total : ' ~ displayed_total ~ ' | Entrées : ' ~ displayed_income ~ ' | Dépenses : ' ~ displayed_expense
+					: associate.name ~ ' - Total : ' ~ displayed_total
+				%}
+				<div class="associate-summary-card" title="{{ summary_title }}">
+					<span class="associate-summary-name">{{ associate.name }}</span>
+					{% if variant == 'merged' %}
+						<span class="associate-summary-amount is-merged">{{ displayed_total }}</span>
+					{% elseif variant == 'income' %}
+						<span class="associate-summary-amount is-income">{{ displayed_total }}</span>
+					{% else %}
+						<span class="associate-summary-amount is-expense">{{ displayed_total }}</span>
+					{% endif %}
+				</div>
+			{% endfor %}
+		</div>
+	</td>
+{% endif %}

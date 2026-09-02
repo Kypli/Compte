@@ -372,6 +372,10 @@ section {
 	background-color: #a83d3d;
 }
 
+.error-page-500 .error-page-icon {
+	background-color: #b7472a;
+}
+
 .error-page-label {
 	margin: 0 0 7px;
 	color: #9b4e19;
@@ -383,6 +387,10 @@ section {
 
 .error-page-403 .error-page-label {
 	color: #943838;
+}
+
+.error-page-500 .error-page-label {
+	color: #9b3f28;
 }
 
 h1.error-page-title {

@@ -14,7 +14,11 @@
 
 	{# DETAILS (reel & anticipe) #}
 	<tr class="account-total-row account-total-detail-row">
-		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
+		{% if (show_associate_totals ?? true) and associate_summaries|default([])|length > 0 %}
+			{{ include('compte/table/_associate_summary.html.twig', {'variant': sign == 'pos' ? 'income' : 'expense', 'label_colspan': label_colspan, 'rowspan': 1}) }}
+		{% else %}
+			<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
+		{% endif %}
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}
@@ -65,7 +69,7 @@
 
 	{# FULL #}
 	<tr class="account-total-row account-total-full-row">
-		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }}"></td>
+		<td colspan="{{ label_colspan }}" class="col_start_bottom bck_{{ sign }} account-table-summary-label">Total</td>
 		{% if operations['totaux_mois'] is defined %}
 
 			{% for month in visible_months %}

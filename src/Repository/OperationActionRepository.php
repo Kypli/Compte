@@ -122,12 +122,13 @@ class OperationActionRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('action')
             ->leftJoin('action.operation', 'operation')
+            ->leftJoin('action.author', 'author')
             ->leftJoin('operation.subcategory', 'subcategory')
             ->leftJoin('subcategory.category', 'operationCategory')
             ->leftJoin('operationCategory.compte', 'operationCompte')
             ->leftJoin('action.category', 'movedCategory')
             ->leftJoin('movedCategory.compte', 'movedCompte')
-            ->addSelect('operation', 'subcategory', 'operationCategory', 'movedCategory')
+            ->addSelect('operation', 'author', 'subcategory', 'operationCategory', 'movedCategory')
             ->where('operationCompte.id = :compteId OR movedCompte.id = :compteId')
             ->setParameter('compteId', $compteId)
         ;

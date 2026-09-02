@@ -36,8 +36,8 @@ class UserPreference
     #[ORM\Column(type: "string", length: 10, options: ["default" => "EUR"])]
     private $moneyCurrency = 'EUR';
 
-    #[ORM\Column(type: "boolean", options: ["default" => false])]
-    private $moneyTrimZeros = false;
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $moneyTrimZeros = true;
 
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $moneyShowZeroDecimals = true;
@@ -50,6 +50,9 @@ class UserPreference
 
     #[ORM\Column(type: "boolean", options: ["default" => true])]
     private $showEditableBorder = true;
+
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private $showAssociateTotals = true;
 
     #[ORM\Column(type: "boolean", options: ["default" => false])]
     private $anchorTableTotals = false;
@@ -224,6 +227,18 @@ class UserPreference
     public function setShowEditableBorder(bool $showEditableBorder): self
     {
         $this->showEditableBorder = $showEditableBorder;
+
+        return $this;
+    }
+
+    public function isShowAssociateTotals(): bool
+    {
+        return $this->showAssociateTotals;
+    }
+
+    public function setShowAssociateTotals(bool $showAssociateTotals): self
+    {
+        $this->showAssociateTotals = $showAssociateTotals;
 
         return $this;
     }

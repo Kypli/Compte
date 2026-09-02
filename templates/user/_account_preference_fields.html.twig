@@ -28,6 +28,14 @@
 		{% else %}
 			{{ form_widget(form.showEditableBorder, {'attr': {'hidden': 'hidden', 'aria-hidden': 'true'}}) }}
 		{% endif %}
+		{% if show_associate_totals_control is not defined or show_associate_totals_control %}
+			<div class="preference-toggle-row" data-show-associate-totals-control>
+				{{ form_label(form.showAssociateTotals) }}
+				{{ form_widget(form.showAssociateTotals, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+			</div>
+		{% else %}
+			<input type="hidden" name="{{ form.showAssociateTotals.vars.full_name }}" value="0" data-show-associate-totals-default>
+		{% endif %}
 		<div class="preference-toggle-row">
 			{{ form_label(form.anchorTableTotals) }}
 			{{ form_widget(form.anchorTableTotals, {'attr': {'class': 'checkType preference-checkbox'}}) }}

@@ -2,6 +2,8 @@
 
 {% block title %}Compte{% endblock %}
 
+{% block html_class %}account-page{% endblock %}
+
 {% block body_class %}account-background-{{ user.preferences.accountBackground|default('green') }}{% endblock %}
 
 {% block stylesheets %}
@@ -16,6 +18,7 @@
 
 {% block body %}
 	{% set can_edit_compte = is_granted('COMPTE_EDIT', compte) %}
+	{% set has_additional_associates = associate_members|length > 1 %}
 	{% set account_access_role = compte.userAccessRole(user) %}
 	{% set account_single_query = {'year': year, 'months': month_display, 'months_before': month_display_before, 'months_after': month_display_after, 'detail_months': detail_months|join(','), 'detail_months_set': 1}|merge(selected_month ? {'selected_month': selected_month, 'selected_year': selected_year} : {}) %}
 	{% set account_view_query = account_single_query|merge(combined_compte ? {'avec': combined_compte.id} : {}) %}
@@ -50,10 +53,12 @@
 		data-moneytrimzeros="{{ user.preferences.moneyTrimZeros|default(false) ? '1' : '0' }}"
 		data-moneyshowzerodecimals="{{ (user.preferences.moneyShowZeroDecimals ?? true) ? '1' : '0' }}"
 		data-anchortabletotals="{{ user.preferences.anchorTableTotals|default(false) ? '1' : '0' }}"
+		data-showassociatetotals="{{ show_associate_totals ? '1' : '0' }}"
 		data-compteid="{{ compte.id }}"
 		data-combinedcompteid="{{ combined_compte ? combined_compte.id : '' }}"
 		data-combinedcomptelabel="{{ combined_compte ? combined_compte.libelle : '' }}"
 		data-combinedcompteoverdraft="{{ combined_compte ? combined_compte.decouvert : 0 }}"
+		data-associatefilter="{{ associate_filter }}"
 		data-account-tutorial-seen="{{ user.preferences.accountTutorialSeen|default(false) ? '1' : '0' }}"
 		data-account-tutorial-seen-url="{{ path('user_preference_account_tutorial_seen', {'id': user.id}) }}"
 		data-account-tutorial-seen-token="{{ csrf_token('account-tutorial-seen' ~ user.id) }}"
@@ -326,23 +331,29 @@
 					</div>
 
 					<div class="modal-body">
-						<div class="account-display-tabs" role="tablist" aria-label="Options d'affichage">
-							<button type="button" id="accountDisplayTabDisplay" class="account-display-tab is-active" role="tab" aria-selected="true" aria-controls="accountDisplayPanelDisplay" data-account-display-tab="display">
-								<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-								<span>Tableau</span>
-							</button>
-							<button type="button" id="accountDisplayTabDetail" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelDetail" data-account-display-tab="detail">
-								<i class="fa-solid fa-list-check" aria-hidden="true"></i>
-								<span>Mois</span>
-							</button>
-							<button type="button" id="accountDisplayTabPreferences" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelPreferences" data-account-display-tab="preferences">
-								<i class="fa-solid fa-palette" aria-hidden="true"></i>
-								<span>Couleur</span>
-							</button>
-							<button type="button" id="accountDisplayTabAccounts" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelAccounts" data-account-display-tab="accounts">
-								<i class="fa-solid fa-code-merge" aria-hidden="true"></i>
-								<span>Combiner</span>
-							</button>
+						<div class="account-display-tabs-sticky">
+							<div class="account-display-tabs" role="tablist" aria-label="Options d'affichage">
+								<button type="button" id="accountDisplayTabDisplay" class="account-display-tab is-active" role="tab" aria-selected="true" aria-controls="accountDisplayPanelDisplay" data-account-display-tab="display">
+									<i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+									<span>Tableau</span>
+								</button>
+								<button type="button" id="accountDisplayTabDetail" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelDetail" data-account-display-tab="detail">
+									<i class="fa-solid fa-list-check" aria-hidden="true"></i>
+									<span>Mois</span>
+								</button>
+								<button type="button" id="accountDisplayTabPreferences" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelPreferences" data-account-display-tab="preferences">
+									<i class="fa-solid fa-palette" aria-hidden="true"></i>
+									<span>Couleur</span>
+								</button>
+								<button type="button" id="accountDisplayTabAccounts" class="account-display-tab" role="tab" aria-selected="false" aria-controls="accountDisplayPanelAccounts" data-account-display-tab="accounts">
+									<i class="fa-solid fa-code-merge" aria-hidden="true"></i>
+									<span>Combiner</span>
+								</button>
+								<button type="button" id="accountDisplayTabAssociates" class="account-display-tab{{ not has_additional_associates ? ' is-disabled' }}" role="tab" aria-selected="false" aria-controls="accountDisplayPanelAssociates" data-account-display-tab="associates"{{ not has_additional_associates ? ' disabled aria-disabled="true" title="Aucun autre associé sur ce compte"' }}>
+									<i class="fa-solid fa-users" aria-hidden="true"></i>
+									<span>Associés</span>
+								</button>
+							</div>
 						</div>
 
 						<form method="get" action="{{ path('compte_show', {'id': compte.id}) }}" id="monthDisplayForm" class="account-display-form">
@@ -454,6 +465,23 @@
 								</div>
 							</section>
 
+							<section id="accountDisplayPanelAssociates" class="account-display-section" role="tabpanel" aria-labelledby="accountDisplayTabAssociates" data-account-display-panel="associates" hidden>
+								<span class="account-tutorial-icon" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+								<div class="account-display-section-content">
+									<h5>Montants attribués</h5>
+									<label class="account-associate-filter-control" for="associateFilter">
+										<span>Afficher</span>
+										<select id="associateFilter" data-associate-filter aria-label="Filtrer les montants attribués">
+											<option value="all"{{ associate_filter == 'all' ? ' selected' }}>Tous les montants</option>
+											<option value="unassigned"{{ associate_filter == 'unassigned' ? ' selected' }}>Uniquement les montants non attribués</option>
+											{% for member in associate_members %}
+												<option value="{{ member.id }}"{{ associate_filter == (member.id ~ '') ? ' selected' }}>Uniquement les montants attribués à {{ member.name }}</option>
+											{% endfor %}
+										</select>
+									</label>
+								</div>
+							</section>
+
 							<button type="submit" class="sr-only">Appliquer</button>
 						</form>
 
@@ -466,7 +494,7 @@
 										<i class="fa-solid fa-table"></i>
 									</span>
 									<div class="account-display-section-content">
-										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineTable', 'sections': ['table'], 'show_editable_border_control': can_edit_compte} %}
+									{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineTable', 'sections': ['table'], 'show_editable_border_control': can_edit_compte, 'show_associate_totals_control': has_additional_associates} %}
 									</div>
 								</section>
 

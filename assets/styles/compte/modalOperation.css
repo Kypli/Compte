@@ -194,7 +194,8 @@
 	color: purple;
 }
 .td_number,
-.td_anticipe {
+.td_anticipe,
+.td_comment {
 	position: relative;
 	overflow: visible;
 }
@@ -221,6 +222,25 @@
 	z-index: 3;
 	top: calc(100% - 8px);
 	right: 4px;
+	padding: 1px 4px;
+	color: #7A3D00;
+	font-size: 11px;
+	font-style: italic;
+	line-height: 1.1;
+	white-space: nowrap;
+	background: #FFF0DC;
+	border: 1px solid #F0A24A;
+	border-radius: 3px;
+	pointer-events: none;
+}
+.operation-assignee-warning {
+	position: absolute;
+	z-index: 3;
+	top: calc(100% - 3px);
+	left: 4px;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
 	padding: 1px 4px;
 	color: #7A3D00;
 	font-size: 11px;

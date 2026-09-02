@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% set error_code = 500 %}
+{% set error_icon = 'fa-triangle-exclamation' %}
+{% set error_label = 'Erreur serveur' %}
+{% set error_title = 'Un probleme technique est survenu' %}
+{% set error_message = "La page n'a pas pu etre chargee correctement. Vous allez etre redirige vers le tableau de bord." %}
+
+{% block title %}Erreur serveur{% endblock %}
+{% block body_class %}error-page-body{% endblock %}
+
+{% block navbar %}
+	{% if app.user %}{{ parent() }}{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% include 'bundles/TwigBundle/Exception/_error_page.html.twig' %}
+{% endblock %}

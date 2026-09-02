@@ -21,6 +21,10 @@ class OperationAction
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Category $category = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $author = null;
+
     #[ORM\Column(type: 'string', length: 15)]
     private string $actionType;
 
@@ -64,6 +68,18 @@ class OperationAction
     public function setCategory(?Category $category): self
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): self
+    {
+        $this->author = $author;
 
         return $this;
     }

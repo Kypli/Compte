@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\UserProfil as Entity;
+use App\Entity\User;
 
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -15,7 +16,7 @@ class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 		// Admin
 		$entity = new Entity();
 		$entity
-			->setUser($this->getReference(UserFixtures::USER_ADMIN))
+			->setUser($this->getReference(UserFixtures::USER_ADMIN, User::class))
 			->setNom('admin-nom')
 			->setPrenom('admin-prenom')
 			->setMail('admin@yahoo.fr')
@@ -30,7 +31,7 @@ class UserProfilFixtures extends Fixture implements FixtureGroupInterface
 		// User
 		$entity = new Entity();
 		$entity
-			->setUser($this->getReference(UserFixtures::USER_USER))
+			->setUser($this->getReference(UserFixtures::USER_USER, User::class))
 			->setNom('user-nom')
 			->setPrenom('user-prenom')
 			->setMail('user@yahoo.fr')

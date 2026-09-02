@@ -77,6 +77,21 @@
 	border: 1px solid #CAD5DF;
 	border-radius: 6px;
 }
+.patrimoine-modal .patrimoine-form {
+	margin-top: 0;
+	background: transparent;
+	border: 0;
+	padding: 0;
+}
+.patrimoine-modal-header {
+	align-items: center;
+	background: #EEF3F7;
+	border-bottom: 1px solid #CAD5DF;
+}
+.patrimoine-modal-close {
+	color: #24313D;
+	opacity: 1;
+}
 .patrimoine-form-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -90,6 +105,7 @@
 	color: #273542;
 }
 .patrimoine-form input,
+.patrimoine-form select,
 .patrimoine-form textarea {
 	width: 100%;
 }

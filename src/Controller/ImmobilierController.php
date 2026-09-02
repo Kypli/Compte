@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Immobilier;
+use App\Entity\Mobilier;
 use App\Form\ImmobilierType;
+use App\Form\MobilierType;
 use App\Repository\ImmobilierRepository;
 use App\Repository\MobilierRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,12 +22,34 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ImmobilierController extends AbstractController
 {
     /**
-     * @Route("/", name="", methods={"GET"})
+     * @Route("/", name="", methods={"GET", "POST"})
      */
-    #[Route("/", name: "", methods: ["GET"])]
-    public function index(ImmobilierRepository $immobilierRepository, MobilierRepository $mobilierRepository): Response
+    #[Route("/", name: "", methods: ["GET", "POST"])]
+    public function index(Request $request, ImmobilierRepository $immobilierRepository, MobilierRepository $mobilierRepository): Response
     {
         $user = $this->getUser();
+        $immobilier = (new Immobilier())->setUser($user);
+        $immobilierForm = $this->createForm(ImmobilierType::class, $immobilier);
+        $immobilierForm->handleRequest($request);
+
+        $mobilier = (new Mobilier())->setUser($user);
+        $mobilierForm = $this->createForm(MobilierType::class, $mobilier);
+        $mobilierForm->handleRequest($request);
+
+        if ($immobilierForm->isSubmitted() && $immobilierForm->isValid()) {
+            $immobilierRepository->add($immobilier, true);
+            $this->addFlash('success', 'Le bien immobilier a bien ete ajoute.');
+
+            return $this->redirectToRoute('immobilier', [], Response::HTTP_SEE_OTHER);
+        }
+
+        if ($mobilierForm->isSubmitted() && $mobilierForm->isValid()) {
+            $mobilierRepository->add($mobilier, true);
+            $this->addFlash('success', 'Le bien mobilier a bien ete ajoute.');
+
+            return $this->redirectToRoute('immobilier', [], Response::HTTP_SEE_OTHER);
+        }
+
         $immobiliers = $immobilierRepository->findByUser($user);
         $mobiliers = $mobilierRepository->findByUser($user);
         $totalImmobilier = $immobilierRepository->sumValueByUser($user);
@@ -37,6 +61,10 @@ class ImmobilierController extends AbstractController
             'total_immobilier' => $totalImmobilier,
             'total_mobilier' => $totalMobilier,
             'total_patrimoine' => $totalImmobilier + $totalMobilier,
+            'immobilier_form' => $immobilierForm->createView(),
+            'mobilier_form' => $mobilierForm->createView(),
+            'open_immobilier_modal' => $immobilierForm->isSubmitted() && !$immobilierForm->isValid(),
+            'open_mobilier_modal' => $mobilierForm->isSubmitted() && !$mobilierForm->isValid(),
         ]);
     }
 

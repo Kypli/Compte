@@ -3,6 +3,8 @@
 namespace App\DataFixtures;
 
 use App\Entity\Compte as Entity;
+use App\Entity\CompteType;
+use App\Entity\User;
 
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -24,8 +26,8 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		$entity
 			->setLibelle('Compte admin')
 			->setMain(true)
-			->addUser($this->getReference(UserFixtures::USER_ADMIN))
-			->setType($this->getReference(CompteTypeFixtures::COMPTE_COURANT))
+			->addUser($this->getReference(UserFixtures::USER_ADMIN, User::class))
+			->setType($this->getReference(CompteTypeFixtures::COMPTE_COURANT, CompteType::class))
 		;
 		$this->addReference(self::COMPTE_ADMIN, $entity);
 		$manager->persist($entity);
@@ -35,8 +37,8 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		$entity
 			->setLibelle('Compte user')
 			->setMain(true)
-			->addUser($this->getReference(UserFixtures::USER_USER))
-			->setType($this->getReference(CompteTypeFixtures::COMPTE_COURANT))
+			->addUser($this->getReference(UserFixtures::USER_USER, User::class))
+			->setType($this->getReference(CompteTypeFixtures::COMPTE_COURANT, CompteType::class))
 		;
 		$this->addReference(self::COMPTE_USER, $entity);
 		$manager->persist($entity);
@@ -46,8 +48,8 @@ class CompteFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		$entity
 			->setLibelle('Espèces')
 			->setMain(false)
-			->addUser($this->getReference(UserFixtures::USER_ADMIN))
-			->setType($this->getReference(CompteTypeFixtures::COMPTE_LIQUIDE))
+			->addUser($this->getReference(UserFixtures::USER_ADMIN, User::class))
+			->setType($this->getReference(CompteTypeFixtures::COMPTE_LIQUIDE, CompteType::class))
 		;
 		$this->addReference(self::COMPTE_ADMIN_LIQUIDE, $entity);
 		$manager->persist($entity);

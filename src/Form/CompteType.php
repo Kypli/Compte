@@ -30,6 +30,16 @@ class CompteType extends AbstractType
 				[
 					'class' => CompteTypeEnt::class,
 					'choice_label' => 'libelle',
+					'group_by' => static function (CompteTypeEnt $type): string {
+						return match ($type->getLibelle()) {
+							'Compte courant', 'Compte libre', 'Compte joint', 'Compte professionnel', 'Compte en devises' => 'Comptes du quotidien',
+							'Compte liquide', 'Carte prépayée' => 'Espèces et cartes',
+							'Livret A', 'Livret B', 'Livret Jeune', 'Livret de développement durable et solidaire', "Livret d'épargne populaire", "Livret d'épargne bancaire", 'Compte sur livret', 'Plan épargne logement', 'Compte épargne logement', 'Compte à terme' => 'Épargne',
+							'Compte titres ordinaire', "Plan d'épargne en actions", 'Assurance-vie', "Plan d'épargne retraite", 'Compte crypto-actifs' => 'Investissements',
+							'Crédit immobilier', 'Crédit à la consommation', 'Crédit renouvelable' => 'Crédits',
+							default => 'Autres',
+						};
+					},
 					'required' => true,
 					'expanded' => false,
 					'multiple' => false,

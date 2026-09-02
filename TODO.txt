@@ -9,64 +9,67 @@ Préférences
 		Langue du site
 
 Compte
-	Show
-		Sécurité
-		Paramètres du compte
-		Légendes
-  		Tutoriel
-		Année
-		Anomalies
-		Soldes
+	Sécurité
+	Légendes
+	Soldes
+	Année
+	Paramètres
 
-		Affichage
-			Affiche des colonnes
-			Format Monétaires
-			Monnaie utilisée
-			Tableau
+	Tutoriel
+		Mettre les nouveautés et le détail des modales
 
-  		Tableau
-			replier une catégorie, replier toutes les catégories
-			Catégories
-			sous catégories
-			
-			Si ajout ope fait, ne pas proposer > date du jour
-			Si ajout ope a venir, ne pas proposer < date du jour
-			zone bleu padding bottom
+	Anomalies
+		Remplacer anomalies par Action à faire ?
+		Rajouter les anomalies Fait après le mois en cours
 
-		Modal Operations
-			Suggestion (selon opérations répété) lors d'une création
-			Raccourci flèche gauche droite pour changer de mois
-			Raccourci select on click pour cat et subcat
-			Bouton Autres actions
-				-> Dupliquer 
-				-> Changer le mois/année
-				-> Associer cette entrée à une personne si multi-compte
-			Fin d'édition si click en dehors du tableau
-			Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
-			Possibilité de faire montant + a venir a la fois
-			Hover switch a faire apparaitre
-			Mettre un différentiel (+x / -x) a coté du total et des sous totaux
+	Affichage
+		Tableau
+		Mois
+		Couleur
+		Combiner
+		Associés
 
-		Modal Category / Sub-cat
-			Zone d'édition jaune
-			Si pas de sous catégorie, en créer une avec le nom de la catégorie
+	Tableau
+		Afficher les 0 de la colonne Fait ?
 
-		Style
-			Améliorer le contour des fond avec bordures
+	Colonnes
+		Raccourci flèche gauche droite pour changer de mois
 
-		Paramètre
-			chiffre découvert
-			monnaie utilisées
+	Catégories
+		replier une catégorie, replier toutes les catégories
 
-	Extra
-		Proposer des observateurs pour un compte
+	Modal Operations
+		Suggestion (selon opérations répété) lors d'une création
+		Raccourci select on click pour cat et subcat
+		Bouton Autres actions
+			Si affichage sur une personne associé, lui associer les nouvelles entrées par défaut
+			Si validation attribution, fermer la petite modal
+		Fin d'édition si click en dehors du tableau
+		Colonne 'A venir' uniquement si mois en cours / mois > mois en cours / a venir non cloturé
+		Possibilité de faire montant + a venir a la fois
+		Hover switch a faire apparaitre
+		Mettre un différentiel (+x / -x) a coté du total et des sous totaux
 
-	Fixtures
-		Cré moi un compte "Liquidités"
+	Modal Category / Sub-cat
+		Zone d'édition jaune
+		Si pas de sous catégorie, en créer une avec le nom de la catégorie
 
-	Page d'aide à la création de budget
-		Suggerer sort by alpha/int
+	Style
+		Améliorer le contour des fond avec bordures
+		Zone des tableaux plus jolies
 
+Page d'aide à la création de budget
+	Suggerer sort by alpha/int
+
+
+Immobilier/ Mobilier
+	Immobilier
+	Mobilier
+		Améliore le visuel de la croix de fermeture de la modal.
+		Pour le mobilier, on va créer des catégorie en plus du nom. Fait un select avec suggestion et optgroup.
+		Rajoute un bouton en bas à gauche pour que user crée ses propres catégorie.
+		Change valeur estimée en valeur d'achat.
+		Rajoute une barre horizontal de 0 à 100%, label Ancienneté / Usure. Il réduit le prix d'achat neuf et suggère le prix réel.
 
 Tableau de bord
 	- Faire Crédit

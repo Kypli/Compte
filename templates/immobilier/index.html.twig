@@ -7,6 +7,24 @@
 	{{ encore_entry_link_tags('patrimoine') }}
 {% endblock %}
 
+{% block javascripts %}
+	{{ parent() }}
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			document.querySelectorAll('.patrimoine-add-modal[data-open="1"]').forEach(function(modal) {
+				if (window.$ && typeof window.$(modal).modal === 'function') {
+					window.$(modal).modal('show');
+					return;
+				}
+
+				if (window.bootstrap && window.bootstrap.Modal) {
+					window.bootstrap.Modal.getOrCreateInstance(modal).show();
+				}
+			});
+		});
+	</script>
+{% endblock %}
+
 {% block body %}
 	<div class="container patrimoine-page">
 		{% include('partiel/_h1.html.twig') with {'text': 'Immobilier / Mobilier'} %}
@@ -32,10 +50,16 @@
 					<i class="fa-solid fa-house" aria-hidden="true"></i>
 					Biens immobiliers
 				</h2>
-				<a href="{{ path('immobilier_new') }}" class="btn btn-success">
+				<button
+					type="button"
+					class="btn btn-success"
+					data-toggle="modal"
+					data-target="#modalImmobilierAdd"
+					aria-controls="modalImmobilierAdd"
+				>
 					<i class="fas fa-plus" aria-hidden="true"></i>
 					Ajouter
-				</a>
+				</button>
 			</div>
 			{% if immobiliers|length > 0 %}
 				<table class="table patrimoine-table">
@@ -80,10 +104,16 @@
 					<i class="fa-solid fa-couch" aria-hidden="true"></i>
 					Biens mobiliers
 				</h2>
-				<a href="{{ path('mobilier_new') }}" class="btn btn-success">
+				<button
+					type="button"
+					class="btn btn-success"
+					data-toggle="modal"
+					data-target="#modalMobilierAdd"
+					aria-controls="modalMobilierAdd"
+				>
 					<i class="fas fa-plus" aria-hidden="true"></i>
 					Ajouter
-				</a>
+				</button>
 			</div>
 			{% if mobiliers|length > 0 %}
 				<table class="table patrimoine-table">
@@ -119,5 +149,22 @@
 				<div class="patrimoine-empty">Aucun bien mobilier enregistré.</div>
 			{% endif %}
 		</section>
+
+		{% include('immobilier/_add_modal.html.twig') with {
+			'id': 'modalImmobilierAdd',
+			'title': 'Ajouter un bien immobilier',
+			'form': immobilier_form,
+			'form_id': 'patrimoineImmobilierForm',
+			'form_template': 'immobilier/_form.html.twig',
+			'open': open_immobilier_modal
+		} %}
+		{% include('immobilier/_add_modal.html.twig') with {
+			'id': 'modalMobilierAdd',
+			'title': 'Ajouter un bien mobilier',
+			'form': mobilier_form,
+			'form_id': 'patrimoineMobilierForm',
+			'form_template': 'mobilier/_form.html.twig',
+			'open': open_mobilier_modal
+		} %}
 	</div>
 {% endblock %}

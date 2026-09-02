@@ -194,7 +194,11 @@ class CompteController extends AbstractController
 		$month_colspan = $this->monthColspan($visible_months, $detail_months, $show_month_details);
 		$display_month_years = $this->displayMonthYears($visible_month_years, $detail_months, $show_month_details);
 		$year_options = $this->yearOptions($viewCompteIds, $year);
-		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
+		$anomalies = $this->or->findAnomaliesForCompte($compte->getId());
+		$ignoredAnomalies = $this->or->findIgnoredAnomaliesForCompte($compte->getId());
+		$associateMembers = $this->associatedMembersForAccounts($viewComptes);
+		$associateFilter = $this->resolveAssociateFilter($request, $associateMembers);
+		$showAssociateTotals = $this->showAssociateTotals($request, $associateMembers);
 		$other_comptes = array_values(array_filter(
 			$this->cr->getComptesByUser($this->getUser()),
 			fn (Compte $userCompte): bool => $userCompte->getId() !== $compte->getId()
@@ -204,6 +208,10 @@ class CompteController extends AbstractController
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
 		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
 		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$associateSummaries = $this->associateSummaries($operations_pos, $operations_neg, $associateMembers, $display_month_years);
+		$associateSummaries = $this->filterAssociateSummaries($associateSummaries, $associateFilter);
+		$operations_pos = $this->filterOperationsByAssignee($operations_pos, $associateFilter);
+		$operations_neg = $this->filterOperationsByAssignee($operations_neg, $associateFilter);
 		$table_operations_pos = $this->operations($operations_pos, true, $display_month_years);
 		$table_operations_neg = $this->operations($operations_neg, false, $display_month_years);
 		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
@@ -212,8 +220,8 @@ class CompteController extends AbstractController
 		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
-		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
-		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
+		$operations_pos_datas = $this->operations($this->filterOperationsByAssignee($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]), $associateFilter));
+		$operations_neg_datas = $this->operations($this->filterOperationsByAssignee($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), $associateFilter), false);
 
 		// Solde
 		$current_solde = $this->currentBalance($viewCompteIds);
@@ -281,6 +289,10 @@ class CompteController extends AbstractController
 			'month_colspans_pos' => $month_colspans_pos,
 			'month_colspans_neg' => $month_colspans_neg,
 			'month_colspans_merged' => $month_colspans_merged,
+			'associate_members' => $associateMembers,
+			'associate_filter' => $associateFilter,
+			'associate_summaries' => $associateSummaries,
+			'show_associate_totals' => $showAssociateTotals,
 
 			'color_solde' => $color_solde, // Couleur d'alerte du solde
 			'color_soldeFinMois' => $color_soldeFinMois, // Couleur d'alerte du solde
@@ -291,6 +303,7 @@ class CompteController extends AbstractController
 			'lastActions' => $this->oar->lastActionsForCompte($compte->getId()), // Last actions
 			'canUndoTodayActions' => $this->oar->hasUndoableActionsForCompteToday($compte->getId(), new \DateTimeImmutable('today')),
 			'anomalies' => $anomalies,
+			'ignored_anomalies' => $ignoredAnomalies,
 			'account_preference_form' => $preferenceForm->createView(),
 			'account_settings_form' => $accountSettingsForm->createView(),
 			'open_account_settings' => $request->query->getBoolean('settings'),
@@ -332,11 +345,18 @@ class CompteController extends AbstractController
 		] = $this->resolveMonthDisplay($request, $current_year, (int) $current_month, $year, $selected_month, $selected_year, $detail_months, $show_month_details);
 		$month_colspan = $this->monthColspan($visible_months, $detail_months, $show_month_details);
 		$display_month_years = $this->displayMonthYears($visible_month_years, $detail_months, $show_month_details);
+		$associateMembers = $this->associatedMembersForAccounts($viewComptes);
+		$associateFilter = $this->resolveAssociateFilter($request, $associateMembers);
+		$showAssociateTotals = $this->showAssociateTotals($request, $associateMembers);
 
 		// Opérations
 		$operation_years = array_values(array_unique(array_map('intval', $visible_month_years)));
 		$operations_pos = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years);
 		$operations_neg = $this->operationsByYearsAndComptesAndSign($viewCompteIds, $operation_years, false);
+		$associateSummaries = $this->associateSummaries($operations_pos, $operations_neg, $associateMembers, $display_month_years);
+		$associateSummaries = $this->filterAssociateSummaries($associateSummaries, $associateFilter);
+		$operations_pos = $this->filterOperationsByAssignee($operations_pos, $associateFilter);
+		$operations_neg = $this->filterOperationsByAssignee($operations_neg, $associateFilter);
 		$table_operations_pos = $this->operations($operations_pos, true, $display_month_years);
 		$table_operations_neg = $this->operations($operations_neg, false, $display_month_years);
 		$month_anticipation_visible_pos = $this->monthAnticipationVisibility($visible_months, $visible_month_years, $table_operations_pos, $current_year, (int) $current_month);
@@ -345,9 +365,10 @@ class CompteController extends AbstractController
 		$month_colspans_pos = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_neg = $this->monthColspans($visible_months, $detail_months);
 		$month_colspans_merged = $this->monthColspans($visible_months, $detail_months);
-		$operations_pos_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]));
-		$operations_neg_datas = $this->operations($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), false);
-		$anomalies = $this->or->findOverdueAnticipatedForCompte($compte->getId());
+		$operations_pos_datas = $this->operations($this->filterOperationsByAssignee($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year]), $associateFilter));
+		$operations_neg_datas = $this->operations($this->filterOperationsByAssignee($this->operationsByYearsAndComptesAndSign($viewCompteIds, [$year], false), $associateFilter), false);
+		$anomalies = $this->or->findAnomaliesForCompte($compte->getId());
+		$ignoredAnomalies = $this->or->findIgnoredAnomaliesForCompte($compte->getId());
 
 		// Solde
 		$solde = $this->currentBalance($viewCompteIds);
@@ -396,6 +417,10 @@ class CompteController extends AbstractController
 			'month_colspans_pos' => $month_colspans_pos,
 			'month_colspans_neg' => $month_colspans_neg,
 			'month_colspans_merged' => $month_colspans_merged,
+			'associate_members' => $associateMembers,
+			'associate_filter' => $associateFilter,
+			'associate_summaries' => $associateSummaries,
+			'show_associate_totals' => $showAssociateTotals,
 
 			'gains' => $this->gains($operations_pos, $operations_neg, $display_month_years),
 			'money_display_format' => $moneyDisplayFormat,
@@ -420,6 +445,7 @@ class CompteController extends AbstractController
 		$render_anomalies_modal = $this->render('compte/modal/anomalies/index.html.twig', [
 			'compte' => $compte,
 			'anomalies' => $anomalies,
+			'ignored_anomalies' => $ignoredAnomalies,
 		])->getContent();
 
 		return new JsonResponse([
@@ -446,12 +472,28 @@ class CompteController extends AbstractController
 		if (!$this->isCsrfTokenValid('resolve-operation-anomaly'.$operation->getId(), (string) $request->request->get('_token'))){
 			return new JsonResponse(['resolved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
 		}
-		if (!$operation->isActif() || !$operation->isAnticipe() || $operation->getDate() >= new \DateTimeImmutable('today')){
+		$today = new \DateTimeImmutable('today');
+		$nextMonth = $today->modify('first day of next month')->setTime(0, 0);
+		$isOverdueAnticipated = $operation->isActif()
+			&& $operation->isAnticipe()
+			&& $operation->getDate() < $today
+		;
+		$isFutureDone = $operation->isActif()
+			&& !$operation->isAnticipe()
+			&& $operation->getDate() >= $nextMonth
+		;
+		if (!$isOverdueAnticipated && !$isFutureDone){
 			return new JsonResponse(['resolved' => false, 'error' => "Cette operation n'est plus une anomalie."], Response::HTTP_CONFLICT);
 		}
 		$resolution = (string) $request->request->get('resolution');
-		if (!in_array($resolution, ['realize', 'delete', 'postpone', 'ignore', 'ignore_15_days'], true)){
+		if (!in_array($resolution, ['realize', 'anticipate', 'delete', 'postpone', 'ignore', 'ignore_15_days', 'reactivate'], true)){
 			return new JsonResponse(['resolved' => false, 'error' => 'Solution de correction invalide.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (
+			($isOverdueAnticipated && 'anticipate' === $resolution)
+			|| ($isFutureDone && in_array($resolution, ['realize', 'postpone'], true))
+		){
+			return new JsonResponse(['resolved' => false, 'error' => 'Solution de correction incompatible avec cette anomalie.'], Response::HTTP_BAD_REQUEST);
 		}
 
 		$futureDate = null;
@@ -478,11 +520,15 @@ class CompteController extends AbstractController
 			: null
 		;
 		$operation
-			->setAnticipe('realize' === $resolution ? false : $operation->isAnticipe())
+			->setAnticipe('realize' === $resolution ? false : ('anticipate' === $resolution ? true : $operation->isAnticipe()))
 			->setActif('delete' !== $resolution)
 			->setDate(null !== $futureDate ? \DateTime::createFromImmutable($futureDate) : $operation->getDate())
-			->setAnomalyIgnored('ignore' === $resolution)
-			->setAnomalyIgnoredUntil(null !== $temporaryIgnoredUntil ? \DateTime::createFromImmutable($temporaryIgnoredUntil) : null)
+			->setAnomalyIgnored('ignore' === $resolution ? true : ('reactivate' === $resolution ? false : $operation->isAnomalyIgnored()))
+			->setAnomalyIgnoredUntil(
+				'reactivate' === $resolution
+					? null
+					: (null !== $temporaryIgnoredUntil ? \DateTime::createFromImmutable($temporaryIgnoredUntil) : $operation->getAnomalyIgnoredUntil())
+			)
 			->setLastAction($actionType)
 			->setDateLastAction(clone $actionDate)
 		;
@@ -491,6 +537,7 @@ class CompteController extends AbstractController
 			$this->or->add($operation);
 			$reusableAction
 				->setActionAt(clone $actionDate)
+				->setAuthor($this->getUser())
 				->setAfterSnapshot($this->createOperationSnapshot($operation))
 				->setCancelled(false)
 				->setUndoSnapshot(null)
@@ -841,6 +888,116 @@ class CompteController extends AbstractController
 		}
 
 		return round($balance, 2);
+	}
+
+	private function associatedMembersForAccounts(array $comptes): array
+	{
+		$members = [];
+		foreach ($comptes as $compte){
+			foreach ($compte->getUsers() as $user){
+				if (!$compte->isUserOwner($user) && !$compte->isUserParticipant($user)){
+					continue;
+				}
+				$members[$user->getId()] = [
+					'id' => $user->getId(),
+					'name' => $user->getUserName(),
+				];
+			}
+		}
+		usort($members, fn (array $first, array $second): int => strcasecmp($first['name'], $second['name']));
+
+		return array_values($members);
+	}
+
+	private function resolveAssociateFilter(Request $request, array $members): string
+	{
+		if (count($members) <= 1) {
+			return 'all';
+		}
+
+		$filter = (string) $request->query->get('associate_filter', 'all');
+		if (in_array($filter, ['all', 'unassigned'], true)){
+			return $filter;
+		}
+
+		$memberId = filter_var($filter, FILTER_VALIDATE_INT);
+		if (false === $memberId || !in_array($memberId, array_column($members, 'id'), true)){
+			return 'all';
+		}
+
+		return (string) $memberId;
+	}
+
+	private function showAssociateTotals(Request $request, array $members): bool
+	{
+		if (count($members) <= 1) {
+			return false;
+		}
+
+		$value = $request->query->get('show_associate_totals');
+		if (null !== $value) {
+			return '0' !== $value;
+		}
+
+		return $this->getUser()->getPreferences()->isShowAssociateTotals();
+	}
+
+	private function filterOperationsByAssignee(array $operations, string $filter): array
+	{
+		if ('all' === $filter){
+			return $operations;
+		}
+
+		return array_values(array_filter($operations, function (Operation $operation) use ($filter): bool {
+			if ('unassigned' === $filter){
+				return null === $operation->getAssignee();
+			}
+
+			return (string) $operation->getAssignee()?->getId() === $filter;
+		}));
+	}
+
+	private function filterAssociateSummaries(array $summaries, string $filter): array
+	{
+		if ('all' === $filter) {
+			return $summaries;
+		}
+
+		if ('unassigned' === $filter) {
+			return [];
+		}
+
+		return array_values(array_filter($summaries, fn (array $summary): bool => (string) $summary['id'] === $filter));
+	}
+
+	private function associateSummaries(array $incomeOperations, array $expenseOperations, array $members, array $visibleMonthYears): array
+	{
+		$summaries = [];
+		foreach ($members as $member){
+			$summaries[$member['id']] = [
+				...$member,
+				'incomeOperations' => [],
+				'expenseOperations' => [],
+			];
+		}
+
+		foreach ([['operations' => $incomeOperations, 'key' => 'incomeOperations'], ['operations' => $expenseOperations, 'key' => 'expenseOperations']] as $group){
+			foreach ($group['operations'] as $operation){
+				$assigneeId = $operation->getAssignee()?->getId();
+				if (null === $assigneeId || !isset($summaries[$assigneeId]) || !$this->operationMatchesVisibleMonthYears($operation, $visibleMonthYears)){
+					continue;
+				}
+				$summaries[$assigneeId][$group['key']][] = $operation;
+			}
+		}
+		foreach ($summaries as &$summary){
+			$summary['income'] = $this->operations($summary['incomeOperations'], true, $visibleMonthYears);
+			$summary['expense'] = $this->operations($summary['expenseOperations'], false, $visibleMonthYears);
+			unset($summary['incomeOperations'], $summary['expenseOperations']);
+		}
+		unset($summary);
+
+		return array_values($summaries);
 	}
 
 	private function resolveCombinedCompte(Request $request, Compte $compte): ?Compte
@@ -1321,13 +1478,13 @@ class CompteController extends AbstractController
 		$canEdit = $this->isGranted(CompteVoter::EDIT, $compte);
 		$datas['canEdit'] = $canEdit;
 		$accountUsers = $compte->getUsers()->toArray();
-		$participantUsers = array_values(array_filter(
+		$assignableUsers = array_values(array_filter(
 			$accountUsers,
-			fn (User $user): bool => $compte->isUserParticipant($user)
+			fn (User $user): bool => $compte->isUserOwner($user) || $compte->isUserParticipant($user)
 		));
 		$datas['members'] = array_map(
 			fn (User $user): array => ['id' => $user->getId(), 'name' => $user->getUserName()],
-			$participantUsers
+			$assignableUsers
 		);
 		$canAssign = $canEdit && count($accountUsers) > 1 && count($datas['members']) > 0;
 		$datas['addRender'] = $this->operation_add($month, $year, $daysInMonth, $sign, $canAssign, $canEdit);
@@ -1409,16 +1566,25 @@ class CompteController extends AbstractController
 			$number = $hasNumber ? (float) $numberValue : (float) $anticipatedValue;
 			$anticipe = !$hasNumber;
 			$comment = $ope['comment'] ?? null;
+			$operationCompte = $sc->getCategory()->getCompte();
+			$hasAssigneeChoice = array_key_exists('assignee', $ope);
 			$assignee = null;
 			if (!empty($ope['assignee'])){
 				$assignee = $this->ur->find((int) $ope['assignee']);
 				if (
 					null === $assignee
-					|| !$sc->getCategory()->getCompte()->getUsers()->contains($assignee)
-					|| !$sc->getCategory()->getCompte()->isUserParticipant($assignee)
+					|| !$operationCompte->getUsers()->contains($assignee)
+					|| (
+						!$operationCompte->isUserOwner($assignee)
+						&& !$operationCompte->isUserParticipant($assignee)
+					)
 				){
 					return new JsonResponse(['save' => false, 'error' => 'Personne attribuée invalide.'], Response::HTTP_CONFLICT);
 				}
+			} elseif (null !== $ope_ent && !$hasAssigneeChoice){
+				$assignee = $ope_ent->getAssignee();
+			} elseif (null === $ope_ent) {
+				$assignee = $this->defaultOperationAssignee($operationCompte);
 			}
 
 			// Edit
@@ -1531,6 +1697,7 @@ class CompteController extends AbstractController
 		$afterSnapshot['position'] = $category->getPosition();
 		$action = (new OperationAction())
 			->setCategory($category)
+			->setAuthor($this->getUser())
 			->setActionType('move')
 			->setActionAt($this->nextOperationActionDate($compte->getId()))
 			->setBeforeSnapshot($beforeSnapshot)
@@ -1604,6 +1771,7 @@ class CompteController extends AbstractController
 		$afterSnapshot = $this->createSubCategoryOrderSnapshot($category, $orderedSubCategories, $subCategory);
 		$action = (new OperationAction())
 			->setCategory($category)
+			->setAuthor($this->getUser())
 			->setActionType('move')
 			->setActionAt($this->nextOperationActionDate($compte->getId()))
 			->setBeforeSnapshot($beforeSnapshot)
@@ -1720,6 +1888,7 @@ class CompteController extends AbstractController
 	{
 		$action = (new OperationAction())
 			->setOperation($operation)
+			->setAuthor($this->getUser())
 			->setActionType($actionType)
 			->setActionAt(clone $actionAt)
 			->setBeforeSnapshot($beforeSnapshot)
@@ -1757,6 +1926,19 @@ class CompteController extends AbstractController
 		$this->oar->add($action, true);
 
 		return ['undo' => true, 'undoReverted' => false];
+	}
+
+	private function defaultOperationAssignee(Compte $compte): ?User
+	{
+		$currentUser = $this->getUser();
+		if (
+			$currentUser instanceof User
+			&& ($compte->isUserOwner($currentUser) || $compte->isUserParticipant($currentUser))
+		){
+			return $currentUser;
+		}
+
+		return $compte->getOwner();
 	}
 
 	private function undoSubCategoryMoveAction(Compte $compte, OperationAction $action): array

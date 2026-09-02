@@ -96,20 +96,51 @@ class OperationRepository extends ServiceEntityRepository
 	/**
 	 * @return Operation[]
 	 */
-	public function findOverdueAnticipatedForCompte(int $compteId): array
+	public function findAnomaliesForCompte(int $compteId): array
 	{
+		$today = new \DateTimeImmutable('today');
+		$nextMonth = $today->modify('first day of next month')->setTime(0, 0);
+
 		return $this->createQueryBuilder('x')
-			->addSelect('sc', 'ca')
+			->addSelect('sc', 'ca', 'assignee')
 			->leftJoin('x.subcategory', 'sc')
 			->leftJoin('sc.category', 'ca')
+			->leftJoin('x.assignee', 'assignee')
 			->where('ca.compte = :compte')
-			->andWhere('x.anticipe = true')
 			->andWhere('x.actif = true')
-			->andWhere('x.date < :today')
+			->andWhere('((x.anticipe = true AND x.date < :today) OR (x.anticipe = false AND x.date >= :nextMonth))')
 			->andWhere('x.anomalyIgnored = false')
 			->andWhere('x.anomalyIgnoredUntil IS NULL OR x.anomalyIgnoredUntil < :today')
 			->setParameter('compte', $compteId)
-			->setParameter('today', new \DateTimeImmutable('today'))
+			->setParameter('today', $today)
+			->setParameter('nextMonth', $nextMonth)
+			->orderBy('x.date', 'ASC')
+			->addOrderBy('x.id', 'ASC')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
+	 * @return Operation[]
+	 */
+	public function findIgnoredAnomaliesForCompte(int $compteId): array
+	{
+		$today = new \DateTimeImmutable('today');
+		$nextMonth = $today->modify('first day of next month')->setTime(0, 0);
+
+		return $this->createQueryBuilder('x')
+			->addSelect('sc', 'ca', 'assignee')
+			->leftJoin('x.subcategory', 'sc')
+			->leftJoin('sc.category', 'ca')
+			->leftJoin('x.assignee', 'assignee')
+			->where('ca.compte = :compte')
+			->andWhere('x.actif = true')
+			->andWhere('((x.anticipe = true AND x.date < :today) OR (x.anticipe = false AND x.date >= :nextMonth))')
+			->andWhere('(x.anomalyIgnored = true OR (x.anomalyIgnoredUntil IS NOT NULL AND x.anomalyIgnoredUntil >= :today))')
+			->setParameter('compte', $compteId)
+			->setParameter('today', $today)
+			->setParameter('nextMonth', $nextMonth)
 			->orderBy('x.date', 'ASC')
 			->addOrderBy('x.id', 'ASC')
 			->getQuery()

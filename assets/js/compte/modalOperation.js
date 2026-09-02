@@ -420,6 +420,11 @@ $(document).ready(function(){
 		;
 
 		$('#operation_tab tbody').append(render)
+		$('#operation_tab .tr_ope').each(function(){
+			const row = $(this)
+			const assignee = rowAssignee(row)
+			syncAssignOption(row, assignee, memberLabel(assignee))
+		})
 		$('#solde_tr_collabo').insertAfter('#operation_tab tbody tr:last')
 		$('#tr_solde').insertAfter('#operation_tab tbody tr:last')
 		calculSolde()
@@ -440,7 +445,7 @@ $(document).ready(function(){
 			_input_datas[id+'_date'] = String(dateParts.day).padStart(2, '0')
 			_input_datas[id+'_month'] = String(dateParts.month).padStart(2, '0')
 			_input_datas[id+'_year'] = String(dateParts.year)
-			_input_datas[id+'_comment'] = $('#' + id + ' .td_comment').text().trim()
+			_input_datas[id+'_comment'] = cellTextWithoutWarning($('#' + id + ' .td_comment'))
 			_input_datas[id+'_assignee'] = rowAssignee($(div)) || ''
 		})
 	}
@@ -541,7 +546,7 @@ $(document).ready(function(){
 
 	function cellTextWithoutWarning(cell){
 		const clone = cell.clone()
-		clone.find('.operation-field-warning').remove()
+		clone.find('.operation-field-warning, .operation-assignee-warning').remove()
 
 		return clone.text().trim()
 	}
@@ -567,7 +572,7 @@ $(document).ready(function(){
 			month: dateParts.month,
 			year: dateParts.year,
 			comment: row.find('.inputComment').val() == undefined
-				? row.find('.td_comment').text()
+				? cellTextWithoutWarning(row.find('.td_comment'))
 				: row.find('.inputComment').val(),
 			delete: row.hasClass('tr_del') ? 1 : 0,
 			assignee: rowAssignee(row)
@@ -769,6 +774,20 @@ $(document).ready(function(){
 				'title',
 				assignee === null ? 'Attribuer cette opération à une personne' : `Attribuée à ${label}`
 			)
+		syncAssigneeWarning(row, assignee, label)
+	}
+
+	function syncAssigneeWarning(row, assignee, label = ''){
+		const commentCell = row.find('.td_comment')
+		commentCell.find('.operation-assignee-warning').remove()
+
+		if (assignee === null || label === '') {
+			return
+		}
+
+		const warning = `<span class="operation-assignee-warning"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Attribuée à ${escapeHtml(label)}</span>`
+		const inputComment = commentCell.find('.inputComment')
+		inputComment.length > 0 ? inputComment.after(warning) : commentCell.append(warning)
 	}
 
 	function memberLabel(memberId){
@@ -1051,7 +1070,7 @@ $(document).ready(function(){
 				year = String(date_parts.year),
 				comment = tr_formMod
 					? input_comment.val()
-					: $('#' + id + ' .td_comment').text().trim()
+					: cellTextWithoutWarning($('#' + id + ' .td_comment'))
 			;
 
 			// Correct Number
@@ -1216,7 +1235,7 @@ $(document).ready(function(){
 				anticipe = number_toInput(td_anticipe.text().trim()),
 				date = operationDateParts(tr),
 				daysInMonth = monthDays(date.year, date.month),
-				comment = td_comment.text().trim(),
+				comment = cellTextWithoutWarning(td_comment),
 
 				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
 				input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />",
@@ -1255,6 +1274,7 @@ $(document).ready(function(){
 
 			// Comment
 			td_comment.empty().append(input_comment)
+			syncAssigneeWarning(tr, rowAssignee(tr), memberLabel(rowAssignee(tr)))
 
 			// Button Edit
 			tr.hasClass('tr_edit')
@@ -1297,6 +1317,7 @@ $(document).ready(function(){
 				.removeClass('operation-option-selected')
 				.attr('title', "Modifier le mois et l'année de cette opération")
 			inputComment.after(inputComment.val()).remove()
+			syncAssigneeWarning(tr, rowAssignee(tr), memberLabel(rowAssignee(tr)))
 		}
 	}
 
@@ -1420,7 +1441,9 @@ $(document).ready(function(){
 				$('#' + id + ' .td_date .date-year').text(year)
 
 				// Comment
-				$('#' + id + ' .td_comment').text(_input_datas[id + '_comment'])
+				const row = $('#' + id)
+				row.find('.td_comment').text(_input_datas[id + '_comment'])
+				syncAssigneeWarning(row, rowAssignee(row), memberLabel(rowAssignee(row)))
 			}
 		})
 

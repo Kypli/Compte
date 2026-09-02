@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\UserPreference as Entity;
+use App\Entity\User;
 
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -18,8 +19,9 @@ class UserPreferencesFixtures extends Fixture implements FixtureGroupInterface
 			->setDashboardBackground('green')
 			->setAccountBackground('green')
 			->setTablePalette('classic')
+			->setMoneyTrimZeros(true)
 			->setShowEditableBorder(true)
-			->setUser($this->getReference(UserFixtures::USER_ADMIN))
+			->setUser($this->getReference(UserFixtures::USER_ADMIN, User::class))
 		;
 		$manager->persist($entity);
 
@@ -29,8 +31,9 @@ class UserPreferencesFixtures extends Fixture implements FixtureGroupInterface
 			->setDashboardBackground('green')
 			->setAccountBackground('green')
 			->setTablePalette('classic')
+			->setMoneyTrimZeros(true)
 			->setShowEditableBorder(true)
-			->setUser($this->getReference(UserFixtures::USER_USER))
+			->setUser($this->getReference(UserFixtures::USER_USER, User::class))
 		;
 		$manager->persist($entity);
 

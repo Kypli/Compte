@@ -287,6 +287,171 @@ class CompteControllerTest extends WebTestCase
 		self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
 	}
 
+	public function testOperationAssignmentIncludesTheOwnerAndParticipants(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'editor', true)
+		;
+		$entityManager->flush();
+
+		$this->client->loginUser($this->owner);
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		));
+		self::assertResponseIsSuccessful();
+		$operations = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertSame(
+			[$this->owner->getId(), $this->intruder->getId()],
+			array_column($operations['members'], 'id')
+		);
+
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/save/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		), ['datas' => [[
+			'id' => $this->createdIds[Operation::class][0],
+			'number' => '100',
+			'anticipe' => '',
+			'day' => date('j'),
+			'month' => date('n'),
+			'year' => date('Y'),
+			'comment' => '',
+			'assignee' => $this->owner->getId(),
+		]]]);
+		self::assertResponseIsSuccessful();
+
+		$entityManager->clear();
+		$operation = $entityManager->find(Operation::class, $this->createdIds[Operation::class][0]);
+		self::assertSame($this->owner->getId(), $operation?->getAssignee()?->getId());
+	}
+
+	public function testAssociateSummaryControlIsHiddenAndDisabledWhenOnlyTheOwnerIsAssociated(): void
+	{
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+
+		self::assertResponseIsSuccessful();
+		self::assertSelectorNotExists('[data-show-associate-totals-control]');
+		self::assertSelectorExists('[data-show-associate-totals-default][value="0"]');
+		self::assertSame('0', $crawler->filter('#datas')->attr('data-showassociatetotals'));
+		self::assertSelectorNotExists('.associate-summary-cell');
+
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'editor', true)
+		;
+		$entityManager->flush();
+
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		self::assertSelectorExists('[data-show-associate-totals-control] input[name="user_preference[showAssociateTotals]"]:checked');
+		self::assertSame('1', $crawler->filter('#datas')->attr('data-showassociatetotals'));
+	}
+
+	public function testNewOperationDefaultsToTheCurrentParticipantOrTheOwner(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'editor', true)
+		;
+		$entityManager->flush();
+
+		$this->client->loginUser($this->intruder);
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/save/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		), ['datas' => [[
+			'number' => '42',
+			'anticipe' => '',
+			'day' => date('j'),
+			'month' => date('n'),
+			'year' => date('Y'),
+			'comment' => 'Attribue au participant',
+			'assignee' => null,
+		]]]);
+		self::assertResponseIsSuccessful();
+
+		$participantOperation = $entityManager->getRepository(Operation::class)->findOneBy(['comment' => 'Attribue au participant']);
+		self::assertNotNull($participantOperation);
+		self::assertSame($this->intruder->getId(), $participantOperation->getAssignee()?->getId());
+
+		$this->compte->setUserSharing($this->intruder, 'editor', false);
+		$entityManager->flush();
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/save/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		), ['datas' => [[
+			'number' => '43',
+			'anticipe' => '',
+			'day' => date('j'),
+			'month' => date('n'),
+			'year' => date('Y'),
+			'comment' => 'Attribue au proprietaire',
+			'assignee' => null,
+		]]]);
+		self::assertResponseIsSuccessful();
+
+		$ownerOperation = $entityManager->getRepository(Operation::class)->findOneBy(['comment' => 'Attribue au proprietaire']);
+		self::assertNotNull($ownerOperation);
+		self::assertSame($this->owner->getId(), $ownerOperation->getAssignee()?->getId());
+	}
+
+	public function testAssociateFilterUpdatesTablesAndShowsOnlyTheRelevantSummary(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'editor', true)
+		;
+		$assignedIncome = $this->createOperation($this->positiveSubCategory, 55, false)
+			->setAssignee($this->intruder)
+		;
+		$entityManager->persist($assignedIncome);
+		$entityManager->flush();
+		$this->createdIds[Operation::class][] = $assignedIncome->getId();
+
+		$this->client->loginUser($this->owner);
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/tables?year='.date('Y').'&associate_filter=unassigned'
+		);
+		self::assertResponseIsSuccessful();
+		$payload = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		$tables = new Crawler($payload['render']);
+		self::assertStringNotContainsString($this->intruder->getUserName(), $payload['render']);
+		self::assertStringContainsString('100', $tables->filter('.bck_pos .account-total-full-row .year-total')->first()->text());
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/tables?year='.date('Y').'&associate_filter='.$this->intruder->getId()
+		);
+		self::assertResponseIsSuccessful();
+		$payload = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		$tables = new Crawler($payload['render']);
+		self::assertStringContainsString($this->intruder->getUserName(), $payload['render']);
+		self::assertStringContainsString('55', $tables->filter('.bck_pos .account-total-full-row .year-total')->first()->text());
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/tables?year='.date('Y').'&associate_filter='.$this->intruder->getId().'&show_associate_totals=0'
+		);
+		self::assertResponseIsSuccessful();
+		$payload = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertStringNotContainsString($this->intruder->getUserName(), $payload['render']);
+	}
+
 	public function testAccountCannotHaveMoreThanThreeAssociatedUsers(): void
 	{
 		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
@@ -504,7 +669,9 @@ class CompteControllerTest extends WebTestCase
 
 		self::assertResponseIsSuccessful();
 		self::assertCount(6, $crawler->filter('input[name="user_preference[tablePalette]"]'));
+		self::assertSelectorExists('input[name="user_preference[moneyTrimZeros]"]:checked');
 		self::assertSelectorExists('input[name="user_preference[showEditableBorder]"]:checked');
+		self::assertSelectorExists('input[name="user_preference[showAssociateTotals]"]:checked');
 		self::assertSelectorNotExists('.preference-submit-button');
 		self::assertSelectorExists('form[data-preference-autosave="true"]');
 		self::assertSelectorExists('.preference-save-mascot');
@@ -519,6 +686,9 @@ class CompteControllerTest extends WebTestCase
 				'accountBackground' => 'green',
 				'compteGenreShow' => '1',
 				'tablePalette' => 'soft',
+				'moneyDisplayFormat' => 'comma',
+				'moneyCurrency' => 'EUR',
+				'moneyShowZeroDecimals' => '1',
 				'_token' => $crawler->filter('input[name="user_preference[_token]"]')->attr('value'),
 			],
 		]);
@@ -532,6 +702,7 @@ class CompteControllerTest extends WebTestCase
 		self::assertNotNull($user);
 		self::assertSame('soft', $user->getPreferences()->getTablePalette());
 		self::assertFalse($user->getPreferences()->isShowEditableBorder());
+		self::assertFalse($user->getPreferences()->isShowAssociateTotals());
 
 		$this->client->loginUser($user);
 		$this->client->request('GET', '/compte/'.$this->compte->getId());
@@ -798,6 +969,98 @@ class CompteControllerTest extends WebTestCase
 		self::assertSame(120.0, (float) $response['solde']);
 		self::assertStringContainsString('Aucune anomalie détectée', $response['render_anomalies_modal']);
 		self::assertStringContainsString('>0</span>', $response['render_anomalies']);
+	}
+
+	public function testFutureDoneOperationCanBeReturnedToAnticipatedFromAnomaliesModal(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$operation = $this->createOperation($this->positiveSubCategory, 35, false)
+			->setDate(new \DateTime('first day of next month'))
+		;
+		$entityManager->persist($operation);
+		$entityManager->flush();
+		$operationId = $operation->getId();
+		$this->createdIds[Operation::class][] = $operationId;
+
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+
+		self::assertResponseIsSuccessful();
+		self::assertSelectorExists('#anomaliesButton.has-anomalies');
+		self::assertSelectorTextContains('#modalAnomalies .anomaly-item', 'Date non atteinte');
+		self::assertSelectorTextContains('#modalAnomalies .anomaly-item', 'Marquée Fait le');
+		self::assertSelectorTextContains('#modalAnomalies .resolve-anomaly-anticipate', 'Passer à A venir');
+		self::assertSelectorNotExists('#modalAnomalies .resolve-anomaly-postpone');
+		$button = $crawler->filter('#modalAnomalies .resolve-anomaly-anticipate')->first();
+
+		$this->client->xmlHttpRequest('POST', $button->attr('data-url'), [
+			'_token' => $button->attr('data-token'),
+			'resolution' => $button->attr('data-resolution'),
+		]);
+
+		self::assertResponseIsSuccessful();
+		$resolveResponse = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($resolveResponse['resolved']);
+		self::assertSame('anticipate', $resolveResponse['resolution']);
+		$entityManager->clear();
+		$resolvedOperation = $entityManager->find(Operation::class, $operationId);
+		self::assertNotNull($resolvedOperation);
+		self::assertTrue($resolvedOperation->isAnticipe());
+
+		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/tables?year='.date('Y'));
+		self::assertResponseIsSuccessful();
+		$response = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertStringContainsString('Aucune anomalie détectée', $response['render_anomalies_modal']);
+	}
+
+	public function testAnomaliesCanBeSearchedAndIgnoredOperationsCanBeReactivated(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$operations = [];
+		for ($index = 1; $index <= 6; $index++){
+			$operation = $this->createOperation($this->positiveSubCategory, 10 * $index, true)
+				->setAssignee($this->owner)
+				->setDate(new \DateTime(sprintf('-%d days', $index)))
+			;
+			$entityManager->persist($operation);
+			$operations[] = $operation;
+		}
+		$entityManager->flush();
+		$operationIds = array_map(
+			static fn (Operation $operation): int => $operation->getId(),
+			$operations
+		);
+		$this->createdIds[Operation::class] = array_merge($this->createdIds[Operation::class], $operationIds);
+
+		$this->client->loginUser($this->owner);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+
+		self::assertResponseIsSuccessful();
+		self::assertSelectorExists('#anomaliesSearch[data-anomalies-search]');
+		self::assertSelectorExists('.anomaly-item[data-anomaly-search-value*="revenus"]');
+		self::assertSelectorExists('.anomaly-item[data-anomaly-search-value*="salaire"]');
+		self::assertSelectorExists('.anomaly-item[data-anomaly-search-value*="10"]');
+		$ignoreButton = $crawler->filter('#modalAnomalies .resolve-anomaly-ignore')->first();
+
+		$this->client->xmlHttpRequest('POST', $ignoreButton->attr('data-url'), [
+			'_token' => $ignoreButton->attr('data-token'),
+			'resolution' => 'ignore',
+		]);
+		self::assertResponseIsSuccessful();
+
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		self::assertSelectorExists('[data-toggle-ignored-anomalies]:not(:disabled)');
+		self::assertSelectorTextContains('[data-toggle-ignored-anomalies]', 'Voir les ignorées');
+		self::assertSelectorExists('#ignoredAnomalies .anomaly-item.is-ignored');
+		$reactivateButton = $crawler->filter('#ignoredAnomalies .resolve-anomaly-reactivate')->first();
+
+		$this->client->xmlHttpRequest('POST', $reactivateButton->attr('data-url'), [
+			'_token' => $reactivateButton->attr('data-token'),
+			'resolution' => 'reactivate',
+		]);
+		self::assertResponseIsSuccessful();
+		$entityManager->clear();
+		self::assertFalse($entityManager->find(Operation::class, $operationIds[0])->isAnomalyIgnored());
 	}
 
 	public function testOverdueAnticipatedOperationCanBeDeletedAndDeletionCanBeUndone(): void

@@ -3,6 +3,8 @@
 namespace App\DataFixtures;
 
 use App\Entity\Operation as Entity;
+use App\Entity\OperationAction;
+use App\Entity\SubCategory;
 
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -69,6 +71,8 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 			}
 
 			$subcategory = $subcategories[array_rand($subcategories)];
+			$subcategoryEntity = $this->getReference($subcategory, SubCategory::class);
+			$assignee = $subcategoryEntity->getCategory()->getCompte()->getOwner();
 
 			$entity = new Entity();
 			$entity
@@ -78,9 +82,11 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				->setComment('comment '.$i)
 				->setDateLastAction($date_now)
 				->setLastAction('create')
-				->setSubcategory($this->getReference($subcategory))
+				->setSubcategory($subcategoryEntity)
+				->setAssignee($assignee)
 			;
 			$manager->persist($entity);
+			$this->addOperationAction($manager, $entity, $date_now);
 		}
 
 		$cashOperations = [
@@ -101,6 +107,7 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 		];
 
 		foreach ($cashOperations as $cashOperation) {
+			$subcategory = $this->getReference($cashOperation['subcategory'], SubCategory::class);
 			$entity = new Entity();
 			$entity
 				->setNumber($cashOperation['number'])
@@ -109,9 +116,11 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 				->setComment($cashOperation['comment'])
 				->setDateLastAction(new \DateTime())
 				->setLastAction('create')
-				->setSubcategory($this->getReference($cashOperation['subcategory']))
+				->setSubcategory($subcategory)
+				->setAssignee($subcategory->getCategory()->getCompte()->getOwner())
 			;
 			$manager->persist($entity);
+			$this->addOperationAction($manager, $entity, $entity->getDateLastAction());
 		}
 
 		$manager->flush();
@@ -127,5 +136,27 @@ class OperationFixtures extends Fixture implements DependentFixtureInterface, Fi
 	public static function getGroups(): array
 	{
 		return ['dev'];
+	}
+
+	private function addOperationAction(ObjectManager $manager, Entity $operation, \DateTimeInterface $actionAt): void
+	{
+		$manager->persist(
+			(new OperationAction())
+				->setOperation($operation)
+				->setAuthor($operation->getAssignee())
+				->setActionType('create')
+				->setActionAt(clone $actionAt)
+				->setAfterSnapshot([
+					'subcategoryId' => $operation->getSubcategory()->getId(),
+					'assigneeId' => $operation->getAssignee()?->getId(),
+					'number' => $operation->getNumber(),
+					'anticipe' => $operation->isAnticipe(),
+					'date' => $operation->getDate()->format(DATE_ATOM),
+					'comment' => $operation->getComment(),
+					'actif' => $operation->isActif(),
+					'lastAction' => $operation->getLastAction(),
+					'dateLastAction' => $operation->getDateLastAction()->format(DATE_ATOM),
+				])
+		);
 	}
 }

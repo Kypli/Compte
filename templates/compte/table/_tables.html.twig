@@ -6,9 +6,9 @@
 {% set show_annual_gain = user.preferences.showAnnualGain ?? true %}
 {% set show_balance_cumulative = user.preferences.showBalanceCumulative ?? true %}
 
-<div class='row m-1'>
+<div class='row m-1 account-tables-layout'>
 	{% if user.preferences.mergeIncomeExpenseTables|default(false) %}
-		<div class="col-12 pt-2 account-tables-merged">
+		<div class="col-12 pt-2 account-table-section account-tables-merged">
 			<h3 class="account-table-section-title account-table-section-title-merged">Tableau des entrées et dépenses</h3>
 			<div class="compte-table-viewport">
 				{% include('compte/table/_table_merged.html.twig') with {'month_anticipation_visible': month_anticipation_visible_merged, 'month_colspans': month_colspans_merged} %}
@@ -16,7 +16,7 @@
 		</div>
 	{% else %}
 		{# TABLE + #}
-		<div class="col-12 pt-2 bck_pos">
+		<div class="col-12 pt-2 bck_pos account-table-section account-table-section-income">
 			<h3 class="account-table-section-title account-table-section-title-income">Tableau des entrées</h3>
 			<div class="compte-table-viewport">
 				{% include('compte/table/_table.html.twig') with {'operations': operations_pos, 'sign': 'pos', 'signBool': true, 'month_anticipation_visible': month_anticipation_visible_pos, 'month_colspans': month_colspans_pos } %}
@@ -24,7 +24,7 @@
 		</div>
 
 		{# TABLE - #}
-		<div class="col-12 pt-2 bck_neg">
+		<div class="col-12 pt-2 bck_neg account-table-section account-table-section-expense">
 			<h3 class="account-table-section-title account-table-section-title-expense">Tableau des dépenses</h3>
 			<div class="compte-table-viewport">
 				{% include('compte/table/_table.html.twig') with {'operations': operations_neg, 'sign': 'neg', 'signBool': false, 'month_anticipation_visible': month_anticipation_visible_neg, 'month_colspans': month_colspans_neg } %}
@@ -34,7 +34,7 @@
 
 	{# SOLDE #}
 	{% if show_monthly_gain or show_annual_gain or show_balance_cumulative %}
-		<div class="col-12 mb-5 pt-3 bck_solde account-gains-section">
+		<div class="col-12 mb-5 pt-3 bck_solde account-gains-section account-table-section account-table-section-gains">
 			<h3 class="account-table-section-title account-table-section-title-gains">Tableau des gains</h3>
 			<div class="compte-table-viewport">
 				{{ include('compte/table/_table_gains.html.twig', {'month_colspans': month_colspans_merged}) }}

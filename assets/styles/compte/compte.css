@@ -960,7 +960,7 @@ body.account-background-grey {
 }
 .account-settings-sharing-heading {
 	display: grid;
-	grid-template-columns: 34px minmax(0, 1fr) 28px;
+	grid-template-columns: 34px minmax(0, 1fr) auto;
 	align-items: center;
 	gap: 10px;
 	margin-bottom: 10px;
@@ -993,14 +993,16 @@ body.account-background-grey {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
+	min-width: 42px;
 	height: 28px;
+	padding: 0 7px;
 	color: #26342C;
 	font-size: 12px;
 	font-weight: 800;
+	white-space: nowrap;
 	background: #FFF;
 	border: 1px solid #BAC7C1;
-	border-radius: 50%;
+	border-radius: 14px;
 }
 .account-settings-members {
 	display: grid;
@@ -1787,7 +1789,7 @@ body.account-background-grey {
 	align-items: start;
 	column-gap: 16px;
 	row-gap: 28px;
-	padding: 14px 0 14px 16px;
+	padding: 14px 0;
 	border: 0;
 	background: transparent;
 }
@@ -1995,9 +1997,78 @@ body.account-background-grey {
 	background: #B45309;
 }
 .anomalies-modal-summary {
-	margin: 3px 0 0;
+	margin: 0;
 	color: #68737D;
 	font-size: 12px;
+}
+.anomalies-modal-heading {
+	min-width: 0;
+}
+.anomalies-modal-meta {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 3px;
+}
+.anomalies-search {
+	display: inline-flex;
+	width: min(270px, 45vw);
+	min-width: 0;
+	height: 30px;
+	align-items: center;
+	gap: 7px;
+	padding: 0 9px;
+	color: #5C6971;
+	border: 1px solid #B8C3C8;
+	border-radius: 4px;
+	background: #FFFFFF;
+}
+.anomalies-search:focus-within {
+	border-color: #28734C;
+	box-shadow: 0 0 0 2px rgba(40, 115, 76, 0.16);
+}
+.anomalies-search i {
+	font-size: 11px;
+}
+.anomalies-search input {
+	width: 100%;
+	min-width: 0;
+	padding: 0;
+	color: #26343B;
+	font-size: 12px;
+	border: 0;
+	outline: 0;
+	background: transparent;
+}
+.anomalies-search-empty {
+	margin: 16px 0 0;
+	color: #68737D;
+	font-size: 13px;
+	font-weight: 600;
+	text-align: center;
+}
+.anomalies-current-empty {
+	margin: 8px 0 0;
+	color: #68737D;
+	font-size: 13px;
+	font-weight: 600;
+	text-align: center;
+}
+.ignored-anomalies {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #DCE1E4;
+}
+.ignored-anomalies h5 {
+	margin: 0 0 4px;
+	color: #59656C;
+	font-size: 12px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+.anomaly-item.is-ignored {
+	background: #F7F8F8;
+	filter: saturate(0.65);
 }
 #modalAnomalies .modal-dialog,
 #modalAnomalies .anomalies-modal-content {
@@ -2511,6 +2582,11 @@ body.account-background-grey {
 	border: 0;
 	border-radius: 0;
 	background: #F2F6F3;
+	text-decoration: none;
+}
+.year-navigation-button:hover,
+.year-navigation-button:focus {
+	text-decoration: none;
 }
 .year-navigation-button.disabled {
 	color: #9AA3A9;
@@ -2669,7 +2745,7 @@ body.account-background-grey {
 }
 .account-display-form {
 	display: grid;
-	gap: 14px;
+	gap: 12px;
 	margin: 0;
 }
 .account-display-tabs {
@@ -2715,6 +2791,75 @@ body.account-background-grey {
 .account-display-tab.is-active i {
 	color: #FFFFFF;
 }
+.account-display-tab:disabled,
+.account-display-tab.is-disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.account-associate-filter-control {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 10px;
+	align-items: center;
+	margin: 0;
+	color: #415049;
+	font-size: 12px;
+	font-weight: 800;
+}
+.account-associate-filter-control select {
+	min-width: 0;
+	height: 34px;
+	padding: 5px 28px 5px 9px;
+	color: #26342C;
+	font-size: 12px;
+	font-weight: 700;
+	border: 1px solid #AEBEB5;
+	border-radius: 4px;
+	background-color: #FFFFFF;
+}
+.associate-summary-cell {
+	padding: 3px!important;
+	vertical-align: middle!important;
+	background: transparent!important;
+	border-top: hidden!important;
+	border-bottom: hidden!important;
+	border-left: hidden!important;
+	border-right: 1px solid #8F999F!important;
+}
+.associate-summary-cell + .month-cell-start,
+.associate-summary-cell + .month-cell-span,
+.account-total-full-row > .month-cell-start:first-child,
+.account-total-full-row > .month-cell-span:first-child {
+	border-left: 1px solid #8F999F!important;
+}
+.associate-summary-list {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 2px;
+}
+.associate-summary-card {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	gap: 3px;
+	align-items: center;
+	min-width: 0;
+	min-height: 22px;
+	padding: 2px 3px;
+	font-size: 9px;
+	font-weight: 800;
+	background: rgba(255, 255, 255, 0.78);
+	border: 1px solid rgba(65, 86, 74, 0.32);
+	border-radius: 3px;
+}
+.associate-summary-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.associate-summary-card i,
+.associate-summary-card::before {
+	display: none!important;
+	content: none!important;
+}
+.associate-summary-card .associate-summary-amount.is-income { color: #247148; }
+.associate-summary-card .associate-summary-amount.is-expense { color: #9F3A3A; }
+.associate-summary-card .associate-summary-amount.is-merged { color: #6B3E8B; }
 .display-options-button [data-money-symbol] {
 	font-weight: 800;
 }
@@ -2779,11 +2924,117 @@ body.account-background-grey {
 }
 
 .account-display-modal .modal-body {
+	position: relative;
 	padding: 10px 16px 14px;
+}
+.modal-dialog-scrollable .modal-body {
+	scrollbar-width: thin;
+	scrollbar-color: #4D8062 #E2EBE5;
+}
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar {
+	width: 10px;
+}
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-track {
+	margin: 6px 0;
+	border-radius: 8px;
+	background: #E2EBE5;
+}
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb {
+	border: 2px solid #E2EBE5;
+	border-radius: 8px;
+	background: #4D8062;
+}
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb:hover {
+	background: #28734C;
+}
+#modalAccountTutorial .modal-body,
+.last-actions-list {
+	scrollbar-width: thin;
+	scrollbar-color: #4D8062 #E2EBE5;
+}
+#modalAccountTutorial .modal-body::-webkit-scrollbar,
+.last-actions-list::-webkit-scrollbar {
+	width: 10px;
+}
+#modalAccountTutorial .modal-body::-webkit-scrollbar-track,
+.last-actions-list::-webkit-scrollbar-track {
+	margin: 6px 0;
+	border-radius: 8px;
+	background: #E2EBE5;
+}
+#modalAccountTutorial .modal-body::-webkit-scrollbar-thumb,
+.last-actions-list::-webkit-scrollbar-thumb {
+	border: 2px solid #E2EBE5;
+	border-radius: 8px;
+	background: #4D8062;
+}
+#modalAccountTutorial .modal-body::-webkit-scrollbar-thumb:hover,
+.last-actions-list::-webkit-scrollbar-thumb:hover {
+	background: #28734C;
+}
+html.account-page,
+body[class*="account-background-"] {
+	scrollbar-width: thin;
+	scrollbar-color: #4D8062 #E2EBE5;
+}
+html.account-page::-webkit-scrollbar,
+body[class*="account-background-"]::-webkit-scrollbar {
+	width: 10px;
+}
+html.account-page::-webkit-scrollbar-track,
+body[class*="account-background-"]::-webkit-scrollbar-track {
+	background: #E2EBE5;
+}
+html.account-page::-webkit-scrollbar-thumb,
+body[class*="account-background-"]::-webkit-scrollbar-thumb {
+	border: 2px solid #E2EBE5;
+	border-radius: 8px;
+	background: #4D8062;
+}
+html.account-page::-webkit-scrollbar-thumb:hover,
+body[class*="account-background-"]::-webkit-scrollbar-thumb:hover {
+	background: #28734C;
+}
+.account-tour-jump-select {
+	scrollbar-width: thin;
+	scrollbar-color: #4D8062 #E2EBE5;
+}
+.account-tour-jump-select::-webkit-scrollbar {
+	width: 10px;
+}
+.account-tour-jump-select::-webkit-scrollbar-track {
+	background: #E2EBE5;
+}
+.account-tour-jump-select::-webkit-scrollbar-thumb {
+	border: 2px solid #E2EBE5;
+	border-radius: 8px;
+	background: #4D8062;
+}
+.account-tour-jump-select::-webkit-scrollbar-thumb:hover {
+	background: #28734C;
+}
+
+.account-display-modal .account-display-tabs-sticky {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	display: block;
+	flex: 0 0 auto;
+	margin: -10px -16px 0;
+	padding: 10px 16px 0;
+	background: #F6F8F5;
 }
 
 .account-display-modal .account-display-tabs {
-	margin-bottom: 10px;
+	margin-bottom: 0;
+}
+
+.account-display-modal .account-display-tabs-sticky + .account-display-form {
+	padding-top: 20px;
+}
+
+#monthDisplayForm:has(#accountDisplayPanelDisplay:not([hidden])) + .account-display-preferences {
+	margin-top: 12px;
 }
 
 .account-display-modal .account-display-section {
@@ -2873,7 +3124,7 @@ body.account-background-grey {
 }
 .account-display-modal .account-display-preferences .account-preferences-form {
 	gap: 12px;
-	margin-top: 10px;
+	margin-top: 0;
 }
 .account-display-preferences.account-preferences-panel {
 	position: static;
@@ -3031,6 +3282,8 @@ body.account-background-grey {
 		padding: 5px 4px;
 		font-size: 11px;
 	}
+	.account-display-tab span { display: none; }
+	.account-associate-filter-control { grid-template-columns: 1fr; gap: 5px; }
 	.account-combine-form .combine-account-list {
 		grid-template-columns: minmax(0, 1fr);
 	}
@@ -4081,15 +4334,38 @@ table {
 	overflow-x: auto;
 	overflow-y: hidden;
 	overscroll-behavior-inline: contain;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
 }
 
 .account-table-section-title {
-	margin: 0;
-	padding: 2px 8px 8px;
+	margin: 0 0 4px;
+	padding: 0 2px 2px;
 	font-size: 16px;
 	font-weight: 800;
 	line-height: 1.2;
 	text-align: left;
+	text-shadow: 0 1px rgba(255, 255, 255, 0.34);
+}
+
+.account-tables-layout {
+	gap: 8px;
+	margin: 14px 0 0 2px!important;
+	padding: 6px;
+	border: 0;
+	border-radius: 5px;
+	background: transparent;
+	box-shadow: none;
+}
+
+.account-tables-layout > .account-table-section {
+	padding: 7px 7px 8px!important;
+	overflow: hidden;
+	border: 0;
+	border-radius: 4px;
+	box-shadow: none;
 }
 
 .account-table-section-title-income {
@@ -4174,11 +4450,16 @@ table {
 	background: #cbb9dc!important;
 }
 
-.account-merged-table .merged-table-summary-label {
+.compteTable .merged-table-summary-label {
 	color: #3f2e50;
 	font-weight: 800;
 	text-align: right;
 	background: #ded3ea!important;
+}
+.compteTable .account-table-summary-label {
+	color: #202B31!important;
+	font-weight: 800!important;
+	text-align: right!important;
 }
 
 @media (max-width: 991px) {
@@ -4845,6 +5126,9 @@ table {
 	gap: 6px;
 	width: 100%;
 	margin-top: 7px;
+}
+.account-merged-table .merged-table-main-header > .category-add-toolbar:first-child {
+	margin-top: 0;
 }
 
 .category-add-target {

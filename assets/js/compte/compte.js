@@ -13,6 +13,7 @@ let stickyTotalsOverlay = null
 let stickyTotalsFrame = null
 let categoryMove = null
 let subCategoryMove = null
+const accountDisplayTabScrollPositions = new Map()
 const lastSessionOperationCellStorageKey = 'compte.lastSessionOperationCell'
 
 ////////////
@@ -42,6 +43,8 @@ export function updateTables(){
 		if (datasElement.dataset.combinedcompteid) {
 			routeParams.avec = datasElement.dataset.combinedcompteid
 		}
+		routeParams.associate_filter = datasElement.dataset.associatefilter || 'all'
+		routeParams.show_associate_totals = datasElement.dataset.showassociatetotals || '1'
 	}
 	const selectedMonthValue = datasElement?.dataset.selectedmonth
 	const selectedYearValue = datasElement?.dataset.selectedyear
@@ -345,6 +348,11 @@ function syncDetailMonthsUrl(){
 }
 
 function setAccountDisplayTab(tab){
+	const modalBody = document.querySelector('#modalAccountDisplay .modal-body')
+	const activeTab = document.querySelector('[data-account-display-tab].is-active')?.dataset.accountDisplayTab
+	if (modalBody && activeTab && activeTab !== tab) {
+		accountDisplayTabScrollPositions.set(activeTab, modalBody.scrollTop)
+	}
 	document.querySelectorAll('[data-account-display-tab]').forEach(button => {
 		const isActive = button.dataset.accountDisplayTab === tab
 		button.classList.toggle('is-active', isActive)
@@ -353,6 +361,9 @@ function setAccountDisplayTab(tab){
 	document.querySelectorAll('[data-account-display-panel]').forEach(panel => {
 		panel.hidden = panel.dataset.accountDisplayPanel !== tab
 	})
+	if (modalBody) {
+		modalBody.scrollTo({ top: accountDisplayTabScrollPositions.get(tab) || 0, behavior: 'auto' })
+	}
 }
 
 function setDetailMonthControlsDisabled(disabled){
@@ -597,6 +608,11 @@ function stickyTotalsGridFor(table, rows, tableRect){
 		cloneRow.style.height = `${rowRect.height}px`
 
 		Array.from(row.children).forEach(cell => {
+			// Associate cards stay at the bottom of their table, outside the fixed totals overlay.
+			if (cell.classList.contains('associate-summary-cell')) {
+				return
+			}
+
 			const cellRect = cell.getBoundingClientRect()
 			const cloneCell = cell.cloneNode(true)
 			cloneCell.classList.add('account-sticky-totals-cell')
@@ -1305,6 +1321,9 @@ $(document).ready(function(){
 			updateStickyTotalRows()
 			scheduleAnchoredTotalRowsUpdate()
 		}
+		if (typeof preferences.showAssociateTotals === 'boolean') {
+			datas.dataset.showassociatetotals = preferences.showAssociateTotals ? '1' : '0'
+		}
 		if (preferences.moneyDisplayFormat) {
 			datas.dataset.moneydisplayformat = preferences.moneyDisplayFormat
 			$(datas).data('moneydisplayformat', preferences.moneyDisplayFormat)
@@ -1330,6 +1349,8 @@ $(document).ready(function(){
 			shouldUpdateTables = true
 		}
 		if (
+			typeof preferences.showAssociateTotals === 'boolean'
+			||
 			typeof preferences.showTableTotals === 'boolean'
 			|| typeof preferences.showTableMonthlyAverage === 'boolean'
 			|| typeof preferences.showTablePercentage === 'boolean'
@@ -3085,6 +3106,33 @@ $(document).ready(function(){
 		setAccountDisplayTab(this.dataset.accountDisplayTab)
 	})
 
+	$('#modalAccountDisplay').on('hidden.bs.modal', function(){
+		accountDisplayTabScrollPositions.clear()
+		this.querySelector('.modal-body')?.scrollTo({ top: 0, behavior: 'auto' })
+	})
+
+	$('body').on('change', '[data-associate-filter]', function(){
+		const select = this
+		const datas = document.getElementById('datas')
+		if (!datas || select.value === (datas.dataset.associatefilter || 'all')) {
+			return
+		}
+		const previousFilter = datas.dataset.associatefilter || 'all'
+		const url = new URL(window.location.href)
+		datas.dataset.associatefilter = select.value
+		url.searchParams.set('associate_filter', select.value)
+		window.history.replaceState(window.history.state, '', url)
+		select.disabled = true
+		updateTables()
+			.fail(function(){
+				datas.dataset.associatefilter = previousFilter
+				url.searchParams.set('associate_filter', previousFilter)
+				window.history.replaceState(window.history.state, '', url)
+				select.value = previousFilter
+			})
+			.always(() => select.disabled = false)
+	})
+
 	$('body').on('click', '[data-month-display-value]', function(){
 		const monthDisplayInput = document.getElementById('monthDisplay')
 		if (!monthDisplayInput || monthDisplayInput.value === this.dataset.monthDisplayValue) {
@@ -3516,6 +3564,47 @@ $(document).ready(function(){
 				console.log("Erreur lors de la correction de l'anomalie: " + error)
 			}
 		})
+	})
+
+	$('body').on('input', '[data-anomalies-search]', function(){
+		const normalizeSearchValue = value => value
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLocaleLowerCase('fr')
+		const query = normalizeSearchValue(this.value.trim())
+		const modal = this.closest('#modalAnomalies')
+		let visibleCount = 0
+
+		modal?.querySelectorAll('.anomaly-item').forEach(item => {
+			const matches = !query || normalizeSearchValue(item.dataset.anomalySearchValue || '').includes(query)
+			item.hidden = !matches
+			if (matches) {
+				visibleCount += 1
+			}
+		})
+		const emptyMessage = modal?.querySelector('[data-anomalies-search-empty]')
+		if (emptyMessage) {
+			emptyMessage.hidden = visibleCount > 0
+		}
+	})
+
+	$('body').on('click', '[data-toggle-ignored-anomalies]', function(){
+		const modal = this.closest('#modalAnomalies')
+		const ignoredAnomalies = modal?.querySelector('[data-ignored-anomalies]')
+		if (!ignoredAnomalies) {
+			return
+		}
+		const willShow = ignoredAnomalies.hidden
+		ignoredAnomalies.hidden = !willShow
+		modal.querySelector('[data-active-anomalies]')?.toggleAttribute('hidden', willShow)
+		modal.querySelector('[data-active-anomalies-empty]')?.toggleAttribute('hidden', willShow)
+		const searchInput = modal.querySelector('[data-anomalies-search]')
+		if (searchInput) {
+			searchInput.value = ''
+			searchInput.dispatchEvent(new Event('input', { bubbles: true }))
+		}
+		this.setAttribute('aria-expanded', willShow ? 'true' : 'false')
+		this.querySelector('span').textContent = willShow ? 'Voir les anomalies' : 'Voir les ignorées'
 	})
 
 	$('body').on('keydown', '.month-selector', function(event){

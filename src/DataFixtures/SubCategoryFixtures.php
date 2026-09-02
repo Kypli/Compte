@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\SubCategory as Entity;
+use App\Entity\Category;
 
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -179,7 +180,7 @@ class SubCategoryFixtures extends Fixture implements DependentFixtureInterface, 
 			$entity
 				->setLibelle($value['libelle'])
 				->setPosition($value['position'])
-				->setCategory($this->getReference($value['setRef']))
+				->setCategory($this->getReference($value['setRef'], Category::class))
 			;
 			$this->addReference($value['addRef'], $entity);
 			$manager->persist($entity);

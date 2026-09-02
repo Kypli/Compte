@@ -9,11 +9,19 @@
 	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
 		<div class="modal-content anomalies-modal-content">
 			<div class="modal-header">
-				<div>
+				<div class="anomalies-modal-heading">
 					<h4 id="modalAnomaliesTitle" class="modal-title">Correction des anomalies</h4>
-					<p class="anomalies-modal-summary">
-						{{ anomalies|length }} anomalie{{ anomalies|length > 1 ? 's' }} détectée{{ anomalies|length > 1 ? 's' }}
-					</p>
+					<div class="anomalies-modal-meta">
+						<p class="anomalies-modal-summary">
+							{{ anomalies|length }} anomalie{{ anomalies|length > 1 ? 's' }} détectée{{ anomalies|length > 1 ? 's' }}
+						</p>
+						{% if anomalies|length > 5 %}
+							<label class="anomalies-search" for="anomaliesSearch">
+								<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+								<input id="anomaliesSearch" type="search" data-anomalies-search autocomplete="off" placeholder="Catégorie, personne, date..." aria-label="Rechercher une anomalie">
+							</label>
+						{% endif %}
+					</div>
 				</div>
 				<button
 					type="button"
@@ -27,31 +35,47 @@
 			</div>
 
 			<div class="modal-body">
-				{% if anomalies is empty %}
+				{% if anomalies is empty and ignored_anomalies|default([]) is empty %}
 					<div class="anomalies-empty">
 						<i class="fa-solid fa-circle-check" aria-hidden="true"></i>
 						<strong>Aucune anomalie détectée</strong>
-						<span>Les opérations anticipées sont à jour.</span>
+						<span>Les opérations à venir et les opérations faites sont à jour.</span>
 					</div>
-				{% else %}
-					<ul class="anomalies-list">
+				{% elseif anomalies is not empty %}
+					<ul class="anomalies-list" data-active-anomalies>
 						{% for anomaly in anomalies %}
 							{% set category = anomaly.subcategory.category %}
-							<li class="anomaly-item">
+							{% set is_future_done = not anomaly.anticipe %}
+							<li
+								class="anomaly-item"
+								data-anomaly-search-value="{{ (category.libelle ~ ' ' ~ anomaly.subcategory.libelle ~ ' ' ~ (anomaly.assignee ? anomaly.assignee.userIdentifier : '') ~ ' ' ~ anomaly.number ~ ' ' ~ anomaly.number|number_format(2, ',', ' ') ~ ' ' ~ anomaly.date|date('d/m/Y') ~ ' ' ~ anomaly.date|date('Y-m-d'))|lower }}"
+							>
 								<div class="anomaly-icon" aria-hidden="true">
-									<i class="fa-solid fa-calendar-xmark"></i>
+									<i class="fa-solid {{ is_future_done ? 'fa-calendar-days' : 'fa-calendar-xmark' }}"></i>
 								</div>
 								<div class="anomaly-description">
-									<strong>Date anticipée dépassée</strong>
+									<strong>{{ is_future_done ? 'Date non atteinte' : 'Date anticipée dépassée' }}</strong>
 									<span class="action-zone-{{ category.sign ? 'pos' : 'neg' }}">
 										{{ category.libelle|capitalize }} / {{ anomaly.subcategory.libelle|capitalize }}
 									</span>
 									<small>
-										Prévue le {{ anomaly.date|date('d/m/Y') }} · {{ anomaly.number|number_format(2, ',', ' ') }} €
+										{{ is_future_done ? 'Marquée Fait le' : 'Prévue le' }} {{ anomaly.date|date('d/m/Y') }} · {{ anomaly.number|number_format(2, ',', ' ') }} €
 									</small>
 								</div>
 								<div class="anomaly-solution">
 									<span class="anomaly-solution-label">Choisir une correction</span>
+									{% if is_future_done %}
+									<button
+										type="button"
+										class="resolve-anomaly-button resolve-anomaly-anticipate"
+										data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+										data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+										data-resolution="anticipate"
+									>
+										<i class="fa-solid fa-calendar-clock" aria-hidden="true"></i>
+										<span>Passer à A venir</span>
+									</button>
+									{% else %}
 									<button
 										type="button"
 										class="resolve-anomaly-button resolve-anomaly-realize"
@@ -62,6 +86,8 @@
 										<i class="fa-solid fa-check" aria-hidden="true"></i>
 										<span>Marquer comme réalisée</span>
 									</button>
+									{% endif %}
+									{% if not is_future_done %}
 									<div class="anomaly-postpone">
 										<label>
 											<input
@@ -79,9 +105,10 @@
 											data-resolution="postpone"
 										>
 											<i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-											<span>Reporter</span>
+										<span>Reporter</span>
 										</button>
 									</div>
+									{% endif %}
 									<div class="anomaly-ignore-actions">
 										<button
 											type="button"
@@ -116,12 +143,64 @@
 									</button>
 								</div>
 							</li>
-						{% endfor %}
+							{% endfor %}
 					</ul>
+					<p class="anomalies-search-empty" data-anomalies-search-empty hidden>Aucune anomalie ne correspond à cette recherche.</p>
+				{% else %}
+					<p class="anomalies-current-empty" data-active-anomalies-empty>Aucune anomalie à corriger actuellement.</p>
+				{% endif %}
+
+				{% if ignored_anomalies|default([]) is not empty %}
+					<section id="ignoredAnomalies" class="ignored-anomalies" data-ignored-anomalies hidden>
+						<h5>Anomalies ignorées</h5>
+						<ul class="anomalies-list">
+							{% for anomaly in ignored_anomalies %}
+								{% set category = anomaly.subcategory.category %}
+								{% set is_future_done = not anomaly.anticipe %}
+								<li
+									class="anomaly-item is-ignored"
+									data-anomaly-search-value="{{ (category.libelle ~ ' ' ~ anomaly.subcategory.libelle ~ ' ' ~ (anomaly.assignee ? anomaly.assignee.userIdentifier : '') ~ ' ' ~ anomaly.number ~ ' ' ~ anomaly.number|number_format(2, ',', ' ') ~ ' ' ~ anomaly.date|date('d/m/Y') ~ ' ' ~ anomaly.date|date('Y-m-d'))|lower }}"
+								>
+									<div class="anomaly-icon" aria-hidden="true"><i class="fa-solid fa-eye-slash"></i></div>
+									<div class="anomaly-description">
+										<strong>{{ is_future_done ? 'Date non atteinte' : 'Date anticipée dépassée' }}</strong>
+										<span class="action-zone-{{ category.sign ? 'pos' : 'neg' }}">{{ category.libelle|capitalize }} / {{ anomaly.subcategory.libelle|capitalize }}</span>
+										<small>
+											{{ is_future_done ? 'Marquée Fait le' : 'Prévue le' }} {{ anomaly.date|date('d/m/Y') }} · {{ anomaly.number|number_format(2, ',', ' ') }} €
+											{{ anomaly.anomalyIgnored ? ' · Ignorée' : (' · Ignorée jusqu’au ' ~ anomaly.anomalyIgnoredUntil|date('d/m/Y')) }}
+										</small>
+									</div>
+									<div class="anomaly-solution">
+										<button
+											type="button"
+											class="resolve-anomaly-button resolve-anomaly-reactivate"
+											data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+											data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+											data-resolution="reactivate"
+										>
+											<i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+											<span>Réactiver</span>
+										</button>
+									</div>
+								</li>
+							{% endfor %}
+						</ul>
+					</section>
 				{% endif %}
 			</div>
 
 			<div class="modal-footer">
+				<button
+					type="button"
+					class="btn btn-outline-secondary"
+					data-toggle-ignored-anomalies
+					aria-controls="ignoredAnomalies"
+					aria-expanded="false"
+					{{ ignored_anomalies|default([]) is empty ? ' disabled title="Aucune anomalie ignorée"' }}
+				>
+					<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
+					<span>Voir les ignorées</span>
+				</button>
 				<button type="button" class="btn btn-dark" data-dismiss="modal">Fermer</button>
 			</div>
 		</div>
