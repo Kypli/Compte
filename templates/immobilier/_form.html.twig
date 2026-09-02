@@ -1,18 +1,37 @@
 {{ form_start(form, form_options|default({})) }}
-	<div class="row center mt-4">
-		{# TYPE #}
-		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
-			En cours
-			{# {{ form_label(form.xxx) }} #}
+	<div class="patrimoine-form">
+		<div class="patrimoine-form-grid">
+			<div>
+				{{ form_label(form.libelle) }}
+				{{ form_widget(form.libelle) }}
+				{{ form_errors(form.libelle) }}
+			</div>
+			<div>
+				{{ form_label(form.valeur) }}
+				{{ form_widget(form.valeur) }}
+				{{ form_errors(form.valeur) }}
+			</div>
+			<div>
+				{{ form_label(form.adresse) }}
+				{{ form_widget(form.adresse) }}
+				{{ form_errors(form.adresse) }}
+			</div>
+			<div>
+				{{ form_label(form.surface) }}
+				{{ form_widget(form.surface) }}
+				{{ form_errors(form.surface) }}
+			</div>
+			<div class="patrimoine-form-full">
+				{{ form_label(form.description) }}
+				{{ form_widget(form.description) }}
+				{{ form_errors(form.description) }}
+			</div>
 		</div>
-		<div class="col-4 mb-4">
-			{# {{ form_widget(form.xxx) }} #}
-		</div>
-		<div class="col-3 mb-4"></div>
-	</div>
-	<div class="row mt-3">
-		<div class="offset-4 col-2">
-			<button class="p-3 btn btn-success">{{ button_label|default('Enregistrer') }}</button>
+		<div class="patrimoine-form-actions">
+			{% if not hide_cancel|default(false) %}
+				<a href="{{ path('immobilier') }}" class="btn btn-secondary">Annuler</a>
+			{% endif %}
+			<button class="btn btn-success">{{ button_label|default('Enregistrer') }}</button>
 		</div>
 	</div>
 {{ form_end(form) }}

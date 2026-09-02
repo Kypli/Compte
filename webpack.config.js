@@ -33,6 +33,12 @@ Encore
     // Dashboard
     .addEntry('dashboard', './assets/js/dashboard/dashboard.js')
 
+    // Patrimoine
+    .addStyleEntry('patrimoine', './assets/styles/patrimoine/patrimoine.css')
+
+    // Credit
+    .addStyleEntry('credit', './assets/styles/credit/credit.css')
+
     // Compte
     .addEntry('compte', './assets/js/compte/compte.js')
 

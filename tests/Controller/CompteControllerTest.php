@@ -9,11 +9,13 @@ use App\Entity\Operation;
 use App\Entity\OperationAction;
 use App\Entity\SubCategory;
 use App\Entity\User;
+use App\Entity\UserProfil;
 use App\Entity\UserPreference;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompteControllerTest extends WebTestCase
 {
@@ -35,6 +37,14 @@ class CompteControllerTest extends WebTestCase
 
 		$this->owner = $this->createUser('owner_'.$suffix);
 		$this->intruder = $this->createUser('intruder_'.$suffix);
+		$this->intruder
+			->setCode(substr($suffix, 0, 8))
+			->setProfil(
+				(new UserProfil())
+					->setNom('Dupont')
+					->setPrenom('Alice')
+			)
+		;
 		$type = (new CompteType())
 			->setLibelle('Compte courant test '.$suffix)
 			->setLibelleShort('T'.$suffix)
@@ -112,6 +122,218 @@ class CompteControllerTest extends WebTestCase
 		$this->client->request('GET', '/compte/'.$this->compte->getId());
 
 		self::assertResponseRedirects('http://localhost/login');
+	}
+
+	public function testOwnerCanIdentifyAndAssociateAUserFromSettingsWithoutReload(): void
+	{
+		$this->client->loginUser($this->owner);
+		$token = $this->getAccountSharingToken();
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/sharing/lookup',
+			[
+				'code' => $this->intruder->getCode(),
+				'_token' => $token,
+			]
+		);
+		self::assertResponseIsSuccessful();
+		$lookup = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($lookup['found']);
+		self::assertFalse($lookup['associated']);
+		self::assertSame($this->intruder->getUserIdentifier(), $lookup['person']['login']);
+		self::assertSame('Dupont', $lookup['person']['lastName']);
+		self::assertSame('Alice', $lookup['person']['firstName']);
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/sharing',
+			[
+				'code' => $this->intruder->getCode(),
+				'access' => 'none',
+				'participant' => '1',
+				'_token' => $token,
+			]
+		);
+		self::assertResponseIsSuccessful();
+		$save = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($save['saved']);
+		self::assertFalse($save['updated']);
+		self::assertStringContainsString('Personnes associées', html_entity_decode($save['sharing']));
+		self::assertStringContainsString($this->intruder->getUserIdentifier(), $save['sharing']);
+		self::assertStringContainsString('Aucun', $save['sharing']);
+		self::assertStringContainsString('Participant', $save['sharing']);
+		self::assertStringContainsString('Modifier les droits de '.$this->intruder->getUserIdentifier(), $save['sharing']);
+
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/sharing/lookup',
+			[
+				'code' => $this->intruder->getCode(),
+				'_token' => $token,
+			]
+		);
+		self::assertResponseIsSuccessful();
+		$associatedLookup = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($associatedLookup['associated']);
+		self::assertSame('none', $associatedLookup['access']);
+		self::assertTrue($associatedLookup['participant']);
+
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$entityManager->refresh($this->compte);
+		self::assertTrue($this->compte->getUsers()->contains($this->intruder));
+		self::assertSame('none', $this->compte->getUserAccessRole($this->intruder));
+		self::assertTrue($this->compte->isUserParticipant($this->intruder));
+	}
+
+	public function testOwnerCanTransferTheAccountWithoutReload(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'observer', false)
+		;
+		$entityManager->flush();
+
+		$this->client->loginUser($this->owner);
+		$token = $this->getAccountSharingToken();
+		$this->client->xmlHttpRequest(
+			'POST',
+			'/compte/'.$this->compte->getId().'/sharing/'.$this->intruder->getId().'/transfer',
+			['_token' => $token]
+		);
+
+		self::assertResponseIsSuccessful();
+		$payload = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertTrue($payload['saved']);
+		self::assertTrue($payload['ownerTransferred']);
+		self::assertStringContainsString('Propriétaire', html_entity_decode($payload['sharing']));
+
+		$entityManager->refresh($this->compte);
+		self::assertSame($this->intruder->getId(), $this->compte->getOwner()?->getId());
+		self::assertSame('editor', $this->compte->getUserAccessRole($this->owner));
+	}
+
+	public function testUserWithNoAccessCannotSeeOrOpenTheAccount(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'none', true)
+		;
+		$entityManager->flush();
+
+		$this->client->loginUser($this->intruder);
+		$this->client->request('GET', '/compte/');
+		self::assertResponseIsSuccessful();
+		self::assertStringNotContainsString($this->compte->getLibelle(), $this->client->getResponse()->getContent());
+
+		$this->client->request('GET', '/dashboard/');
+		self::assertResponseIsSuccessful();
+		self::assertStringNotContainsString($this->compte->getLibelle(), $this->client->getResponse()->getContent());
+
+		$this->client->request('GET', '/compte/'.$this->compte->getId());
+		self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+	}
+
+	public function testObserverCanOnlyConsultTheAccount(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'observer', false)
+		;
+		$entityManager->flush();
+
+		$this->client->loginUser($this->intruder);
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+
+		self::assertResponseIsSuccessful();
+		self::assertSelectorTextContains('.account-access-alert.is-observer', 'Observateur');
+		self::assertSelectorExists('#datas.hide-editable-border');
+		self::assertSelectorNotExists('#accountParametersButton');
+		self::assertSelectorNotExists('#anomaliesButton');
+		self::assertSelectorNotExists('#modalAccountSettings');
+		self::assertSelectorNotExists('#modalAnomalies');
+		self::assertSelectorNotExists('#modalCategory');
+		self::assertSelectorNotExists('#modalLegend .legend-border-edit');
+		self::assertSelectorNotExists('#accountPreferencesPanel label[for$="_showEditableBorder"]');
+		self::assertSelectorNotExists('.undo-today-actions');
+		self::assertSelectorNotExists('.undo-last-action');
+		self::assertSame('1', $crawler->filter('#modalOperation')->attr('data-read-only'));
+		self::assertSelectorTextContains('#modalOperation .modal-title', 'Consultation des opérations');
+		self::assertSelectorTextContains('#modalOperation .operation-readonly-notice', 'Consultation uniquement');
+		self::assertSelectorNotExists('#butOpeAdd');
+		self::assertSelectorNotExists('#modalOperationSaveClose');
+
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		));
+		self::assertResponseIsSuccessful();
+		$operations = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertFalse($operations['canEdit']);
+		self::assertStringNotContainsString('tr_add', $operations['addRender']);
+		self::assertStringNotContainsString('operation-action-menu', $operations['tBodyRender']);
+
+		$this->client->xmlHttpRequest('POST', sprintf(
+			'/compte/operation/save/%d/%s/%s/1',
+			$this->positiveSubCategory->getId(),
+			date('Y'),
+			date('n')
+		), ['datas' => []]);
+		self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+	}
+
+	public function testAccountCannotHaveMoreThanThreeAssociatedUsers(): void
+	{
+		$entityManager = static::getContainer()->get(EntityManagerInterface::class);
+		$secondMember = $this->createUser('second_member_'.bin2hex(random_bytes(4)))
+			->setCode(substr(bin2hex(random_bytes(8)), 0, 8))
+		;
+		$candidate = $this->createUser('candidate_'.bin2hex(random_bytes(4)))
+			->setCode(substr(bin2hex(random_bytes(8)), 0, 8))
+		;
+		$entityManager->persist($secondMember);
+		$entityManager->persist($candidate);
+		$this->compte
+			->addUser($this->intruder)
+			->setUserSharing($this->intruder, 'observer', false)
+			->addUser($secondMember)
+			->setUserSharing($secondMember, 'editor', false)
+		;
+		$entityManager->flush();
+		$this->createdIds[User::class][] = $secondMember->getId();
+		$this->createdIds[User::class][] = $candidate->getId();
+
+		$this->client->loginUser($this->owner);
+		$token = $this->getAccountSharingToken();
+		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/sharing', [
+			'code' => $candidate->getCode(),
+			'access' => 'observer',
+			'_token' => $token,
+		]);
+
+		self::assertResponseStatusCodeSame(Response::HTTP_CONFLICT);
+		$refused = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+		self::assertStringContainsString('maximum de 3 personnes', $refused['error']);
+		self::assertCount(Compte::MAX_ASSOCIATED_USERS, $this->compte->getUsers());
+
+		$this->client->xmlHttpRequest('POST', '/compte/'.$this->compte->getId().'/sharing', [
+			'code' => $this->intruder->getCode(),
+			'access' => 'editor',
+			'_token' => $token,
+		]);
+		self::assertResponseIsSuccessful();
+
+		$entityManager->clear();
+		$updatedCompte = $entityManager->find(Compte::class, $this->compte->getId());
+		$updatedIntruder = $entityManager->find(User::class, $this->intruder->getId());
+		self::assertNotNull($updatedCompte);
+		self::assertNotNull($updatedIntruder);
+		self::assertSame('editor', $updatedCompte->getUserAccessRole($updatedIntruder));
 	}
 
 	public function testOwnerCanDisplayAccountAndUseReadOnlyAjaxActions(): void
@@ -1221,6 +1443,17 @@ class CompteControllerTest extends WebTestCase
 		);
 
 		return $user;
+	}
+
+	private function getAccountSharingToken(): string
+	{
+		$crawler = $this->client->request('GET', '/compte/'.$this->compte->getId());
+		self::assertResponseIsSuccessful();
+
+		return (string) $crawler
+			->filter('#accountSettingsForm')
+			->attr('data-account-sharing-token')
+		;
 	}
 
 	private function createCategory(Compte $compte, string $label, bool $sign, int $year): Category

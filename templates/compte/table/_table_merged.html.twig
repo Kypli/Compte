@@ -1,4 +1,5 @@
 {% set month_display_family = month_display|split('_')|first %}
+{% set can_edit_compte = is_granted('COMPTE_EDIT', compte) %}
 {% set combined_compte = combined_compte|default(null) %}
 {% set money_currency = money_currency|default(user.preferences.moneyCurrency|default('EUR')) %}
 {% set money_symbol = money_currency|money_symbol %}
@@ -50,6 +51,7 @@
 		<tr class="tr_head">
 			<th colspan="{{ label_colspan }}" {{ user.preferences.comptegenreshow ? "rowspan='2'" }} class="add_cat category-header col_start_top merged-table-main-header{{ user.preferences.comptegenreshow ? '' : ' category-header-single-row' }}">
 				<span class="merged-table-heading">Entrées / dépenses</span>
+				{% if can_edit_compte %}
 				<span class="merged-table-add-actions category-add-toolbar">
 					{% if combined_compte %}
 						<label class="category-add-target">
@@ -70,6 +72,7 @@
 						</button>
 					</span>
 				</span>
+				{% endif %}
 			</th>
 
 			{% for key in visible_months %}
@@ -157,23 +160,25 @@
 			{% for category in displayed_categories %}
 				{% set is_last_displayed_category = loop.last %}
 				{% for subcategory in category.subcategories|sort((a, b) => a.position <=> b.position) %}
-					<tr class="{{ loop.first ? 'tr_operation_first' }} edit" data-category-row="{{ category.id }}" data-accountid="{{ category.compte.id }}">
+					<tr class="{{ loop.first ? 'tr_operation_first' }} edit" data-category-row="{{ category.id }}" data-accountid="{{ category.compte.id }}" data-category-sign="{{ category.sign ? '1' : '0' }}" data-category-year="{{ category.year }}">
 						{% if loop.first %}
 							{% set category_label_limit = category.subcategories|length >= 2 ? 36 : 18 %}
 							<td
+								{% if can_edit_compte %}
 								data-target="#modalCategory"
 								data-toggle="modal"
 								data-id="{{ category.id }}"
 								data-focusa="cat_{{ category.id }}"
 								data-accountid="{{ category.compte.id }}"
 								data-category-drop-before="{{ category.id }}"
-								class="td_category_libelle{{ is_last_displayed_category ? ' account-last-category-label' }}"
+								{% endif %}
+								class="td_category_libelle{{ is_last_displayed_category ? ' account-last-category-label' }}{{ can_edit_compte ? '' : ' is-read-only-label' }}"
 								rowspan="{{ category.subcategories|length }}"
 							>
 								<span class="category-label-content">
 									<span class="category-label-text" title="{{ category.libelle|capitalize }}">{{ category.libelle|capitalize|smart_truncate(category_label_limit) }}</span>
 									{% if combined_compte %}<span class="account-source-badge" title="Compte source">{{ category.compte.libelle }}</span>{% endif %}
-									{% if not combined_compte and displayed_categories|length > 1 %}
+									{% if can_edit_compte and not combined_compte and displayed_categories|length > 1 %}
 										<button
 											type="button"
 											class="category-drag-handle"
@@ -192,6 +197,7 @@
 
 						{% if show_sub_categories %}
 							<td
+								{% if can_edit_compte %}
 								data-target="#modalCategory"
 								data-toggle="modal"
 								data-id="{{ category.id }}"
@@ -200,11 +206,12 @@
 								data-subcategory-drop-before="{{ subcategory.id }}"
 								data-subcategory-category-id="{{ category.id }}"
 								{% if loop.last %}data-subcategory-drop-end="{{ category.id }}"{% endif %}
-								class="td_subcategory_libelle{{ is_last_displayed_category and loop.last ? ' account-last-subcategory-label' }}"
+								{% endif %}
+								class="td_subcategory_libelle{{ is_last_displayed_category and loop.last ? ' account-last-subcategory-label' }}{{ can_edit_compte ? '' : ' is-read-only-label' }}"
 							>
 								<span class="subcategory-label-content">
 									<span class="subcategory-label-text" title="{{ subcategory.libelle|capitalize }}">{{ subcategory.libelle|capitalize|smart_truncate(22) }}</span>
-									{% if not combined_compte and category.subcategories|length > 1 %}
+									{% if can_edit_compte and not combined_compte and category.subcategories|length > 1 %}
 										<button
 											type="button"
 											class="subcategory-drag-handle"

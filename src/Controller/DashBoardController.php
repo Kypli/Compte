@@ -71,7 +71,7 @@ class DashBoardController extends AbstractController
 			$compte->addUser($this->getUser());
 
 			if ($compte->getMain() == true){
-				$user_comptes = $this->getUser()->getComptes();
+				$user_comptes = $cr->getComptesByUser($this->getUser());
 				foreach ($user_comptes as $c){
 					$c->setMain(false);
 					$cr->add($c, true);
@@ -84,18 +84,21 @@ class DashBoardController extends AbstractController
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 		if ($creditForm->isSubmitted() && $creditForm->isValid()){
+			$credit->setUser($this->getUser());
 			$creditRepository->add($credit, true);
 			$this->addFlash('success', 'Le credit a bien ete ajoute.');
 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 		if ($immobilierForm->isSubmitted() && $immobilierForm->isValid()){
+			$immobilier->setUser($this->getUser());
 			$immobilierRepository->add($immobilier, true);
 			$this->addFlash('success', 'Le bien immobilier a bien ete ajoute.');
 
 			return $this->redirectToRoute('tableau_bord', [], Response::HTTP_SEE_OTHER);
 		}
 		if ($mobilierForm->isSubmitted() && $mobilierForm->isValid()){
+			$mobilier->setUser($this->getUser());
 			$mobilierRepository->add($mobilier, true);
 			$this->addFlash('success', 'Le bien mobilier a bien ete ajoute.');
 
@@ -110,10 +113,12 @@ class DashBoardController extends AbstractController
 
 		// To do
 		$total = 0;
-		$credits = [];
-		$mobiliers = [];
-		$immobiliers = [];
+		$credits = $creditRepository->findByUser($this->getUser());
+		$mobiliers = $mobilierRepository->findByUser($this->getUser());
+		$immobiliers = $immobilierRepository->findByUser($this->getUser());
 		$investissements = [];
+		$total += $mobilierRepository->sumValueByUser($this->getUser());
+		$total += $immobilierRepository->sumValueByUser($this->getUser());
 
 		// Comptes Datas
 		$comptes_solde = [];

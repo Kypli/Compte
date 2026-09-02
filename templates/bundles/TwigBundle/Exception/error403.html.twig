@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% set error_code = 403 %}
+{% set error_icon = 'fa-lock' %}
+{% set error_label = 'Accès protégé' %}
+{% set error_title = 'Accès interdit' %}
+{% set error_message = "Vous n'avez pas l'autorisation nécessaire pour consulter cette page." %}
+
+{% block title %}Accès interdit{% endblock %}
+{% block body_class %}error-page-body{% endblock %}
+
+{% block navbar %}
+	{% if app.user %}{{ parent() }}{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% include 'bundles/TwigBundle/Exception/_error_page.html.twig' %}
+{% endblock %}

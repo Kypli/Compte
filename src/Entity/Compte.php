@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: CompteRepository::class)]
 class Compte
 {
+    public const MAX_ASSOCIATED_USERS = 3;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -60,6 +62,20 @@ class Compte
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: "comptes")]
     private $users;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class)
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
+     */
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?User $owner = null;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $userRoles = [];
 
     public function __construct()
     {
@@ -163,6 +179,9 @@ class Compte
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
         }
+        if (null === $this->owner) {
+            $this->owner = $user;
+        }
 
         return $this;
     }
@@ -170,7 +189,97 @@ class Compte
     public function removeUser(User $user): self
     {
         $this->users->removeElement($user);
+        if (null !== $user->getId()) {
+            unset($this->userRoles[(string) $user->getId()]);
+        }
 
         return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        if (null !== $this->owner) {
+            return $this->owner;
+        }
+
+        $firstUser = $this->users->first();
+
+        return false === $firstUser ? null : $firstUser;
+    }
+
+    public function setOwner(User $owner): self
+    {
+        $this->addUser($owner);
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function isUserOwner(User $user): bool
+    {
+        $owner = $this->getOwner();
+        if (null === $owner) {
+            return false;
+        }
+
+        return $owner === $user || (
+            null !== $owner->getId()
+            && null !== $user->getId()
+            && $owner->getId() === $user->getId()
+        );
+    }
+
+    public function getUserAccessRole(User $user): string
+    {
+        if (null === $user->getId()) {
+            return 'editor';
+        }
+
+        $sharing = $this->userRoles[(string) $user->getId()] ?? null;
+        if (is_array($sharing)) {
+            return in_array($sharing['access'] ?? null, ['none', 'observer', 'editor'], true)
+                ? $sharing['access']
+                : 'editor';
+        }
+
+        return in_array($sharing, ['none', 'observer'], true) ? $sharing : 'editor';
+    }
+
+    public function isUserParticipant(User $user): bool
+    {
+        if (null === $user->getId()) {
+            return false;
+        }
+
+        $sharing = $this->userRoles[(string) $user->getId()] ?? null;
+        if (is_array($sharing)) {
+            return (bool) ($sharing['participant'] ?? false);
+        }
+
+        return 'participant' === $sharing;
+    }
+
+    public function setUserSharing(User $user, string $access, bool $participant): self
+    {
+        if (!in_array($access, ['none', 'observer', 'editor'], true)) {
+            throw new \InvalidArgumentException('Droit d’accès au compte invalide.');
+        }
+        if (null !== $user->getId()) {
+            $this->userRoles[(string) $user->getId()] = [
+                'access' => $access,
+                'participant' => $participant,
+            ];
+        }
+
+        return $this;
+    }
+
+    public function getUserAccessRoleLabel(User $user): string
+    {
+        return match ($this->getUserAccessRole($user)) {
+            'none' => 'Aucun accès',
+            'observer' => 'Observateur',
+            default => 'Éditeur',
+        };
     }
 }

@@ -1,15 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer un crédit{% endblock %}
+{% block title %}Ajouter un crédit{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('credit') }}
+{% endblock %}
 
 {% block body %}
-	<div class="container">
-
-		{% include('partiel/_h1.html.twig') with {'text': 'Créer un crédit'} %}
-
-		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
-
+	<div class="container credit-page credit-editor-page">
+		<header class="credit-editor-header">
+			<a href="{{ path('credit') }}" class="credit-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Mes crédits</a>
+			{% include('partiel/_h1.html.twig') with {'text': 'Ajouter un crédit'} %}
+		</header>
 		{{ include('credit/_form.html.twig') }}
 	</div>
 {% endblock %}
-

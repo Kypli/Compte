@@ -63,6 +63,12 @@ class Operation
     #[ORM\Column(type: "boolean")]
     private $actif = 1;
 
+    #[ORM\Column(type: "boolean")]
+    private bool $anomalyIgnored = false;
+
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?\DateTimeInterface $anomalyIgnoredUntil = null;
+
     /**
      * @ORM\ManyToOne(targetEntity=SubCategory::class, inversedBy="operations")
      * @ORM\JoinColumn(nullable=false)
@@ -70,6 +76,10 @@ class Operation
     #[ORM\ManyToOne(targetEntity: SubCategory::class, inversedBy: "operations")]
     #[ORM\JoinColumn(nullable: false)]
     private $subcategory;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?User $assignee = null;
 
     public function getId(): ?int
     {
@@ -160,6 +170,30 @@ class Operation
         return $this;
     }
 
+    public function isAnomalyIgnored(): bool
+    {
+        return $this->anomalyIgnored;
+    }
+
+    public function setAnomalyIgnored(bool $anomalyIgnored): self
+    {
+        $this->anomalyIgnored = $anomalyIgnored;
+
+        return $this;
+    }
+
+    public function getAnomalyIgnoredUntil(): ?\DateTimeInterface
+    {
+        return $this->anomalyIgnoredUntil;
+    }
+
+    public function setAnomalyIgnoredUntil(?\DateTimeInterface $anomalyIgnoredUntil): self
+    {
+        $this->anomalyIgnoredUntil = $anomalyIgnoredUntil;
+
+        return $this;
+    }
+
     public function getSubcategory(): ?SubCategory
     {
         return $this->subcategory;
@@ -168,6 +202,18 @@ class Operation
     public function setSubcategory(?SubCategory $subcategory): self
     {
         $this->subcategory = $subcategory;
+
+        return $this;
+    }
+
+    public function getAssignee(): ?User
+    {
+        return $this->assignee;
+    }
+
+    public function setAssignee(?User $assignee): self
+    {
+        $this->assignee = $assignee;
 
         return $this;
     }

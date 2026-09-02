@@ -1,12 +1,14 @@
+{% if can_edit_compte %}
 <div class="hide modal-footer">
 
 	<div class='row'>
 		<div class="col-3"></div>
 
 		<div class="offset-6 col-3 p-0">
-			<button type="button" id="modalOperationSaveClose" class="btn btn-success m-1" data-dismiss="modal">
+			<button type="button" id="modalOperationSaveClose" class="btn btn-success m-1">
 				Enregistrer et Fermer
 			</button>
 		</div>
 	</div>
 </div>
+{% endif %}

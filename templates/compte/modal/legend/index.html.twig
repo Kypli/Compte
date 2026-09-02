@@ -6,7 +6,7 @@
 	aria-labelledby="modalLegendTitle"
 	aria-hidden="true"
 >
-	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl legend-modal-dialog" role="document">
 		<div class="modal-content legend-modal-content account-tutorial-content">
 			<div class="modal-header">
 				<div class="account-tutorial-title-group">
@@ -70,16 +70,37 @@
 										<span class="legend-color-sample legend-background-sample legend-background-future" aria-hidden="true"></span>
 										<span>Mois &agrave; venir.</span>
 									</li>
-									<li class="legend-item">
-										<span class="legend-color-sample legend-background-sample legend-background-edit" aria-hidden="true"></span>
-										<span>Bordure jaune d'une zone modifiable.</span>
-									</li>
-									<li class="legend-item">
-										<span class="legend-color-sample legend-background-sample legend-background-last-session-operation" aria-hidden="true">123,45 &euro;</span>
-										<span>Derni&egrave;re cellule modifi&eacute;e.</span>
-									</li>
 								</ul>
 							</div>
+						</div>
+					</section>
+
+					<section class="account-tutorial-step legend-section" aria-labelledby="legendTableBorderTitle">
+						<span class="account-tutorial-icon" aria-hidden="true">
+							<i class="fa-solid fa-border-all"></i>
+						</span>
+						<div>
+							<h5 id="legendTableBorderTitle" class="legend-section-title">Bordures du tableau</h5>
+							<ul class="legend-list">
+								<li class="legend-item">
+									<span class="legend-color-sample legend-border-sample legend-border-current" aria-hidden="true"></span>
+									<span>Bordure grise du mois en cours.</span>
+								</li>
+								<li class="legend-item">
+									<span class="legend-color-sample legend-border-sample legend-border-selected" aria-hidden="true"></span>
+									<span>Bordure de sélection d'un mois.</span>
+								</li>
+								{% if can_edit_compte %}
+									<li class="legend-item">
+										<span class="legend-color-sample legend-border-sample legend-border-edit" aria-hidden="true"></span>
+										<span>Bordure jaune d'une zone modifiable.</span>
+									</li>
+								{% endif %}
+								<li class="legend-item">
+									<span class="legend-color-sample legend-border-sample legend-border-last-session-operation" aria-hidden="true">123,45 &euro;</span>
+									<span>Derni&egrave;re cellule modifi&eacute;e.</span>
+								</li>
+							</ul>
 						</div>
 					</section>
 

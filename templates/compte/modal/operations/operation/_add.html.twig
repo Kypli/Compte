@@ -1,4 +1,5 @@
-<tr class='tr_add'>
+{% if canEdit is not defined or canEdit %}
+<tr class='tr_add' data-assignee-id=''>
 	<td class='td_number'>
 		<input
 			class='inputNumber alerteOpe'
@@ -11,7 +12,7 @@
 		/>
 	</td>
 	<td class='td_switch'>
-		<span class='switch hide'><i class='fa-solid fa-repeat'></i></span>
+		<span class='switch hide'><i class='fa-solid fa-repeat' title='Basculer entre montant fait et montant à venir' aria-label='Basculer entre montant fait et montant à venir'></i></span>
 	</td>
 	<td class='td_anticipe'>
 		<input
@@ -29,13 +30,13 @@
 			{% for i in 1..daysInMonth %}
 				<option value='{{ i }}' {{ loop.index == day ? 'selected' }}>{{ i }}</option>
 			{% endfor %}
-		</select>/<span>{{ month < 10 ? '0' ~ month : month }}</span>/<span>{{ year }}</span>
+		</select>/<span class='date-month'>{{ month < 10 ? '0' ~ month : month }}</span>/<span class='date-year'>{{ year }}</span>
 	</td>
 	<td class='td_comment p-1'>
 		<input class='inputComment' type='text' />
 	</td>
 	<td class='td_actions row'>
-		<div class="btn-group col-4" role="group">
+		<div class="btn-group col-4 operation-action-menu" role="group">
 			<button 
 				type="button"
 				class="btn btn-default dropdown-toggle"
@@ -47,8 +48,11 @@
 				<span class="caret"></span>
 			</button>
 			<ul class="dropdown-menu options p-1">
-				<li class='invalid' title='Fonctionnalité à venir'>Dupliquer</li>
-				<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>
+				<li class='duplicateOperation' title="Dupliquer cette opération sur les mois restants de l'année en cours">Dupliquer</li>
+				<li class='changeOperationDate' title="Modifier le mois et l'année de cette opération">Changer le mois/année</li>
+				{% if canAssign %}
+					<li class='assignOperation' title='Attribuer cette opération à une personne'>Attribuer</li>
+				{% endif %}
 				<li class='invalid noForm'>Retire mode édition</li>
 				<li><hr></li>
 				<li class="deleteAdd">Supprimer</li>
@@ -63,3 +67,4 @@
 		</div>
 	</td>
 </tr>
+{% endif %}

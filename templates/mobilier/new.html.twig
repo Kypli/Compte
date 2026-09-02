@@ -2,13 +2,14 @@
 
 {% block title %}Créer un bien mobilier{% endblock %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('patrimoine') }}
+{% endblock %}
+
 {% block body %}
-	<div class="container">
-
+	<div class="container patrimoine-page">
 		{% include('partiel/_h1.html.twig') with {'text': 'Créer un bien mobilier'} %}
-
-		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
-
 		{{ include('mobilier/_form.html.twig') }}
 	</div>
 {% endblock %}

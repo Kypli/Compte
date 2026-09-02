@@ -15,6 +15,8 @@
 {% endblock %}
 
 {% block body %}
+	{% set can_edit_compte = is_granted('COMPTE_EDIT', compte) %}
+	{% set account_access_role = compte.userAccessRole(user) %}
 	{% set account_single_query = {'year': year, 'months': month_display, 'months_before': month_display_before, 'months_after': month_display_after, 'detail_months': detail_months|join(','), 'detail_months_set': 1}|merge(selected_month ? {'selected_month': selected_month, 'selected_year': selected_year} : {}) %}
 	{% set account_view_query = account_single_query|merge(combined_compte ? {'avec': combined_compte.id} : {}) %}
 	{% set month_display_option = month_display_options[month_display]|default(null) %}
@@ -33,7 +35,7 @@
 	{% endif %}
 	<div
 		id="datas"
-		class="table-palette-{{ user.preferences.tablePalette|default('classic') }}{{ user.preferences.showEditableBorder is same as(false) ? ' hide-editable-border' : '' }}{{ user.preferences.anchorTableTotals|default(false) ? ' anchor-table-totals' : '' }}"
+		class="table-palette-{{ user.preferences.tablePalette|default('classic') }}{{ not can_edit_compte or user.preferences.showEditableBorder is same as(false) ? ' hide-editable-border' : '' }}{{ user.preferences.anchorTableTotals|default(false) ? ' anchor-table-totals' : '' }}"
 		data-year="{{ year }}"
 		data-decouvert="{{ combined_decouvert * -1 }}"
 		data-months="{{ months_json }}"
@@ -55,6 +57,7 @@
 		data-account-tutorial-seen="{{ user.preferences.accountTutorialSeen|default(false) ? '1' : '0' }}"
 		data-account-tutorial-seen-url="{{ path('user_preference_account_tutorial_seen', {'id': user.id}) }}"
 		data-account-tutorial-seen-token="{{ csrf_token('account-tutorial-seen' ~ user.id) }}"
+		data-account-can-edit="{{ can_edit_compte ? '1' : '0' }}"
 	>
 		<header class="account-header">
 			<div class="account-heading-row">
@@ -87,6 +90,7 @@
 								</div>
 							</div>
 						{% endif %}
+						{% if can_edit_compte %}
 						<button
 							type="button"
 							id="accountParametersButton"
@@ -100,6 +104,7 @@
 							<i class="fa-solid fa-wrench" aria-hidden="true"></i>
 							<span>Param&egrave;tres</span>
 						</button>
+						{% endif %}
 						<button
 							type="button"
 							id="accountDisplayButton"
@@ -124,6 +129,15 @@
 				</div>
 				<div class="account-header-actions">
 					<div class="account-header-action-buttons">
+						{% if not compte.userOwner(user) and compte.users.contains(user) %}
+							<span
+								class="account-access-alert is-{{ account_access_role }}"
+								title="Votre niveau d'accès à ce compte : {{ compte.userAccessRoleLabel(user) }}"
+							>
+								<i class="fa-solid {{ account_access_role == 'observer' ? 'fa-eye' : 'fa-pen-to-square' }}" aria-hidden="true"></i>
+								<span>{{ compte.userAccessRoleLabel(user) }}</span>
+							</span>
+						{% endif %}
 						<button
 							type="button"
 							id="legendButton"
@@ -185,9 +199,11 @@
 				</div>
 
 				<div class="account-activity-area">
-					<div id="anomalies-div">
-						{{ include('compte/_anomalies.html.twig') }}
-					</div>
+					{% if can_edit_compte %}
+						<div id="anomalies-div">
+							{{ include('compte/_anomalies.html.twig') }}
+						</div>
+					{% endif %}
 					<div id="last-actions-div">
 						{{ include('compte/_last_actions.html.twig') }}
 					</div>
@@ -450,7 +466,7 @@
 										<i class="fa-solid fa-table"></i>
 									</span>
 									<div class="account-display-section-content">
-										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineTable', 'sections': ['table']} %}
+										{% include 'user/_account_preference_fields.html.twig' with {'form': account_preference_form, 'title_prefix': 'accountInlineTable', 'sections': ['table'], 'show_editable_border_control': can_edit_compte} %}
 									</div>
 								</section>
 
@@ -486,11 +502,11 @@
 			{% include('compte/table/_tables.html.twig') %}
 		</span>
 
-		{{ include('compte/modal/settings/index.html.twig') }}
+		{% if can_edit_compte %}{{ include('compte/modal/settings/index.html.twig') }}{% endif %}
 		{{ include('compte/modal/operations/index.html.twig') }}
-		{{ include('compte/modal/anomalies/index.html.twig') }}
+		{% if can_edit_compte %}{{ include('compte/modal/anomalies/index.html.twig') }}{% endif %}
 		{{ include('compte/modal/legend/index.html.twig') }}
 		{{ include('compte/modal/tutorial/index.html.twig') }}
-		{{ include('compte/modal/category/index.html.twig') }}
+		{% if can_edit_compte %}{{ include('compte/modal/category/index.html.twig') }}{% endif %}
 	</div>
 {% endblock %}

@@ -1,55 +1,123 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste de vos Biens Immobiliers{% endblock %}
+{% block title %}Immobilier / Mobilier{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('patrimoine') }}
+{% endblock %}
 
 {% block body %}
-<div class="container">
+	<div class="container patrimoine-page">
+		{% include('partiel/_h1.html.twig') with {'text': 'Immobilier / Mobilier'} %}
 
-	{% include('partiel/_h1.html.twig') with {'text': 'Liste de vos Biens Immobiliers'} %}
+		<div class="patrimoine-summary" aria-label="Totaux du patrimoine">
+			<div class="patrimoine-summary-item">
+				<span>Immobilier</span>
+				<strong>{{ total_immobilier|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</strong>
+			</div>
+			<div class="patrimoine-summary-item">
+				<span>Mobilier</span>
+				<strong>{{ total_mobilier|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</strong>
+			</div>
+			<div class="patrimoine-summary-item patrimoine-summary-total">
+				<span>Total possessions</span>
+				<strong>{{ total_patrimoine|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</strong>
+			</div>
+		</div>
 
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Actions</th>
-				<th>Nom</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for immobilier in immobiliers %}
-			<tr>
-				<td>
-					<div class="conteneur">
-						<div class="col-1">
-							<a href="{{ path('immobilier_show', {'id': immobilier.id}) }}" title="Regarder ce bien immobilier">
-								<i class="fas fa-eye"></i>
-							</a>
-						</div>
-						<div class="col-1">
-							<a href="{{ path('immobilier_edit', {'id': immobilier.id}) }}" title="Modifier ce bien immobilier">
-								<i class="fas fa-wrench"></i>
-							</a>
-						</div>
-					</div>
-				</td>
-				<td>{{ immobilier.libelle }}</td>
-			</tr>
-		{% else %}
-			<tr>
-				<td colspan="2">Aucun bien immobilier trouvé</td>
-			</tr>
-		{% endfor %}
-		</tbody>
-	</table>
+		<section class="patrimoine-section" aria-labelledby="immobilierTitle">
+			<div class="patrimoine-section-header">
+				<h2 id="immobilierTitle" class="patrimoine-section-title">
+					<i class="fa-solid fa-house" aria-hidden="true"></i>
+					Biens immobiliers
+				</h2>
+				<a href="{{ path('immobilier_new') }}" class="btn btn-success">
+					<i class="fas fa-plus" aria-hidden="true"></i>
+					Ajouter
+				</a>
+			</div>
+			{% if immobiliers|length > 0 %}
+				<table class="table patrimoine-table">
+					<thead>
+						<tr>
+							<th>Nom</th>
+							<th>Adresse</th>
+							<th>Surface</th>
+							<th class="patrimoine-value">Valeur</th>
+							<th class="text-right">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for immobilier in immobiliers %}
+							<tr>
+								<td>{{ immobilier.libelle }}</td>
+								<td>{{ immobilier.adresse|default('') }}</td>
+								<td>{{ immobilier.surface is not empty ? immobilier.surface ~ ' m²' : '' }}</td>
+								<td class="patrimoine-value">{{ immobilier.valeur|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</td>
+								<td>
+									<div class="patrimoine-actions">
+										<a href="{{ path('immobilier_show', {'id': immobilier.id}) }}" class="btn btn-sm btn-outline-secondary" title="Voir">
+											<i class="fas fa-eye" aria-hidden="true"></i>
+										</a>
+										<a href="{{ path('immobilier_edit', {'id': immobilier.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+											<i class="fas fa-wrench" aria-hidden="true"></i>
+										</a>
+									</div>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<div class="patrimoine-empty">Aucun bien immobilier enregistré.</div>
+			{% endif %}
+		</section>
 
-	<div class="row">
-		<a href="{{ path('immobilier_new') }}" class="btn btn-success col-3 mt-4 mb-4">
-			<i class="fas fa-plus"></i>
-			Créer un nouveau bien immobilier
-		</a>
-		<a href="{{ path('tableau_bord') }}" class="btn btn-warning offset-1 col-3 mt-4 mb-4">
-			<i class="fas fa-backward"></i>
-			Retour au tableau de bord
-		</a>
+		<section class="patrimoine-section" aria-labelledby="mobilierTitle">
+			<div class="patrimoine-section-header">
+				<h2 id="mobilierTitle" class="patrimoine-section-title">
+					<i class="fa-solid fa-couch" aria-hidden="true"></i>
+					Biens mobiliers
+				</h2>
+				<a href="{{ path('mobilier_new') }}" class="btn btn-success">
+					<i class="fas fa-plus" aria-hidden="true"></i>
+					Ajouter
+				</a>
+			</div>
+			{% if mobiliers|length > 0 %}
+				<table class="table patrimoine-table">
+					<thead>
+						<tr>
+							<th>Nom</th>
+							<th>Catégorie</th>
+							<th class="patrimoine-value">Valeur</th>
+							<th class="text-right">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for mobilier in mobiliers %}
+							<tr>
+								<td>{{ mobilier.libelle }}</td>
+								<td>{{ mobilier.categorie|default('') }}</td>
+								<td class="patrimoine-value">{{ mobilier.valeur|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</td>
+								<td>
+									<div class="patrimoine-actions">
+										<a href="{{ path('mobilier_show', {'id': mobilier.id}) }}" class="btn btn-sm btn-outline-secondary" title="Voir">
+											<i class="fas fa-eye" aria-hidden="true"></i>
+										</a>
+										<a href="{{ path('mobilier_edit', {'id': mobilier.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+											<i class="fas fa-wrench" aria-hidden="true"></i>
+										</a>
+									</div>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<div class="patrimoine-empty">Aucun bien mobilier enregistré.</div>
+			{% endif %}
+		</section>
 	</div>
-</div>
 {% endblock %}

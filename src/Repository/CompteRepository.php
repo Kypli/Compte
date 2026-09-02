@@ -46,11 +46,16 @@ class CompteRepository extends ServiceEntityRepository
 	 */
 	public function getComptesByUser(User $user)
 	{
-		return $this->createQueryBuilder("x")
+		$comptes = $this->createQueryBuilder("x")
 			->where(':user MEMBER OF x.users')
 			->setParameter('user', $user)
 			->getQuery()
 			->getResult()
 		;
+
+		return array_values(array_filter(
+			$comptes,
+			static fn (Compte $compte): bool => $compte->isUserOwner($user) || 'none' !== $compte->getUserAccessRole($user)
+		));
 	}
 }

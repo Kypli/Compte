@@ -1,0 +1,124 @@
+.patrimoine-page {
+	padding-bottom: 36px;
+}
+.patrimoine-summary {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	margin: 24px 0;
+}
+.patrimoine-summary-item {
+	padding: 16px;
+	background: #F7FAFC;
+	border: 1px solid #CAD5DF;
+	border-radius: 6px;
+}
+.patrimoine-summary-item strong {
+	display: block;
+	color: #24313D;
+	font-size: 24px;
+}
+.patrimoine-summary-total {
+	background: #EAF5EF;
+	border-color: #97BEA8;
+}
+.patrimoine-section {
+	margin-top: 24px;
+}
+.patrimoine-section-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+.patrimoine-section-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	color: #1F2B36;
+	font-size: 24px;
+}
+.patrimoine-table {
+	background: #FFF;
+	border: 1px solid #CED6DE;
+}
+.patrimoine-table th {
+	background: #EEF3F7;
+	color: #23313D;
+}
+.patrimoine-table td,
+.patrimoine-table th {
+	vertical-align: middle;
+}
+.patrimoine-value {
+	font-weight: 700;
+	text-align: right;
+	white-space: nowrap;
+}
+.patrimoine-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+.patrimoine-empty {
+	padding: 18px;
+	background: #F7FAFC;
+	border: 1px dashed #AAB7C4;
+	border-radius: 6px;
+	color: #52616F;
+}
+.patrimoine-form {
+	max-width: 900px;
+	margin: 18px auto 0;
+	padding: 18px;
+	background: #F7FAFC;
+	border: 1px solid #CAD5DF;
+	border-radius: 6px;
+}
+.patrimoine-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px 18px;
+}
+.patrimoine-form-full {
+	grid-column: 1 / -1;
+}
+.patrimoine-form label {
+	font-weight: 600;
+	color: #273542;
+}
+.patrimoine-form input,
+.patrimoine-form textarea {
+	width: 100%;
+}
+.patrimoine-form-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-top: 18px;
+}
+.patrimoine-detail {
+	max-width: 780px;
+	margin: 20px auto;
+}
+.patrimoine-detail th {
+	width: 180px;
+	background: #EEF3F7;
+}
+@media (max-width: 768px) {
+	.patrimoine-summary,
+	.patrimoine-form-grid {
+		grid-template-columns: 1fr;
+	}
+	.patrimoine-section-header,
+	.patrimoine-actions,
+	.patrimoine-form-actions {
+		align-items: stretch;
+		flex-direction: column;
+	}
+	.patrimoine-value {
+		text-align: left;
+	}
+}

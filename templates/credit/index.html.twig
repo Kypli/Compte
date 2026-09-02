@@ -1,55 +1,115 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste de vos Crédits{% endblock %}
+{% block title %}Mes crédits{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('credit') }}
+{% endblock %}
 
 {% block body %}
-<div class="container">
+	{% set money_format = app.user.preferences.moneyDisplayFormat|default('comma') %}
+	{% set money_currency = app.user.preferences.moneyCurrency|default('EUR') %}
+	{% set money_trim_zeros = app.user.preferences.moneyTrimZeros|default(false) %}
+	{% set money_show_zero_decimals = app.user.preferences.moneyShowZeroDecimals ?? true %}
+	<div class="container credit-page">
+		<header class="credit-page-header">
+			<div>
+				{% include('partiel/_h1.html.twig') with {'text': 'Mes crédits'} %}
+				<p>Suivi du capital restant et de vos échéances mensuelles.</p>
+			</div>
+			<a href="{{ path('credit_new') }}" class="btn btn-success credit-primary-action">
+				<i class="fa-solid fa-plus" aria-hidden="true"></i>
+				Ajouter un crédit
+			</a>
+		</header>
 
-	{% include('partiel/_h1.html.twig') with {'text': 'Liste de vos Crédits'} %}
+		<div class="credit-summary" aria-label="Synthèse des crédits">
+			<div class="credit-summary-item is-remaining">
+				<span>Capital restant dû</span>
+				<strong>{{ summary.remaining|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+				<small>sur {{ summary.initial|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }} empruntés</small>
+			</div>
+			<div class="credit-summary-item is-monthly">
+				<span>Charge mensuelle</span>
+				<strong>{{ summary.monthly|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+				<small>mensualités et assurances actives</small>
+			</div>
+			<div class="credit-summary-item is-repaid">
+				<span>Capital remboursé</span>
+				<strong>{{ summary.repaid|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+				<small>depuis le début des crédits</small>
+			</div>
+			<div class="credit-summary-item is-count">
+				<span>Crédits actifs</span>
+				<strong>{{ summary.activeCount }}</strong>
+				<small>{{ credits|length }} crédit{{ credits|length > 1 ? 's' : '' }} enregistré{{ credits|length > 1 ? 's' : '' }}</small>
+			</div>
+		</div>
 
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Actions</th>
-				<th>Nom</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for credit in credits %}
-			<tr>
-				<td>
-					<div class="conteneur">
-						<div class="col-1">
-							<a href="{{ path('credit_show', {'id': credit.id}) }}" title="Regarder ce credit">
-								<i class="fas fa-eye"></i>
-							</a>
-						</div>
-						<div class="col-1">
-							<a href="{{ path('credit_edit', {'id': credit.id}) }}" title="Modifier ce crédit">
-								<i class="fas fa-wrench"></i>
-							</a>
-						</div>
-					</div>
-				</td>
-				<td>{{ credit.libelle }}</td>
-			</tr>
-		{% else %}
-			<tr>
-				<td colspan="2">Aucun crédit trouvé</td>
-			</tr>
-		{% endfor %}
-		</tbody>
-	</table>
-
-	<div class="row">
-		<a href="{{ path('credit_new') }}" class="btn btn-success col-3 mt-4 mb-4">
-			<i class="fas fa-plus"></i>
-			Créer un nouveau crédit
-		</a>
-		<a href="{{ path('tableau_bord') }}" class="btn btn-warning offset-1 col-3 mt-4 mb-4">
-			<i class="fas fa-backward"></i>
-			Retour au tableau de bord
-		</a>
+		<section class="credit-list-section" aria-labelledby="creditListTitle">
+			<div class="credit-section-heading">
+				<h2 id="creditListTitle"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i> Échéanciers</h2>
+				<span>{{ credits|length }} élément{{ credits|length > 1 ? 's' : '' }}</span>
+			</div>
+			{% if credits|length > 0 %}
+				<div class="credit-table-wrap">
+					<table class="credit-table">
+						<thead>
+							<tr>
+								<th>Crédit</th>
+								<th>Avancement</th>
+								<th>Capital restant</th>
+								<th>Mensualité</th>
+								<th>Fin prévue</th>
+								<th><span class="sr-only">Actions</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for credit in credits %}
+								<tr class="{{ credit.actif ? '' : 'is-closed' }}">
+									<td>
+										<div class="credit-name-cell">
+											<strong>{{ credit.libelle }}</strong>
+											<span>{{ credit.typeLabel }}{% if credit.organisme %} · {{ credit.organisme }}{% endif %}</span>
+											<small class="credit-status {{ credit.actif ? 'is-active' : 'is-closed' }}">{{ credit.actif ? 'Actif' : 'Terminé' }}</small>
+										</div>
+									</td>
+									<td>
+										<div class="credit-progress-copy">
+											<span>{{ credit.progressPercentage|number_format(1, ',', ' ') }} %</span>
+											<small>{{ credit.montantRembourse|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</small>
+										</div>
+										<div class="credit-progress" role="progressbar" aria-label="Capital remboursé" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ credit.progressPercentage }}">
+											<span style="width: {{ credit.progressPercentage }}%"></span>
+										</div>
+									</td>
+									<td class="credit-money is-remaining">{{ credit.capitalRestant|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+									<td class="credit-money">{{ credit.coutMensuel|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</td>
+									<td class="credit-date">{{ credit.dateFin ? credit.dateFin|date('d/m/Y') : 'Non renseignée' }}</td>
+									<td>
+										<div class="credit-actions">
+											<a href="{{ path('credit_show', {'id': credit.id}) }}" class="credit-icon-button" title="Voir {{ credit.libelle }}" aria-label="Voir {{ credit.libelle }}">
+												<i class="fa-solid fa-eye" aria-hidden="true"></i>
+											</a>
+											<a href="{{ path('credit_edit', {'id': credit.id}) }}" class="credit-icon-button is-edit" title="Modifier {{ credit.libelle }}" aria-label="Modifier {{ credit.libelle }}">
+												<i class="fa-solid fa-pen" aria-hidden="true"></i>
+											</a>
+										</div>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% else %}
+				<div class="credit-empty">
+					<i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
+					<strong>Aucun crédit enregistré</strong>
+					<p>Ajoutez votre premier crédit pour suivre son capital restant et sa charge mensuelle.</p>
+					<a href="{{ path('credit_new') }}" class="btn btn-success">Ajouter un crédit</a>
+				</div>
+			{% endif %}
+		</section>
 	</div>
-</div>
 {% endblock %}

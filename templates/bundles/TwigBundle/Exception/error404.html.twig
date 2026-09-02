@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% set error_code = 404 %}
+{% set error_icon = 'fa-compass' %}
+{% set error_label = 'Adresse incorrecte' %}
+{% set error_title = 'Page introuvable' %}
+{% set error_message = "Cette adresse n'existe pas ou la page a été déplacée." %}
+
+{% block title %}Page introuvable{% endblock %}
+{% block body_class %}error-page-body{% endblock %}
+
+{% block navbar %}
+	{% if app.user %}{{ parent() }}{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% include 'bundles/TwigBundle/Exception/_error_page.html.twig' %}
+{% endblock %}

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Mobilier;
+use App\Entity\User;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -38,5 +39,31 @@ class MobilierRepository extends ServiceEntityRepository
 		if ($flush) {
 			$this->getEntityManager()->flush();
 		}
+	}
+
+	/**
+	 * @return Mobilier[]
+	 */
+	public function findByUser(User $user): array
+	{
+		return $this->createQueryBuilder('mobilier')
+			->andWhere('mobilier.user = :user')
+			->setParameter('user', $user)
+			->orderBy('mobilier.libelle', 'ASC')
+			->addOrderBy('mobilier.id', 'ASC')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	public function sumValueByUser(User $user): float
+	{
+		return (float) $this->createQueryBuilder('mobilier')
+			->select('COALESCE(SUM(mobilier.valeur), 0)')
+			->andWhere('mobilier.user = :user')
+			->setParameter('user', $user)
+			->getQuery()
+			->getSingleScalarResult()
+		;
 	}
 }

@@ -161,6 +161,9 @@ body.account-background-grey {
 	border-radius: 6px;
 	background: #FFFFFF!important;
 }
+.legend-modal-dialog {
+	max-width: min(1180px, calc(100vw - 32px));
+}
 .account-tutorial-content {
 	color: #24323A;
 	border-radius: 6px;
@@ -476,7 +479,7 @@ body.account-background-grey {
 }
 .legend-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr) minmax(340px, 1fr);
 	gap: 14px;
 }
 .legend-section.account-tutorial-step {
@@ -556,15 +559,22 @@ body.account-background-grey {
 .legend-background-future {
 	background-color: var(--table-future-bg);
 }
-.legend-background-edit {
-	border: 3px solid #D2B53F!important;
+.legend-border-sample {
 	background-color: var(--table-current-bg);
 }
-.legend-background-last-session-operation {
+.legend-border-current {
+	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 2px #8F989F;
+}
+.legend-border-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection);
+}
+.legend-border-edit {
+	border: 3px solid #D2B53F!important;
+}
+.legend-border-last-session-operation {
 	border: 2px solid #90CAF9!important;
 	color: #1F2933;
 	box-shadow: inset 0 0 0 2px #90CAF9!important;
-	background-color: var(--table-current-bg);
 }
 .legend-text-sample.anticipe {
 	border-left: 1px solid #555555!important;
@@ -771,6 +781,443 @@ body.account-background-grey {
 	color: #68736D;
 	font-size: 11px;
 }
+.account-settings-sharing-invite {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 12px 18px;
+	padding: 12px;
+	background: #F5F7F8;
+	border: 1px solid #CBD3D8;
+	border-left: 4px solid #49738B;
+	border-radius: 4px;
+}
+.account-settings-sharing-invite[hidden] {
+	display: none;
+}
+.account-settings-sharing-invite-heading {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #253B48;
+	font-size: 12px;
+	font-weight: 800;
+}
+.account-settings-sharing-preview {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: 38px repeat(3, minmax(0, 1fr));
+	align-items: center;
+	gap: 10px;
+	padding: 10px;
+	background: #FFFFFF;
+	border: 1px solid #B9CAC1;
+	border-left: 3px solid #3D6D58;
+	border-radius: 4px;
+}
+.account-settings-sharing-preview[hidden] {
+	display: none;
+}
+.account-settings-sharing-preview-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	color: #2F5645;
+	font-size: 13px;
+	font-weight: 900;
+	background: #E1ECE6;
+	border: 1px solid #B8CFC2;
+	border-radius: 50%;
+}
+.account-settings-sharing-preview-detail {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 1px;
+}
+.account-settings-sharing-preview-detail small {
+	color: #6A756F;
+	font-size: 9px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+.account-settings-sharing-preview-detail strong {
+	overflow: hidden;
+	color: #26342C;
+	font-size: 11px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.account-settings-sharing-feedback {
+	grid-column: 1 / -1;
+	min-height: 15px;
+	margin: -4px 0 0;
+	color: #5E6963;
+	font-size: 10px;
+	font-weight: 700;
+}
+.account-settings-sharing-feedback.is-loading { color: #6A5522; }
+.account-settings-sharing-feedback.is-success { color: #28734C; }
+.account-settings-sharing-feedback.is-error { color: #9D2B2B; }
+.account-settings-sharing-choice,
+.account-settings-participant-control {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+}
+.account-settings-sharing-label,
+.account-settings-participant-control strong {
+	color: #35434B;
+	font-size: 11px;
+	font-weight: 800;
+}
+.account-sharing-access-options {
+	display: flex;
+	gap: 6px;
+}
+.account-sharing-access-options .form-check {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin: 0;
+	padding: 6px 9px;
+	background: #FFF;
+	border: 1px solid #C3CCD1;
+	border-radius: 3px;
+}
+.account-sharing-access-options .form-check-input {
+	position: static;
+	margin: 0;
+}
+.account-sharing-access-options .form-check-label {
+	margin: 0;
+	color: #35434B;
+	font-size: 11px;
+	font-weight: 700;
+}
+.account-settings-participant-control {
+	display: grid;
+	grid-template-columns: 20px minmax(0, 1fr);
+	align-items: start;
+	padding-top: 20px;
+	cursor: pointer;
+}
+.account-settings-participant-control .form-check-input {
+	position: static;
+	margin: 2px 0 0;
+}
+.account-settings-participant-control > span {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+.account-settings-participant-control small {
+	color: #68736D;
+	font-size: 10px;
+}
+.account-settings-sharing-actions {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: flex-end;
+}
+.account-settings-sharing-actions .btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	min-height: 36px;
+	font-size: 12px;
+	font-weight: 800;
+}
+.account-settings-sharing-readonly {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 10px 12px;
+	color: #526069;
+	font-size: 11px;
+	font-weight: 700;
+	background: #F2F4F5;
+	border: 1px solid #CDD3D6;
+	border-left: 3px solid #7C878D;
+	border-radius: 4px;
+}
+.account-settings-sharing-readonly[hidden],
+[data-account-sharing-manager][hidden] {
+	display: none;
+}
+.account-settings-sharing {
+	margin-top: 18px;
+	padding: 12px;
+	background: #F2F5F4;
+	border: 1px solid #CCD5D1;
+	border-radius: 4px;
+}
+.account-settings-sharing-heading {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr) 28px;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+.account-settings-sharing-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	color: #FFF;
+	background: #3D6D58;
+	border-radius: 4px;
+}
+.account-settings-sharing-title {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 1px;
+}
+.account-settings-sharing-heading strong {
+	color: #26342C;
+	font-size: 13px;
+}
+.account-settings-sharing-heading small {
+	color: #68736D;
+	font-size: 10px;
+}
+.account-settings-sharing-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	color: #26342C;
+	font-size: 12px;
+	font-weight: 800;
+	background: #FFF;
+	border: 1px solid #BAC7C1;
+	border-radius: 50%;
+}
+.account-settings-members {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 7px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.account-settings-members li {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr) auto;
+	min-width: 0;
+	align-items: center;
+	gap: 9px;
+	padding: 8px 10px;
+	background: #FFF;
+	border: 1px solid #D2DAD6;
+	border-left: 3px solid #83A594;
+	border-radius: 4px;
+}
+.account-settings-members li.is-owner {
+	border-color: #D4BF83;
+	border-left-color: #A67C19;
+}
+.account-settings-member-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	color: #2F5645;
+	font-size: 12px;
+	font-weight: 900;
+	background: #E1ECE6;
+	border: 1px solid #B8CFC2;
+	border-radius: 50%;
+}
+.account-settings-member-identity {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 1px;
+}
+.account-settings-member-identity strong {
+	overflow: hidden;
+	color: #26342C;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.account-settings-member-identity small {
+	color: #75807A;
+	font-size: 10px;
+}
+.account-settings-member-badges {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 5px;
+}
+.account-settings-member-controls {
+	display: flex;
+	min-width: 0;
+	align-items: flex-end;
+	flex-direction: column;
+	gap: 6px;
+}
+.account-settings-member-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 5px;
+}
+.account-settings-member-action {
+	display: inline-flex;
+	width: 28px;
+	height: 28px;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	cursor: pointer;
+	background: #FFF;
+	border: 1px solid #C8D0CC;
+	border-radius: 4px;
+}
+.account-settings-member-action.is-transfer {
+	color: #76570F;
+	border-color: #D5BF7E;
+}
+.account-settings-member-action.is-edit {
+	color: #2E684D;
+	border-color: #AFCDBD;
+}
+.account-settings-member-action.is-edit:hover,
+.account-settings-member-action.is-edit:focus {
+	background: #EAF5EF;
+	border-color: #4E876B;
+}
+.account-settings-member-action.is-transfer:hover,
+.account-settings-member-action.is-transfer:focus {
+	background: #FFF7DD;
+	border-color: #A67C19;
+}
+.account-settings-member-action.is-remove {
+	color: #922F2F;
+	border-color: #DEB3B3;
+}
+.account-settings-member-action.is-remove:hover,
+.account-settings-member-action.is-remove:focus {
+	background: #FFF0F0;
+	border-color: #B94747;
+}
+.account-settings-member-role.is-owner {
+	color: #76570F;
+	background: #FFF4D6;
+	border-color: #DCC57E;
+}
+.account-settings-member-role {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	color: #3E4B45;
+	font-size: 10px;
+	font-weight: 800;
+	background: #E6EBE8;
+	border: 1px solid #C5CECA;
+	border-radius: 3px;
+}
+.account-settings-member-role.is-editor {
+	color: #155C3D;
+	background: #E5F3EB;
+	border-color: #ADD0BD;
+}
+.account-settings-member-role.is-observer {
+	color: #4C5660;
+	background: #EEF1F3;
+	border-color: #CBD2D7;
+}
+.account-settings-member-role.is-none {
+	color: #646B70;
+	background: #F4F4F4;
+	border-color: #D1D3D4;
+}
+.account-settings-member-role.is-participant {
+	color: #705310;
+	background: #FFF4D6;
+	border-color: #E3CA83;
+}
+.account-sharing-confirm-overlay {
+	position: fixed;
+	z-index: 1100;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	background: rgba(25, 34, 30, 0.42);
+}
+.account-sharing-confirm-overlay[hidden] {
+	display: none;
+}
+.account-sharing-confirm-dialog {
+	display: grid;
+	grid-template-columns: 42px minmax(0, 1fr);
+	gap: 12px;
+	width: min(430px, 100%);
+	padding: 18px;
+	background: #FFF;
+	border: 1px solid #BFC8C3;
+	border-radius: 6px;
+	box-shadow: 0 18px 45px rgba(24, 37, 30, 0.28);
+}
+.account-sharing-confirm-icon {
+	display: inline-flex;
+	width: 42px;
+	height: 42px;
+	align-items: center;
+	justify-content: center;
+	color: #76570F;
+	font-size: 17px;
+	background: #FFF4D6;
+	border: 1px solid #DCC57E;
+	border-radius: 4px;
+}
+.account-sharing-confirm-copy small {
+	color: #68736D;
+	font-size: 9px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+.account-sharing-confirm-copy h4 {
+	margin: 2px 0 6px;
+	color: #26342C;
+	font-size: 16px;
+}
+.account-sharing-confirm-copy p {
+	margin: 0;
+	color: #5D6862;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.account-sharing-confirm-actions {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding-top: 4px;
+}
+.account-sharing-confirm-actions .btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 12px;
+	font-weight: 800;
+}
 .account-settings-modal .account-settings-danger {
 	display: flex;
 	align-items: center;
@@ -820,6 +1267,39 @@ body.account-background-grey {
 	.account-settings-main-field {
 		grid-column: 1;
 	}
+	.account-settings-members {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.account-settings-sharing-invite {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.account-settings-sharing-invite-heading {
+		grid-column: 1;
+	}
+	.account-settings-sharing-preview,
+	.account-settings-sharing-feedback,
+	.account-settings-sharing-actions {
+		grid-column: 1;
+	}
+	.account-settings-sharing-preview {
+		grid-template-columns: 36px minmax(0, 1fr);
+	}
+	.account-settings-sharing-preview-detail {
+		grid-column: 2;
+	}
+	.account-settings-participant-control {
+		padding-top: 0;
+	}
+	.account-settings-members li {
+		grid-template-columns: 34px minmax(0, 1fr);
+	}
+	.account-settings-member-controls {
+		grid-column: 2;
+		align-items: flex-start;
+	}
+	.account-settings-member-badges {
+		justify-content: flex-start;
+	}
 	.account-settings-danger {
 		align-items: stretch;
 		flex-direction: column;
@@ -851,8 +1331,41 @@ body.account-background-grey {
 }
 .account-header-action-buttons {
 	display: flex;
+	align-items: center;
 	justify-content: flex-end;
 	gap: 8px;
+}
+
+.account-access-alert {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	min-height: 38px;
+	padding: 7px 11px;
+	color: #6A3E05;
+	background-color: #FFF0CF;
+	border: 1px solid #D58A24;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 800;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.account-access-alert.is-editor {
+	color: #18543A;
+	background-color: #E4F3E8;
+	border-color: #5B9674;
+}
+
+.account-access-alert i {
+	font-size: 15px;
+}
+
+.td_category_libelle.is-read-only-label,
+.td_subcategory_libelle.is-read-only-label {
+	cursor: default;
 }
 .header-action-button,
 .legend-button {
@@ -1559,6 +2072,11 @@ body.account-background-grey {
 	gap: 6px;
 	align-items: end;
 }
+.anomaly-ignore-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
 .anomaly-postpone label {
 	display: flex;
 	min-width: 0;
@@ -1610,6 +2128,17 @@ body.account-background-grey {
 	color: #FFFFFF;
 	border-color: #9A6B12;
 	background: #9A6B12;
+}
+.resolve-anomaly-ignore {
+	color: #47515A;
+	border-color: #AAB5BD;
+	background: #F3F6F8;
+}
+.resolve-anomaly-ignore:hover,
+.resolve-anomaly-ignore:focus {
+	color: #FFFFFF;
+	border-color: #56616A;
+	background: #56616A;
 }
 .resolve-anomaly-delete {
 	color: #963434;
@@ -3046,6 +3575,12 @@ body.account-background-grey {
 }
 
 @media (max-width: 420px) {
+	.account-header-action-buttons {
+		flex-wrap: wrap;
+	}
+	.account-access-alert {
+		width: 100%;
+	}
 	.header-action-button,
 	.legend-button {
 		flex: 1;
@@ -3380,6 +3915,27 @@ table {
 	box-shadow: inset 0 0 0 2px var(--table-selection);
 	outline: 0;
 }
+.compteTable .month-cell-start.current {
+	box-shadow: inset 2px 0 #8F989F;
+}
+.compteTable .month-cell-end.current {
+	box-shadow: inset -2px 0 #8F989F;
+}
+.compteTable .month-cell-span.current,
+.gains-table .month-cell-span.current {
+	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F;
+}
+.compteTable .month-selector.month-cell-span.current,
+.gains-table tr:first-child .month-cell-span.current {
+	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 2px #8F989F;
+}
+.compteTable tr:last-child .month-cell-span.current,
+.gains-table tr:last-child .month-cell-span.current {
+	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 -2px #8F989F;
+}
+.compteTable .tr_head .month-selector.current {
+	box-shadow: inset 2px 0 #8F989F, inset -2px 0 #8F989F, inset 0 2px #8F989F;
+}
 .compteTable .month-cell-start.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection);
 }
@@ -3404,6 +3960,9 @@ table {
 .compteTable tr:last-child .month-cell-span.month-column-selected,
 .gains-table tr:last-child .month-cell-span.month-column-selected {
 	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 -3px var(--table-selection);
+}
+.compteTable .tr_head .month-selector.month-column-selected {
+	box-shadow: inset 3px 0 var(--table-selection), inset -3px 0 var(--table-selection), inset 0 3px var(--table-selection)!important;
 }
 .compteTable .month-detail-collapsed,
 .gains-table .month-detail-collapsed {
@@ -3760,6 +4319,22 @@ table {
 	background-color: transparent!important;
 	border-color: transparent!important;
 }
+.compteTable .account-total-detail-row,
+.account-sticky-totals-overlay .account-total-detail-row {
+	background-color: transparent!important;
+}
+.compteTable .account-total-detail-row > .month-anticipation-hidden.done {
+	color: transparent!important;
+	background-color: transparent!important;
+	border-color: transparent!important;
+	box-shadow: none!important;
+}
+.account-sticky-totals-overlay .account-total-detail-row > .month-anticipation-hidden.done {
+	color: transparent!important;
+	background-color: transparent!important;
+	border-color: transparent!important;
+	box-shadow: none!important;
+}
 
 .compteTable .edit td:hover:not(.counterEdit), /* tout les TD edit */
 .compteTable .edit .anticipe:hover:has(+ td), /* TD avant .anticipe */
@@ -3834,6 +4409,7 @@ table {
 	width: 100%;
 	align-items: center;
 	justify-content: flex-start;
+	margin-bottom: 1rem;
 }
 .gains-table-layout.has-annual-gain {
 	align-items: stretch;

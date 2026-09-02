@@ -29,8 +29,15 @@ $(document).ready(function(){
 	var
 		_add = '',
 		_tboby = '',
-		_input_datas = {}
+		_input_datas = {},
+		_pending_duplicates = [],
+		_duplicate_source_row = null,
+		_duplicate_parent_modal = null,
+		_duplicate_parent_backdrop = null
 	;
+	const isOperationReadOnly = function(){
+		return $('#modalOperation').attr('data-read-only') === '1'
+	}
 
 	////////////
 	// ON EVENTS
@@ -47,7 +54,8 @@ $(document).ready(function(){
 			month = $(this).data('month'),
 			months = $('#datas').data('months'),
 			year = $(this).data('year') || $('#datas').data('year'),
-			anticipe = $(this).data('anticipe') == 1 ? 1 : 0
+			anticipe = $(this).data('anticipe') == 1 ? 1 : 0,
+			accountId = $(this).closest('tr').data('accountid')
 		;
 
 		$('#modalOperation .modal-header')
@@ -58,7 +66,7 @@ $(document).ready(function(){
 			.removeClass(sign ? 'border_neg' : 'border_pos')
 			.addClass(sign ? 'border_pos' : 'border_neg')
 
-		getOperationsDatas(sc_id, sign, months, month, year, anticipe)
+		getOperationsDatas(sc_id, sign, months, month, year, anticipe, accountId)
 	})
 
 
@@ -68,6 +76,8 @@ $(document).ready(function(){
 	$("body").on("click", ".switch", function(e){
 		toggleInputNumberAnticipe($(this).parent('td').parent('tr'))
 		calculSolde()
+		checkFormEditDel()
+		controlOperation()
 	})
 
 	// FocusOut delete
@@ -84,8 +94,12 @@ $(document).ready(function(){
 	})
 
 	// Input Date + Comment -> Calcul/Check/Control
-	$("body").on("input", ".inputDay, .inputComment", function(e){
+	$("body").on("input change", ".inputDay, .inputMonth, .inputYear, .inputComment", function(e){
+		if ($(this).is('.inputMonth, .inputYear')) {
+			syncOperationDateDays($(this).closest('tr'))
+		}
 		checkFormEditDel()
+		controlOperation()
 	})
 
 	// add/delete -> Calcul/Check/Control
@@ -96,6 +110,9 @@ $(document).ready(function(){
 
 	// Toggle divToInput
 	$("body").on("click", ".td_number, .td_anticipe, .td_switch, .td_date, .td_comment", function(e){
+		if (isOperationReadOnly()) {
+			return
+		}
 
 		if (!$(this).parent().hasClass('tr_del')){
 			toggleFormMod($(this).parent())
@@ -147,14 +164,19 @@ $(document).ready(function(){
 
 	// Delete full add ope (Big button)
 	$("body").on("click", "#butFullDelAdd", function(e){
-		$('.tr_add').remove()
+		$('.tr_add').each(function(){
+			clearPendingDuplications($(this))
+			$(this).remove()
+		})
 		calculSolde()
 		checkFormEditDel()
 	})
 
 	// Reset 1 ope edit
 	$("body").on("click", ".trButCancelEdit", function(e){
-		resetEdit('ope_id_' + $(this).data('opeid'))
+		const row = $('#ope_id_' + $(this).data('opeid'))
+		clearPendingDuplications(row)
+		resetEdit(row.attr('id'))
 		calculSolde()
 	})
 
@@ -167,6 +189,103 @@ $(document).ready(function(){
 	// Delete ope
 	$("body").on("click", ".delete", function(e){
 		deleteOpe($(this).data('opeid'))
+	})
+
+	// Duplicate operation on remaining months
+	$("body").on("click", ".duplicateOperation", function(e){
+		e.preventDefault()
+		e.stopPropagation()
+		$(this).closest('.btn-group')
+			.removeClass('show')
+			.find('.dropdown-toggle')
+			.attr('aria-expanded', 'false')
+			.siblings('.dropdown-menu')
+			.removeClass('show')
+		openDuplicateModal($(this).closest('tr'))
+	})
+
+	$("body").on("change", ".operationDuplicateMonth", syncDuplicateApplyButton)
+
+	$("body").on("change", "#operationDuplicateAll", function(){
+		$('#modalOperationDuplicate .operationDuplicateMonth').prop('checked', $(this).prop('checked'))
+		syncDuplicateApplyButton()
+	})
+
+	$("body").on("click", "#operationDuplicateApply", function(e){
+		e.preventDefault()
+		applyDuplicateSelection()
+	})
+
+	$("body").on("click", ".operationDuplicateDismiss", function(e){
+		e.preventDefault()
+		e.stopPropagation()
+		closeDuplicateModal()
+	})
+
+	$('#modalOperationDuplicate')
+		.on('shown.bs.modal', function(){
+			$('.modal-backdrop').last().addClass('operation-duplicate-backdrop')
+		})
+		.on('hidden.bs.modal', function(){
+			if (_duplicate_parent_modal) {
+				const parentModal = _duplicate_parent_modal
+				const parentBackdrop = _duplicate_parent_backdrop
+				_duplicate_parent_modal = null
+				_duplicate_parent_backdrop = null
+
+				if (parentBackdrop && parentBackdrop.length > 0) {
+					parentBackdrop.appendTo('body')
+				}
+				parentModal
+					.css('display', 'block')
+					.removeAttr('aria-hidden')
+					.attr('aria-modal', 'true')
+					.addClass('show')
+				$('body').addClass('modal-open')
+				controlOperation()
+				checkFormEditDel()
+				return
+			}
+
+			if ($('#modalOperation').hasClass('show')) {
+				$('body').addClass('modal-open')
+			}
+		})
+
+	// Assign operation to a person associated with the account
+	$("body").on("click", ".assignOperation", function(e){
+		e.preventDefault()
+		e.stopPropagation()
+		toggleAssignChooser($(this))
+	})
+
+	$("body").on("click", ".changeOperationDate", function(e){
+		e.preventDefault()
+		e.stopPropagation()
+		const option = $(this)
+		option.closest('.btn-group')
+			.removeClass('show')
+			.find('.dropdown-toggle')
+			.attr('aria-expanded', 'false')
+			.siblings('.dropdown-menu')
+			.removeClass('show')
+		const row = option.closest('tr')
+		row.find('.inputMonth').length > 0
+			? disableOperationDateMove(row)
+			: enableOperationDateMove(row)
+	})
+
+	$("body").on("click", ".operation-assign-choice", function(e){
+		e.stopPropagation()
+	})
+
+	$("body").on("click", ".operationAssignApply", function(e){
+		e.preventDefault()
+		e.stopPropagation()
+		const choice = $(this).closest('.operation-assign-choice')
+		const select = choice.find('.operationAssignSelect')
+		assignOperation($(this).closest('tr'), select.val(), select.find('option:selected').text())
+		choice.remove()
 	})
 
 	// Revive ope
@@ -184,6 +303,12 @@ $(document).ready(function(){
 
 	// Save
 	$("body").on("click", "#modalOperationSaveClose", function(e){
+		if (!controlOperation()){
+			e.preventDefault()
+			e.stopPropagation()
+			$("#operation_tab tbody .alerteOpe:first").focus()
+			return false
+		}
 		sauvegarde()
 	})
 
@@ -194,7 +319,7 @@ $(document).ready(function(){
 
 	/** Chargement **/
 
-	function getOperationsDatas(sc_id, sign, months, month, year, anticipe){
+	function getOperationsDatas(sc_id, sign, months, month, year, anticipe, accountId){
 
 		$.ajax({
 			type: "POST",
@@ -210,13 +335,19 @@ $(document).ready(function(){
 
 				_add = response.addRender
 				_tboby = response.tBodyRender
+				$('#modalOperation').attr('data-read-only', response.canEdit ? '0' : '1')
 
 				meta2(response.category_libelle, response.subcategory_libelle, sign)
-				showTbody(_tboby, year, month, response.days_in_month, sc_id, sign, anticipe)
+				showTbody(_tboby, year, month, response.days_in_month, sc_id, sign, anticipe, accountId, response.members)
 
-				response.operations.length == 0
-					? $('#butFullToggleFormMod').prop('disabled', true) && addOpe()
-					: $('#butFullToggleFormMod').prop('disabled', false)
+				if (!response.canEdit) {
+					$('#butFullToggleFormMod').prop('disabled', true)
+				} else if (response.operations.length == 0) {
+					$('#butFullToggleFormMod').prop('disabled', true)
+					addOpe()
+				} else {
+					$('#butFullToggleFormMod').prop('disabled', false)
+				}
 
 				spinner(false)
 				getInputDatas()
@@ -237,6 +368,8 @@ $(document).ready(function(){
 
 	// Clean Text header + body
 	function meta1(year, month){
+		_pending_duplicates = []
+		_duplicate_source_row = null
 
 		// HEAD DATE
 		$('#date_annee').text(year)
@@ -266,7 +399,7 @@ $(document).ready(function(){
 	}
 
 	// Show Tbody
-	function showTbody(render, year, month, daysInMonth, sc_id, sign, anticipe){
+	function showTbody(render, year, month, daysInMonth, sc_id, sign, anticipe, accountId, members = []){
 
 		// Update tbody
 		$('#operation_tab tbody')
@@ -276,6 +409,8 @@ $(document).ready(function(){
 			.data('scid', sc_id)
 			.data('sign', sign)
 			.data('anticipe', anticipe)
+			.data('accountid', accountId)
+			.data('members', members)
 		;
 
 		// Clean Tbody
@@ -299,10 +434,14 @@ $(document).ready(function(){
 		// Number + Anticipe
 		$('#operation_tab .tr_ope').each(function(index, div){
 			let id = div.id
+			const dateParts = operationDateParts($(div))
 			_input_datas[id+'_number'] = number_toInput($('#' + id + ' .td_number').text().trim())
 			_input_datas[id+'_anticipe'] = number_toInput($('#' + id + ' .td_anticipe').text().trim())
-			_input_datas[id+'_date'] = $('#' + id + ' .td_date').text().substring(0, 2).trim()
+			_input_datas[id+'_date'] = String(dateParts.day).padStart(2, '0')
+			_input_datas[id+'_month'] = String(dateParts.month).padStart(2, '0')
+			_input_datas[id+'_year'] = String(dateParts.year)
 			_input_datas[id+'_comment'] = $('#' + id + ' .td_comment').text().trim()
+			_input_datas[id+'_assignee'] = rowAssignee($(div)) || ''
 		})
 	}
 
@@ -381,6 +520,485 @@ $(document).ready(function(){
 		$('#soldeReel').addClass('total_month_detail_'+ sign).removeClass('total_month_detail_' + counterSign)
 	}
 
+	function escapeHtml(value){
+		return String(value ?? '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;')
+	}
+
+	function rowAssignee(row){
+		return row.attr('data-assignee-id') == undefined || row.attr('data-assignee-id') === ''
+			? null
+			: String(row.attr('data-assignee-id'))
+	}
+
+	function rowSourceKey(row){
+		return row.attr('id') || 'add_' + row.index()
+	}
+
+	function cellTextWithoutWarning(cell){
+		const clone = cell.clone()
+		clone.find('.operation-field-warning').remove()
+
+		return clone.text().trim()
+	}
+
+	function monthDays(year, month){
+		return new Date(Number(year), Number(month), 0).getDate()
+	}
+
+	function operationPayloadFromRow(row){
+		const number = row.find('.inputNumber').val() == undefined
+			? number_toInput(cellTextWithoutWarning(row.find('.td_number')))
+			: number_toInput(row.find('.inputNumber').val())
+		const anticipe = row.find('.inputAnticipe').val() == undefined
+			? number_toInput(cellTextWithoutWarning(row.find('.td_anticipe')))
+			: number_toInput(row.find('.inputAnticipe').val())
+		const dateParts = operationDateParts(row)
+
+		return {
+			id: row.attr('id')?.split('_')[2] || null,
+			number: number,
+			anticipe: anticipe,
+			day: dateParts.day,
+			month: dateParts.month,
+			year: dateParts.year,
+			comment: row.find('.inputComment').val() == undefined
+				? row.find('.td_comment').text()
+				: row.find('.inputComment').val(),
+			delete: row.hasClass('tr_del') ? 1 : 0,
+			assignee: rowAssignee(row)
+		}
+	}
+
+	function monthLabel(month){
+		const months = $('#datas').data('months') || {}
+
+		return ucFirst(months[month] || `Mois ${month}`)
+	}
+
+	function openDuplicateModal(row){
+		const payload = operationPayloadFromRow(row)
+		const startMonth = Number(payload.month) + 1
+
+		if (!hasOperationAmount(payload.number) && !hasOperationAmount(payload.anticipe)) {
+			alert('Saisis un montant avant de dupliquer cette opération.')
+			return
+		}
+
+		_duplicate_source_row = row
+		const modal = $('#modalOperationDuplicate')
+		const monthsContainer = modal.find('[data-duplicate-months]')
+		const emptyMessage = modal.find('[data-duplicate-empty]')
+		const selectAll = modal.find('[data-duplicate-select-all]')
+		const sourceKey = rowSourceKey(row)
+		const selectedMonths = _pending_duplicates
+			.filter(duplicate => duplicate.sourceKey === sourceKey)
+			.map(duplicate => Number(duplicate.month))
+
+		monthsContainer.empty()
+		modal.find('[data-duplicate-summary]').text(
+			`Sélectionne les mois où copier cette opération en ${payload.year}.`
+		)
+
+		for (let month = startMonth; month <= 12; month++) {
+			const checked = selectedMonths.length === 0 || selectedMonths.includes(month)
+				? ' checked'
+				: ''
+			monthsContainer.append(`
+				<label class="operation-duplicate-month">
+					<input type="checkbox" class="operationDuplicateMonth" value="${month}"${checked}>
+					<span>${escapeHtml(monthLabel(month))}</span>
+				</label>
+			`)
+		}
+
+		emptyMessage.prop('hidden', startMonth <= 12)
+		selectAll.prop('hidden', startMonth > 12)
+		syncDuplicateApplyButton()
+
+		const parentModal = $('#modalOperation')
+		if (parentModal.hasClass('show')) {
+			_duplicate_parent_modal = parentModal
+			_duplicate_parent_backdrop = $('.modal-backdrop').last().detach()
+			$(document).off('focusin.bs.modal')
+			parentModal
+				.removeClass('show')
+				.css('display', 'none')
+				.attr('aria-hidden', 'true')
+				.removeAttr('aria-modal')
+			$('body').removeClass('modal-open')
+			modal.modal('show')
+			return
+		}
+
+		_duplicate_parent_modal = null
+		_duplicate_parent_backdrop = null
+		modal.modal('show')
+	}
+
+	function closeDuplicateModal(){
+		$('#modalOperationDuplicate').modal('hide')
+		_duplicate_source_row = null
+	}
+
+	function syncDuplicateApplyButton(){
+		const checkboxes = $('#modalOperationDuplicate .operationDuplicateMonth')
+		const selectedCount = checkboxes.filter(':checked').length
+		const selectAll = $('#operationDuplicateAll')
+
+		selectAll
+			.prop('checked', checkboxes.length > 0 && selectedCount === checkboxes.length)
+			.prop('indeterminate', selectedCount > 0 && selectedCount < checkboxes.length)
+		$('#operationDuplicateApply').prop('disabled', selectedCount === 0)
+	}
+
+	function syncDuplicateRowWarning(row, months){
+		const actionMenu = row.find('.operation-action-menu').first()
+
+		actionMenu.find('.operation-duplicate-warning').remove()
+		if (months.length === 0) {
+			return
+		}
+
+		const message = `Duplication sur ${months.length} mois`
+		const labels = months.map(month => monthLabel(month))
+		const monthsList = labels.length > 1
+			? `${labels.slice(0, -1).join(', ')} et ${labels[labels.length - 1]}`
+			: labels[0]
+		const title = `Mois concernés : ${monthsList}`
+
+		actionMenu.append(
+			`<span class="operation-duplicate-warning" title="${escapeHtml(title)}">${message}</span>`
+		)
+	}
+
+	function clearPendingDuplications(row){
+		const sourceKey = rowSourceKey(row)
+
+		_pending_duplicates = _pending_duplicates.filter(duplicate => duplicate.sourceKey !== sourceKey)
+		syncDuplicateRowWarning(row, [])
+		row.find('.duplicateOperation')
+			.removeClass('operation-option-selected')
+			.attr('title', "Dupliquer cette opération sur les mois restants de l'année en cours")
+	}
+
+	function applyDuplicateSelection(){
+		if (_duplicate_source_row === null) {
+			return
+		}
+
+		const row = _duplicate_source_row
+		const payload = operationPayloadFromRow(row)
+		const sourceKey = rowSourceKey(row)
+		const months = $('#modalOperationDuplicate .operationDuplicateMonth:checked')
+			.map(function(){ return Number($(this).val()) })
+			.get()
+
+		_pending_duplicates = _pending_duplicates.filter(duplicate => duplicate.sourceKey !== sourceKey)
+		months.forEach(function(month){
+			_pending_duplicates.push({
+				...payload,
+				id: null,
+				month: month,
+				day: Math.min(Number(payload.day), monthDays(payload.year, month)),
+				delete: 0,
+				sourceKey: sourceKey
+			})
+		})
+
+		row.toggleClass('tr_edit', months.length > 0)
+		row.find('.duplicateOperation')
+			.toggleClass('operation-option-selected', months.length > 0)
+			.attr(
+				'title',
+				months.length > 0
+					? `${months.length} duplication(s) en attente`
+					: "Dupliquer cette opération sur les mois restants de l'année en cours"
+			)
+		syncDuplicateRowWarning(row, months)
+		closeDuplicateModal()
+		saveMod(true)
+		checkFormEditDel(true)
+	}
+
+	function availableMembers(){
+		const members = $('#operation_tab tbody').data('members')
+
+		return Array.isArray(members) ? members : []
+	}
+
+	function toggleAssignChooser(item){
+		const existing = item.siblings('.operation-assign-choice')
+		if (existing.length > 0) {
+			existing.remove()
+			return
+		}
+
+		const members = availableMembers()
+		if (members.length === 0) {
+			item.remove()
+			return
+		}
+
+		let options = '<option value="">Non attribuée</option>'
+		const row = item.closest('tr')
+		const selected = rowAssignee(row) || ''
+		members.forEach(function(member){
+			const id = String(member.id)
+			options += `<option value="${escapeHtml(id)}"${id === selected ? ' selected' : ''}>${escapeHtml(member.name)}</option>`
+		})
+
+		item.after(`
+			<li class="operation-assign-choice">
+				<select class="operationAssignSelect" aria-label="Personne attribuée">${options}</select>
+				<button type="button" class="operationAssignApply" title="Valider l'attribution">
+					<i class="fa-solid fa-check" aria-hidden="true"></i>
+				</button>
+			</li>
+		`)
+	}
+
+	function syncAssignOption(row, assignee, label = ''){
+		row.find('.assignOperation')
+			.toggleClass('operation-option-selected', assignee !== null)
+			.attr(
+				'title',
+				assignee === null ? 'Attribuer cette opération à une personne' : `Attribuée à ${label}`
+			)
+	}
+
+	function memberLabel(memberId){
+		const member = availableMembers().find(item => String(item.id) === String(memberId))
+
+		return member?.name || ''
+	}
+
+	function assignOperation(row, assignee, label){
+		const sourceKey = rowSourceKey(row)
+		const normalizedAssignee = assignee === '' ? null : String(assignee)
+
+		row.attr('data-assignee-id', normalizedAssignee || '')
+		_pending_duplicates = _pending_duplicates.map(duplicate => duplicate.sourceKey === sourceKey
+			? { ...duplicate, assignee: normalizedAssignee }
+			: duplicate
+		)
+		syncAssignOption(row, normalizedAssignee, label)
+
+		saveMod(true)
+		checkFormEditDel(true)
+		controlOperation()
+	}
+
+	function todayParts(){
+		const today = new Date()
+
+		return {
+			year: today.getFullYear(),
+			month: today.getMonth() + 1,
+			day: today.getDate()
+		}
+	}
+
+	function operationDateParts(row){
+		const day = row.find('.inputDay').val() == undefined
+			? row.find('.td_date .day').text().trim()
+			: row.find('.inputDay').val()
+		const month = row.find('.inputMonth').val() == undefined
+			? row.find('.td_date .date-month').text().trim() || $('#operation_tab tbody').data('month')
+			: row.find('.inputMonth').val()
+		const year = row.find('.inputYear').val() == undefined
+			? row.find('.td_date .date-year').text().trim() || $('#operation_tab tbody').data('year')
+			: row.find('.inputYear').val()
+
+		return {
+			year: Number(year),
+			month: Number(month),
+			day: Number(day)
+		}
+	}
+
+	function operationDateIsValid(dateParts){
+		return Number.isInteger(dateParts.year)
+			&& dateParts.year >= 1900
+			&& dateParts.year <= 2100
+			&& Number.isInteger(dateParts.month)
+			&& dateParts.month >= 1
+			&& dateParts.month <= 12
+			&& Number.isInteger(dateParts.day)
+			&& dateParts.day >= 1
+			&& dateParts.day <= monthDays(dateParts.year, dateParts.month)
+	}
+
+	function syncOperationDateValidity(row){
+		const yearInput = row.find('.inputYear')
+		if (yearInput.length === 0) {
+			return true
+		}
+
+		const isValid = operationDateIsValid(operationDateParts(row))
+		yearInput
+			.toggleClass('alerteOpe', !isValid)
+			.attr('title', isValid ? "Année de l'opération" : 'Saisis une année comprise entre 1900 et 2100')
+
+		return isValid
+	}
+
+	function syncOperationDateDays(row){
+		const dayInput = row.find('.inputDay')
+		const dateParts = operationDateParts(row)
+		if (
+			dayInput.length === 0
+			|| !Number.isInteger(dateParts.year)
+			|| dateParts.year < 1900
+			|| dateParts.year > 2100
+			|| !Number.isInteger(dateParts.month)
+			|| dateParts.month < 1
+			|| dateParts.month > 12
+		) {
+			return
+		}
+
+		const days = monthDays(dateParts.year, dateParts.month)
+		const selectedDay = Math.min(Math.max(dateParts.day || 1, 1), days)
+		let options = ''
+		for (let day = 1; day <= days; day++) {
+			options += `<option value="${day}"${day === selectedDay ? ' selected' : ''}>${day}</option>`
+		}
+		dayInput.html(options)
+	}
+
+	function enableOperationDateMove(row){
+		if (row.find('.inputDay').length === 0) {
+			toggleFormMod(row)
+		}
+		if (row.find('.inputMonth').length > 0) {
+			return
+		}
+
+		const dateParts = operationDateParts(row)
+		let monthOptions = ''
+		for (let month = 1; month <= 12; month++) {
+			monthOptions += `
+				<option value="${month}"${month === dateParts.month ? ' selected' : ''}>
+					${String(month).padStart(2, '0')}
+				</option>
+			`
+		}
+
+		row.find('.date-month').replaceWith(
+			`<select class="inputMonth" aria-label="Mois de l'opération">${monthOptions}</select>`
+		)
+		row.find('.date-year').replaceWith(
+			`<input class="inputYear" type="number" min="1900" max="2100" step="1" value="${dateParts.year}" aria-label="Année de l'opération">`
+		)
+		row.find('.td_date').addClass('operation-date-editing')
+		row.find('.changeOperationDate')
+			.addClass('operation-option-selected')
+			.attr('title', "Le mois et l'année sont modifiables dans la colonne Date")
+		syncOperationDateDays(row)
+		checkFormEditDel()
+		controlOperation()
+	}
+
+	function disableOperationDateMove(row){
+		const dateParts = operationDateParts(row)
+		if (!operationDateIsValid(dateParts)) {
+			controlOperation()
+			return
+		}
+
+		row.find('.inputMonth').replaceWith(
+			`<span class="date-month">${String(dateParts.month).padStart(2, '0')}</span>`
+		)
+		row.find('.inputYear').replaceWith(
+			`<span class="date-year">${dateParts.year}</span>`
+		)
+		row.find('.td_date').removeClass('operation-date-editing')
+		row.find('.changeOperationDate')
+			.removeClass('operation-option-selected')
+			.attr('title', "Modifier le mois et l'année de cette opération")
+		checkFormEditDel()
+		controlOperation()
+	}
+
+	function isBeforeToday(dateParts){
+		const today = todayParts()
+
+		if (dateParts.year !== today.year) {
+			return dateParts.year < today.year
+		}
+		if (dateParts.month !== today.month) {
+			return dateParts.month < today.month
+		}
+
+		return dateParts.day < today.day
+	}
+
+	function hasOperationAmount(value){
+		const normalized = number_toInput(value)
+
+		return normalized !== '' && Number(normalized) !== 0
+	}
+
+	function isAfterCurrentMonth(dateParts){
+		const today = todayParts()
+
+		if (dateParts.year !== today.year) {
+			return dateParts.year > today.year
+		}
+
+		return dateParts.month > today.month
+	}
+
+	function setOperationFieldWarning(input, message = ''){
+		input.removeClass('alerteOpeWarning')
+		input.siblings('.operation-field-warning').remove()
+
+		if (message === '') {
+			return
+		}
+
+		input
+			.addClass('alerteOpeWarning')
+			.after(`<span class="operation-field-warning">${message}</span>`)
+	}
+
+	function syncOperationTimingWarnings(row){
+		const inputNumber = row.find('.inputNumber')
+		const inputAnticipe = row.find('.inputAnticipe')
+		const dateParts = operationDateParts(row)
+
+		setOperationFieldWarning(inputAnticipe)
+		setOperationFieldWarning(inputNumber)
+		row.find('.inputDay option:disabled').prop('disabled', false)
+		row.find('.inputDay, .td_date')
+			.removeClass('alerteOpe alerteOpeWarning')
+			.removeAttr('title')
+
+		if (!operationDateIsValid(dateParts)) {
+			return
+		}
+
+		if (hasOperationAmount(inputAnticipe.val()) && isBeforeToday(dateParts)) {
+			setOperationFieldWarning(inputAnticipe, "Date passée")
+		}
+		if (hasOperationAmount(inputNumber.val()) && isAfterCurrentMonth(dateParts)) {
+			setOperationFieldWarning(inputNumber, "Date non atteinte")
+		}
+	}
+
+	function hasBlockingOperationAlert(){
+		return $('#operation_tab tbody .alerteOpe, #operation_tab tbody .alerte-doublon').length > 0
+	}
+
+	function syncOperationSaveButton(control = true){
+		$('#modalOperationSaveClose').prop('disabled', !control || hasBlockingOperationAlert())
+	}
+
 	// Check Si formMod + Edit + +Del + SaveMod (Alerte visuelle)
 	function checkFormEditDel(isSaveMod = false){
 
@@ -406,6 +1024,8 @@ $(document).ready(function(){
 				input_number = $('#' + id + ' .inputNumber'),
 				input_anticipe = $('#' + id + ' .inputAnticipe'),
 				input_date = $('#' + id + ' .inputDay'),
+				input_month = $('#' + id + ' .inputMonth'),
+				input_year = $('#' + id + ' .inputYear'),
 				input_comment = $('#' + id + ' .inputComment'),
 
 				td_number = $('#' + id + ' .td_number'),
@@ -418,6 +1038,7 @@ $(document).ready(function(){
 				tr_formMod = input_date.length == 1
 					? true
 					: false,
+				date_parts = operationDateParts($(this)),
 
 				number = input_number.length == 1
 					? input_number.val()
@@ -425,11 +1046,9 @@ $(document).ready(function(){
 				anticipe = input_anticipe.length == 1
 					? input_anticipe.val()
 					: number_toInput($('#' + id + ' .td_anticipe').text().trim()),
-				date = tr_formMod
-					? input_date.val() < 10
-						? '0' + input_date.val()
-						: input_date.val()
-					: $('#' + id + ' .td_date').text().substring(0, 2).trim(),
+				date = String(date_parts.day).padStart(2, '0'),
+				month = String(date_parts.month).padStart(2, '0'),
+				year = String(date_parts.year),
 				comment = tr_formMod
 					? input_comment.val()
 					: $('#' + id + ' .td_comment').text().trim()
@@ -470,13 +1089,23 @@ $(document).ready(function(){
 			}
 
 			// Date
-			if (_input_datas[id + '_date'] != date){
+			if (
+				_input_datas[id + '_date'] != date
+				|| _input_datas[id + '_month'] != month
+				|| _input_datas[id + '_year'] != year
+			){
 				tr_edit = true
-				input_date.addClass('input_edit_val')
-				td_date_day.addClass('input_edit_val')
+				input_date.add(input_month).add(input_year).addClass('input_edit_val')
+				td_date_day
+					.add(td_date.find('.date-month'))
+					.add(td_date.find('.date-year'))
+					.addClass('input_edit_val')
 			} else {
-				input_date.removeClass('input_edit_val')
-				td_date_day.removeClass('input_edit_val')
+				input_date.add(input_month).add(input_year).removeClass('input_edit_val')
+				td_date_day
+					.add(td_date.find('.date-month'))
+					.add(td_date.find('.date-year'))
+					.removeClass('input_edit_val')
 			}
 
 			// Comment
@@ -487,6 +1116,14 @@ $(document).ready(function(){
 			} else {
 				input_comment.removeClass('input_edit_val')
 				td_comment.removeClass('input_edit_val')
+			}
+
+			if ((_input_datas[id + '_assignee'] || '') !== (rowAssignee($(this)) || '')){
+				tr_edit = true
+			}
+
+			if (_pending_duplicates.some(duplicate => duplicate.sourceKey === rowSourceKey($(this)))){
+				tr_edit = true
 			}
 
 			// trButStopFormMod ?
@@ -570,8 +1207,6 @@ $(document).ready(function(){
 			if (tr.find('.inputComment').length > 0){ return false }
 
 			let 
-				daysInMonth = $('#operation_tab tbody').data('daysinmonth'),
-
 				td_number = tr.find('.td_number'),
 				td_anticipe = tr.find('.td_anticipe'),
 				td_date = tr.find('.td_date'),
@@ -579,7 +1214,8 @@ $(document).ready(function(){
 
 				number = number_toInput(td_number.text().trim()),
 				anticipe = number_toInput(td_anticipe.text().trim()),
-				date = td_date.text().split('/'),
+				date = operationDateParts(tr),
+				daysInMonth = monthDays(date.year, date.month),
 				comment = td_comment.text().trim(),
 
 				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
@@ -603,13 +1239,18 @@ $(document).ready(function(){
 			// Date
 			for (var i = 1; i <= daysInMonth; i++){
 
-				let loopFirst = i == date[0]
+				let loopFirst = i == date.day
 					? 'selected'
 					: ''
 
 				input_date = input_date + "<option value='" + i + "' " + loopFirst + ">" + i + "</option>"
 			}
-			input_date = input_date + "</select></span>/"+ date[1] + "/" + date[2]
+			input_date = input_date
+				+ "</select></span>/<span class='date-month'>"
+				+ String(date.month).padStart(2, '0')
+				+ "</span>/<span class='date-year'>"
+				+ date.year
+				+ "</span>"
 			td_date.empty().append(input_date)
 
 			// Comment
@@ -631,17 +1272,30 @@ $(document).ready(function(){
 				inputAnticipe = tr.find('.inputAnticipe'),
 				inputNumberVal = inputNumber.val() == null ? '' : money_display(inputNumber.val(), getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()),
 				inputAnticipeVal = inputAnticipe.val() == null ? '' : money_display(inputAnticipe.val(), getMoneyDisplayFormat(), getMoneyCurrency(), shouldTrimMoneyZeros(), shouldShowZeroDecimals()),
-				inputDay = tr.find('.inputDay'),
 				inputComment = tr.find('.inputComment'),
-				day = inputDay.val()
+				date = operationDateParts(tr)
 			;
+
+			if (!operationDateIsValid(date)) {
+				controlOperation()
+				return false
+			}
 
 			// Switch + Action
 			tr.find('.switch, .btn-group').prop('disabled', true).hide()
 
 			inputNumber.after(inputNumberVal).remove()
 			inputAnticipe.after(inputAnticipeVal).remove()
-			inputDay.after(day < 10 ? '0'+ day : day).remove()
+			tr.find('.td_date')
+				.removeClass('operation-date-editing')
+				.html(
+					"<span class='day'>" + String(date.day).padStart(2, '0') + "</span>"
+					+ "/<span class='date-month'>" + String(date.month).padStart(2, '0') + "</span>"
+					+ "/<span class='date-year'>" + date.year + "</span>"
+				)
+			tr.find('.changeOperationDate')
+				.removeClass('operation-option-selected')
+				.attr('title', "Modifier le mois et l'année de cette opération")
 			inputComment.after(inputComment.val()).remove()
 		}
 	}
@@ -656,10 +1310,12 @@ $(document).ready(function(){
 		$('#solde_tr_collabo').insertAfter('#operation_tab tbody tr:last')
 		$('#tr_solde').insertAfter('#operation_tab tbody tr:last')
 		saveMod(true)
+		controlOperation()
 	}
 
 	// Delete 1 add
 	function deleteAddOpe(tr){
+		clearPendingDuplications(tr)
 		tr.remove()
 		calculSolde()
 		checkFormEditDel()
@@ -670,18 +1326,22 @@ $(document).ready(function(){
 	
 		let 
 			date = _input_datas[id + '_date'],
+			month = _input_datas[id + '_month'],
+			year = _input_datas[id + '_year'],
 			number = _input_datas[id + '_number'],
 			anticipe = _input_datas[id + '_anticipe'],
 			input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
 			input_anticipe = "<input class='inputAnticipe' type='number' step='0.01' value='" + anticipe + "' min='0' />"
 		;
 
-		resetForm(id, number, anticipe, date, input_number, input_anticipe)
+		resetForm(id, number, anticipe, date, month, year, input_number, input_anticipe)
+		controlOperation()
 		checkFormEditDel()
 	}
 
 	// Reset 1 operation
-	function resetForm(id, number, anticipe, date, input_number, input_anticipe){
+	function resetForm(id, number, anticipe, date, month, year, input_number, input_anticipe){
+		const row = $('#' + id)
 
 		// Number
 		if (number != ''){
@@ -697,23 +1357,43 @@ $(document).ready(function(){
 		}
 
 		// Date
-		date = date < 10 ? date.substring(1) : date
-		$('#' + id + ' .inputDay option[value="'+ date +'"]').prop('selected', true)
+		if (row.find('.inputMonth').length > 0) {
+			row.find('.inputYear').val(year)
+			row.find('.inputMonth').val(Number(month))
+			syncOperationDateDays(row)
+		}
+		if (row.find('.inputDay').length > 0) {
+			row.find('.inputDay').val(Number(date))
+		} else {
+			row.find('.td_date .day').text(date)
+			row.find('.td_date .date-month').text(month)
+			row.find('.td_date .date-year').text(year)
+		}
 
 		// Comment
-		$('#' + id + ' .inputComment').val(_input_datas[id + '_comment'])
+		row.find('.inputComment').val(_input_datas[id + '_comment'])
+
+		// Attribution
+		const assignee = _input_datas[id + '_assignee'] || null
+		row.attr('data-assignee-id', assignee || '')
+		syncAssignOption(row, assignee, memberLabel(assignee))
 	}
 
 	// Reset all Edit operations
 	function resetAllEdit(){
 
 		$('#butFullCancelEdit').hide().prop('disabled', true)
+		$('#operation_tab .tr_ope, #operation_tab .tr_add').each(function(){
+			clearPendingDuplications($(this))
+		})
 
 		$('#operation_tab .tr_edit').each(function(index, div){
 
 			let 
 				id = div.id,
 				date = _input_datas[id + '_date'],
+				month = _input_datas[id + '_month'],
+				year = _input_datas[id + '_year'],
 				number = _input_datas[id + '_number'],
 				anticipe = _input_datas[id + '_anticipe'],
 				input_number = "<input class='inputNumber' type='number' step='0.01' value='" + number + "' min='0' />",
@@ -723,7 +1403,7 @@ $(document).ready(function(){
 
 			// FormMod
 			if (tr_formMod){
-				resetForm(id, number, anticipe, date, input_number, input_anticipe)
+				resetForm(id, number, anticipe, date, month, year, input_number, input_anticipe)
 
 			// No FormMod
 			} else {
@@ -736,12 +1416,15 @@ $(document).ready(function(){
 
 				// Date
 				$('#' + id + ' .td_date .day').text(date)
+				$('#' + id + ' .td_date .date-month').text(month)
+				$('#' + id + ' .td_date .date-year').text(year)
 
 				// Comment
 				$('#' + id + ' .td_comment').text(_input_datas[id + '_comment'])
 			}
 		})
 
+		controlOperation()
 		checkFormEditDel()
 	}
 
@@ -805,17 +1488,19 @@ $(document).ready(function(){
 
 		// ON
 		if (etat){
-			$('.modal-footer').show()
-			$('#modalOperationSaveClose').prop('disabled', false).show()
+			$('#modalOperation > .modal-dialog > .modal-content > .modal-footer').show()
+			$('#modalOperationSaveClose').show()
+			syncOperationSaveButton()
 			$('#modalOperationClose').prop('title', 'Fermer la fenêtre sans enregistrer').text('Fermer sans enregistrer')
 
 		// OFF
 		} else {
 			$('.tr_add').remove()
-			$('#modalOperationSaveClose').prop('disabled', true).hide()
+			_pending_duplicates = []
+			$('#modalOperationSaveClose').prop('disabled', false).hide()
 			$('#saveAdd, .deleteAdd').prop('disabled', true).hide()
 			$('#close').prop('disabled', false).prop('title', 'Fermer la fenêtre')
-			$('.modal-footer').hide()
+			$('#modalOperation > .modal-dialog > .modal-content > .modal-footer').hide()
 			$('#modalOperationClose').prop('title', 'Fermer la fenêtre').text('Fermer')
 		}
 	}
@@ -905,12 +1590,19 @@ $(document).ready(function(){
 				}
 				checkChange = true
 			}
+
+			if (!syncOperationDateValidity($(this))) {
+				control = false
+			}
+			syncOperationTimingWarnings($(this))
 		})
 
 		// Button Statut
 		checkChange
 			? $('#butFullToggleFormMod').val(1).html("<i class='fas fa-times' title='Retirer les formulaires des lignes'></i>")
 			: $('#butFullToggleFormMod').val(0).html("<i class='fas fa-edit'></i>")
+
+		syncOperationSaveButton(control)
 
 		return control
 	}
@@ -929,31 +1621,14 @@ $(document).ready(function(){
 		$("#operation_tab tbody tr").not('#solde_tr_collabo, #tr_solde').each(function(index, value){
 			const row = $(this)
 
-			let
-				id_array = value.id.split('_'),
-				id = id_array[2] ? id_array[2] : null,
-				number = row.find('.inputNumber').val() == undefined
-					? number_toInput(row.find('.td_number').text().trim())
-					: number_toInput(row.find('.inputNumber').val()),
-				anticipe = row.find('.inputAnticipe').val() == undefined
-					? number_toInput(row.find('.td_anticipe').text().trim())
-					: number_toInput(row.find('.inputAnticipe').val()),
-				day = row.find('.inputDay').val() == undefined
-					? row.find('.td_date').text().substring(0, 2)
-					: row.find('.inputDay').val(),
-				comment = row.find('.inputComment').val() == undefined
-					? row.find('.td_comment').text()
-					: row.find('.inputComment').val(),
-				del = row.hasClass('tr_del')
-					? 1
-					: 0
-			;
+			let operationPayload = operationPayloadFromRow(row)
 
 			if (
 				row.hasClass('tr_add')
 				|| row.hasClass('tr_del')
 				|| row.hasClass('tr_edit')
 				|| row.find('.inputNumber, .inputAnticipe, .inputDay, .inputComment').length > 0
+				|| operationPayload.assignee
 			) {
 				const rowTargetsAnticipation = row.find('.inputAnticipe').length > 0
 					|| (row.find('.td_anticipe').text().trim() !== '' && row.find('.td_number').text().trim() === '')
@@ -961,18 +1636,13 @@ $(document).ready(function(){
 				modifiedAnticipe = rowTargetsAnticipation ? 1 : 0
 			}
 
-			if (number != null || anticipe != null){
-				datas.push({
-					id: id,
-					number: number,
-					anticipe: anticipe,
-					day: day,
-					month: month,
-					year: year,
-					comment: comment,
-					delete: del,
-				})
+			if (operationPayload.number != null || operationPayload.anticipe != null){
+				datas.push(operationPayload)
 			}
+		})
+
+		_pending_duplicates.forEach(function(duplicate){
+			datas.push(duplicate)
 		})
 
 		$.ajax({
@@ -982,6 +1652,7 @@ $(document).ready(function(){
 			dataType: 'JSON',
 			timeout: 15000,
 			beforeSend: function(){
+				$('#modalOperationSaveClose').prop('disabled', true)
 			},
 			success: function(response){
 				if (response.save == true){
@@ -994,12 +1665,33 @@ $(document).ready(function(){
 
 					rememberLastSessionOperationCell(lastOperationCell)
 					notifySiteUpdate({ type: 'compte-operation-saved', lastOperationCell: lastOperationCell })
+					closeOperationModalAfterSave()
+					updateTables()
+				} else {
+					alert(response.error || 'La sauvegarde a été refusée.')
+					controlOperation()
 				}
-				updateTables()
 			},
 			error: function(error){
+				alert(error.responseJSON?.error || 'Erreur pendant la sauvegarde.')
 				console.log('Erreur ajax: ' + error)
+				controlOperation()
 			}
 		})
+	}
+
+	function closeOperationModalAfterSave(){
+		const modal = $('#modalOperation')
+
+		modal.modal('hide')
+		if (modal.hasClass('show')) {
+			modal
+				.removeClass('show')
+				.css('display', 'none')
+				.attr('aria-hidden', 'true')
+				.removeAttr('aria-modal')
+			$('.modal-backdrop').remove()
+			$('body').removeClass('modal-open').css('padding-right', '')
+		}
 	}
 })

@@ -6,6 +6,7 @@
 	tabindex="-1"
 	aria-labelledby="myModalLabel"
 	aria-hidden="true"
+	data-read-only="{{ can_edit_compte ? '0' : '1' }}"
 >
 	<div class="modal-dialog modal-dialog-scrollable modal-lg">
 		<div class="modal-content">
@@ -22,3 +23,5 @@
 		</div>
 	</div>
 </div>
+
+{% if can_edit_compte %}{{ include('compte/modal/operations/_duplicate.html.twig') }}{% endif %}

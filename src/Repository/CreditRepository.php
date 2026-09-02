@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Credit;
+use App\Entity\User;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -38,6 +39,22 @@ class CreditRepository extends ServiceEntityRepository
 		if ($flush) {
 			$this->getEntityManager()->flush();
 		}
+	}
+
+	/**
+	 * @return Credit[]
+	 */
+	public function findByUser(User $user): array
+	{
+		return $this->createQueryBuilder('credit')
+			->andWhere('credit.user = :user')
+			->setParameter('user', $user)
+			->orderBy('credit.actif', 'DESC')
+			->addOrderBy('credit.dateFin', 'ASC')
+			->addOrderBy('credit.libelle', 'ASC')
+			->getQuery()
+			->getResult()
+		;
 	}
 
 //    /**

@@ -57,6 +57,12 @@ body {
 	gap: 8px;
 }
 
+#toaster.toaster-offline {
+	color: #5b3400;
+	background: #ffe3b0;
+	border-color: #f1a339;
+}
+
 #toaster .toaster-refresh-link {
 	color: #ffffff;
 	text-decoration: underline;
@@ -305,4 +311,174 @@ section {
 	border-radius: 50%;
 	font-size: 18px;
 	font-weight: 800;
+}
+
+/* Pages d'erreur */
+.error-page-body {
+	min-height: 100vh;
+}
+
+.error-page {
+	display: grid;
+	place-items: center;
+	min-height: calc(100vh - 150px);
+	padding: 48px 20px;
+	color: #203c28;
+	background-color: #d6e5c9;
+}
+
+.error-page-content {
+	width: 100%;
+	max-width: 680px;
+	box-sizing: border-box;
+	padding: 38px 24px 34px;
+	text-align: center;
+	border-top: 3px solid #295935;
+	border-bottom: 3px solid #295935;
+}
+
+.error-page-status {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	min-height: 92px;
+	margin-bottom: 14px;
+}
+
+.error-page-code {
+	color: #295935;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 72px;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: 0;
+}
+
+.error-page-icon {
+	display: inline-grid;
+	place-items: center;
+	width: 66px;
+	height: 66px;
+	color: #ffffff;
+	background-color: #c65d18;
+	border: 3px solid #ffffff;
+	border-radius: 50%;
+	box-shadow: 0 4px 12px rgba(41, 89, 53, .22);
+	font-size: 28px;
+}
+
+.error-page-403 .error-page-icon {
+	background-color: #a83d3d;
+}
+
+.error-page-label {
+	margin: 0 0 7px;
+	color: #9b4e19;
+	font-size: 15px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0;
+}
+
+.error-page-403 .error-page-label {
+	color: #943838;
+}
+
+h1.error-page-title {
+	position: static;
+	margin: 0;
+	padding: 0;
+	color: #183b24;
+	background: none;
+	box-shadow: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 36px;
+	font-weight: 750;
+	line-height: 1.2;
+	text-shadow: none;
+	text-decoration: none;
+	letter-spacing: 0;
+}
+
+.error-page-message {
+	max-width: 520px;
+	margin: 14px auto 26px;
+	color: #46584b;
+	font-size: 18px;
+	line-height: 1.55;
+}
+
+.error-page-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 46px;
+	padding: 10px 18px;
+	color: #ffffff;
+	background-color: #295935;
+	border: 2px solid #295935;
+	border-radius: 6px;
+	font-size: 16px;
+	font-weight: 750;
+	text-decoration: none;
+	transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.error-page-action:hover,
+.error-page-action:focus-visible {
+	color: #ffffff;
+	background-color: #173c23;
+	border-color: #173c23;
+	transform: translateY(-1px);
+}
+
+.error-page-action:focus-visible {
+	outline: 3px solid #f0a44b;
+	outline-offset: 3px;
+}
+
+.error-page-redirect {
+	margin: 18px 0 0;
+	color: #5a685d;
+	font-size: 14px;
+}
+
+.error-page-redirect strong {
+	color: #295935;
+}
+
+@media (max-width: 575px) {
+	.error-page {
+		min-height: calc(100vh - 96px);
+		padding: 28px 16px;
+	}
+
+	.error-page-content {
+		padding: 28px 8px;
+	}
+
+	.error-page-status {
+		gap: 12px;
+		min-height: 72px;
+	}
+
+	.error-page-code {
+		font-size: 54px;
+	}
+
+	.error-page-icon {
+		width: 54px;
+		height: 54px;
+		font-size: 23px;
+	}
+
+	h1.error-page-title {
+		font-size: 29px;
+	}
+
+	.error-page-message {
+		font-size: 16px;
+	}
 }

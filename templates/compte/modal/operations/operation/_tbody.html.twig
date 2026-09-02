@@ -8,18 +8,21 @@
 	{% set number = ope.number|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) %}
 
 	{# TBODY - TR #}
-	<tr id='ope_id_{{ ope.id }}' class='tr_ope'>
+	<tr id='ope_id_{{ ope.id }}' class='tr_ope' data-assignee-id='{{ ope.assigneeId|default('') }}'>
 		<td class='td_number'>{{ ope.anticipe ? '' : number }}</td>
 		<td class='td_switch'>
 			<span class='switch hide'>
-				<i class='fa-solid fa-repeat'></i>
+				<i class='fa-solid fa-repeat' title='Basculer entre montant fait et montant à venir' aria-label='Basculer entre montant fait et montant à venir'></i>
 			</span>
 		</td>
 		<td class='td_anticipe'>{{ ope.anticipe ? number : '' }}</td>
-		<td class='td_date p-1'><span class='day'>{{ day }}</span>/{{ month }}/{{ ope.year }}</td>
+		<td class='td_date p-1'>
+			<span class='day'>{{ day }}</span>/<span class='date-month'>{{ month }}</span>/<span class='date-year'>{{ ope.year }}</span>
+		</td>
 		<td class='td_comment p-1'>{{ ope.comment|capitalize }}</td>
-		<td class='td_actions row'>
-			<div class='hide btn-group col-4 ecart-left-5' role='group'>
+		<td class='td_actions{{ canEdit ? " row" : " operation-readonly-actions" }}'>
+			{% if canEdit %}
+			<div class='hide btn-group col-4 ecart-left-5 operation-action-menu' role='group'>
 				<button
 					type='button'
 					class='btn btn-default dropdown-toggle'
@@ -31,9 +34,15 @@
 					<span class='caret'></span>
 				</button>
 				<ul class='dropdown-menu options p-1'>
-					<li class='invalid' title='Fonctionnalité à venir'>Dupliquer</li>
-					<li class='invalid' title='Fonctionnalité à venir'>Changer le mois/année</li>
-					<li class='invalid' title='Fonctionnalité à venir'>Attribuer</li>
+					<li class='duplicateOperation' data-opeid='{{ ope.id }}' title="Dupliquer cette opération sur les mois restants de l'année en cours">Dupliquer</li>
+					<li class='changeOperationDate' title="Modifier le mois et l'année de cette opération">Changer le mois/année</li>
+					{% if canAssign %}
+						<li
+							class='assignOperation{{ ope.assigneeId|default(null) ? ' operation-option-selected' : '' }}'
+							data-opeid='{{ ope.id }}'
+							title="{{ ope.assigneeId|default(null) ? 'Attribuée à ' ~ ope.assigneeName : 'Attribuer cette opération à une personne' }}"
+						>Attribuer</li>
+					{% endif %}
 					<li class='invalid noForm'>Retire mode édition</li>
 					<li class='invalid'>...</li>
 					<li><hr></li>
@@ -82,6 +91,7 @@
 					<i class='fas fa-times'></i>
 				</button>
 			</div>
+			{% endif %}
 		</td>
 	</tr>
 {% endfor %}

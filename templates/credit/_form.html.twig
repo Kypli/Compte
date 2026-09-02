@@ -1,18 +1,101 @@
 {{ form_start(form, form_options|default({})) }}
-	<div class="row center mt-4">
-		{# TYPE #}
-		<div class="offset-1 col-3 mb-4 pt-1 alignRight">
-			En cours
-			{# {{ form_label(form.xxx) }} #}
+	<div class="credit-form">
+		{{ form_errors(form) }}
+		<div class="credit-form-status">
+			<label for="{{ form.actif.vars.id }}">
+				{{ form_widget(form.actif) }}
+				<span>
+					<strong>Crédit actif</strong>
+					<small>Le crédit est compté dans la charge mensuelle.</small>
+				</span>
+			</label>
+			{{ form_errors(form.actif) }}
 		</div>
-		<div class="col-4 mb-4">
-			{# {{ form_widget(form.xxx) }} #}
-		</div>
-		<div class="col-3 mb-4"></div>
-	</div>
-	<div class="row mt-3">
-		<div class="offset-4 col-2">
-			<button class="p-3 btn btn-success">{{ button_label|default('Enregistrer') }}</button>
+
+		<section class="credit-form-section" aria-labelledby="creditIdentityTitle">
+			<h2 id="creditIdentityTitle">Identification</h2>
+			<div class="credit-form-grid">
+				<div>
+					{{ form_label(form.libelle) }}
+					{{ form_widget(form.libelle) }}
+					{{ form_errors(form.libelle) }}
+				</div>
+				<div>
+					{{ form_label(form.type) }}
+					{{ form_widget(form.type) }}
+					{{ form_errors(form.type) }}
+				</div>
+				<div class="credit-form-full">
+					{{ form_label(form.organisme) }}
+					{{ form_widget(form.organisme) }}
+					{{ form_errors(form.organisme) }}
+				</div>
+			</div>
+		</section>
+
+		<section class="credit-form-section" aria-labelledby="creditAmountsTitle">
+			<h2 id="creditAmountsTitle">Montants et échéance</h2>
+			<div class="credit-form-grid credit-form-grid-three">
+				<div>
+					{{ form_label(form.montantInitial) }}
+					{{ form_widget(form.montantInitial) }}
+					{{ form_errors(form.montantInitial) }}
+				</div>
+				<div>
+					{{ form_label(form.capitalRestant) }}
+					{{ form_widget(form.capitalRestant) }}
+					{{ form_errors(form.capitalRestant) }}
+				</div>
+				<div>
+					{{ form_label(form.tauxAnnuel) }}
+					<div class="credit-input-suffix">
+						{{ form_widget(form.tauxAnnuel) }}
+						<span>%</span>
+					</div>
+					{{ form_errors(form.tauxAnnuel) }}
+				</div>
+				<div>
+					{{ form_label(form.mensualite) }}
+					{{ form_widget(form.mensualite) }}
+					{{ form_errors(form.mensualite) }}
+				</div>
+				<div>
+					{{ form_label(form.assuranceMensuelle) }}
+					{{ form_widget(form.assuranceMensuelle) }}
+					{{ form_errors(form.assuranceMensuelle) }}
+				</div>
+			</div>
+		</section>
+
+		<section class="credit-form-section" aria-labelledby="creditDatesTitle">
+			<h2 id="creditDatesTitle">Période</h2>
+			<div class="credit-form-grid">
+				<div>
+					{{ form_label(form.dateDebut) }}
+					{{ form_widget(form.dateDebut) }}
+					{{ form_errors(form.dateDebut) }}
+				</div>
+				<div>
+					{{ form_label(form.dateFin) }}
+					{{ form_widget(form.dateFin) }}
+					{{ form_errors(form.dateFin) }}
+				</div>
+				<div class="credit-form-full">
+					{{ form_label(form.notes) }}
+					{{ form_widget(form.notes) }}
+					{{ form_errors(form.notes) }}
+				</div>
+			</div>
+		</section>
+
+		<div class="credit-form-actions">
+			{% if not hide_cancel|default(false) %}
+				<a href="{{ path('credit') }}" class="btn btn-secondary">Annuler</a>
+			{% endif %}
+			<button class="btn btn-success">
+				<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+				{{ button_label|default('Enregistrer') }}
+			</button>
 		</div>
 	</div>
 {{ form_end(form) }}

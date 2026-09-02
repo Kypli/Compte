@@ -7,6 +7,7 @@ use App\Entity\Category;
 use App\Entity\Operation;
 use App\Entity\OperationAction;
 use App\Entity\SubCategory;
+use App\Entity\User;
 
 use App\Form\CompteType;
 use App\Form\UserPreferenceType;
@@ -16,6 +17,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
 use App\Repository\OperationActionRepository;
 use App\Repository\SubCategoryRepository;
+use App\Repository\UserRepository;
 use App\Security\CompteVoter;
 
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -28,6 +30,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Form\FormError;
 
 /**
  * @IsGranted("ROLE_USER")
@@ -76,13 +79,15 @@ class CompteController extends AbstractController
 	private $oar;
 	private $catr;
 	private $scr;
+	private $ur;
 
 	public function __construct(
 		CompteRepository $cr,
 		OperationRepository $or,
 		OperationActionRepository $oar,
 		CategoryRepository $catr,
-		SubCategoryRepository $scr
+		SubCategoryRepository $scr,
+		UserRepository $ur
 	){
 		$this->navigation_max_year = 9999;
 		$this->navigation_min_year = 1000;
@@ -91,6 +96,7 @@ class CompteController extends AbstractController
 		$this->oar = $oar;
 		$this->catr = $catr;
 		$this->scr = $scr;
+		$this->ur = $ur;
 	}
 
 	// ****************
@@ -117,14 +123,25 @@ class CompteController extends AbstractController
 		$compte = new Compte();
 		$form = $this->createForm(CompteType::class, $compte);
 		$form->handleRequest($request);
+		$sharedUser = $this->resolveSharedUserFromForm($form);
 
 		if ($form->isSubmitted() && $form->isValid()){
 
-			$compte->addUser($this->getUser());
+			$compte->setOwner($this->getUser());
+			if (null !== $sharedUser){
+				$compte
+					->addUser($sharedUser)
+					->setUserSharing(
+						$sharedUser,
+						(string) ($form->get('users_access')->getData() ?: 'observer'),
+						(bool) $form->get('users_participant')->getData()
+					)
+				;
+			}
 
 			// Devient unique main si true
 			if ($compte->getMain() == true){
-				$user_comptes = $this->getUser()->getComptes();
+				$user_comptes = $this->cr->getComptesByUser($this->getUser());
 				foreach ($user_comptes as $c){
 					$c->setMain(false);
 					$this->cr->add($c, true);
@@ -418,7 +435,7 @@ class CompteController extends AbstractController
 	#[Route('/{id}/anomaly/{operation}/resolve', name: '_anomaly_resolve', methods: ['POST'])]
 	public function resolveAnomaly(Compte $compte, Operation $operation, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['resolved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -433,7 +450,7 @@ class CompteController extends AbstractController
 			return new JsonResponse(['resolved' => false, 'error' => "Cette operation n'est plus une anomalie."], Response::HTTP_CONFLICT);
 		}
 		$resolution = (string) $request->request->get('resolution');
-		if (!in_array($resolution, ['realize', 'delete', 'postpone'], true)){
+		if (!in_array($resolution, ['realize', 'delete', 'postpone', 'ignore', 'ignore_15_days'], true)){
 			return new JsonResponse(['resolved' => false, 'error' => 'Solution de correction invalide.'], Response::HTTP_BAD_REQUEST);
 		}
 
@@ -452,11 +469,20 @@ class CompteController extends AbstractController
 		$beforeSnapshot = $this->createOperationSnapshot($operation);
 		$actionDate = $this->nextOperationActionDate($compte->getId());
 		$actionType = 'delete' === $resolution ? 'del' : 'edit';
-		$reusableAction = $this->oar->findReusableAnomalyResolution($operation, $resolution);
+		$temporaryIgnoredUntil = 'ignore_15_days' === $resolution
+			? (new \DateTimeImmutable('today'))->modify('+15 days')
+			: null
+		;
+		$reusableAction = in_array($resolution, ['realize', 'delete'], true)
+			? $this->oar->findReusableAnomalyResolution($operation, $resolution)
+			: null
+		;
 		$operation
 			->setAnticipe('realize' === $resolution ? false : $operation->isAnticipe())
 			->setActif('delete' !== $resolution)
 			->setDate(null !== $futureDate ? \DateTime::createFromImmutable($futureDate) : $operation->getDate())
+			->setAnomalyIgnored('ignore' === $resolution)
+			->setAnomalyIgnoredUntil(null !== $temporaryIgnoredUntil ? \DateTime::createFromImmutable($temporaryIgnoredUntil) : null)
 			->setLastAction($actionType)
 			->setDateLastAction(clone $actionDate)
 		;
@@ -1035,7 +1061,7 @@ class CompteController extends AbstractController
 	#[Route("/{id}/settings", name: "_settings", methods: ["POST"])]
 	public function settings(Compte $compte, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return $this->json(['saved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -1049,7 +1075,7 @@ class CompteController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid()){
 			if ($compte->getMain()){
-				foreach ($this->getUser()->getComptes() as $userCompte){
+				foreach ($this->cr->getComptesByUser($this->getUser()) as $userCompte){
 					if ($compte->getId() !== $userCompte->getId()){
 						$userCompte->setMain(false);
 						$this->cr->add($userCompte);
@@ -1059,8 +1085,17 @@ class CompteController extends AbstractController
 
 			$this->cr->add($compte, true);
 
+			$freshForm = $this->createForm(CompteType::class, $compte, [
+				'action' => $this->generateUrl('compte_settings', ['id' => $compte->getId()]),
+				'method' => 'POST',
+			]);
+
 			return $this->json([
 				'saved' => true,
+				'form' => $this->renderView('compte/modal/settings/_form.html.twig', [
+					'account_settings_form' => $freshForm->createView(),
+					'compte' => $compte,
+				]),
 				'account' => [
 					'id' => $compte->getId(),
 					'libelle' => $compte->getLibelle(),
@@ -1075,8 +1110,174 @@ class CompteController extends AbstractController
 			'saved' => false,
 			'form' => $this->renderView('compte/modal/settings/_form.html.twig', [
 				'account_settings_form' => $form->createView(),
+				'compte' => $compte,
 			]),
 		], Response::HTTP_UNPROCESSABLE_ENTITY);
+	}
+
+	#[Route("/{id}/sharing/lookup", name: "_sharing_lookup", methods: ["POST"])]
+	public function sharingLookup(Compte $compte, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessAccountOwner($compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return $this->json(['found' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('account-sharing'.$compte->getId(), (string) $request->request->get('_token'))){
+			return $this->json(['found' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$code = trim((string) $request->request->get('code'));
+		$sharedUser = '' === $code ? null : $this->ur->findOneBy(['code' => $code]);
+		if (null === $sharedUser){
+			return $this->json(['found' => false, 'error' => 'Aucune personne ne correspond à ce code utilisateur.'], Response::HTTP_NOT_FOUND);
+		}
+		if ($sharedUser->getId() === $this->getUser()->getId()){
+			return $this->json(['found' => false, 'error' => 'Ce code correspond à votre propre profil.'], Response::HTTP_CONFLICT);
+		}
+
+		$isAssociated = $compte->getUsers()->contains($sharedUser);
+		if (!$isAssociated && $compte->getUsers()->count() >= Compte::MAX_ASSOCIATED_USERS){
+			return $this->json([
+				'found' => false,
+				'error' => 'Ce compte est déjà associé au maximum de 3 personnes.',
+			], Response::HTTP_CONFLICT);
+		}
+
+		return $this->json([
+			'found' => true,
+			'associated' => $isAssociated,
+			'access' => $isAssociated ? $compte->getUserAccessRole($sharedUser) : 'observer',
+			'participant' => $isAssociated && $compte->isUserParticipant($sharedUser),
+			'person' => [
+				'login' => $sharedUser->getUserIdentifier(),
+				'lastName' => $sharedUser->getProfil()?->getNom(),
+				'firstName' => $sharedUser->getProfil()?->getPrenom(),
+			],
+		]);
+	}
+
+	#[Route("/{id}/sharing", name: "_sharing_save", methods: ["POST"])]
+	public function sharingSave(Compte $compte, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessAccountOwner($compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return $this->json(['saved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('account-sharing'.$compte->getId(), (string) $request->request->get('_token'))){
+			return $this->json(['saved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+
+		$code = trim((string) $request->request->get('code'));
+		$sharedUser = '' === $code ? null : $this->ur->findOneBy(['code' => $code]);
+		if (null === $sharedUser){
+			return $this->json(['saved' => false, 'error' => 'Aucune personne ne correspond à ce code utilisateur.'], Response::HTTP_NOT_FOUND);
+		}
+		if ($sharedUser->getId() === $this->getUser()->getId()){
+			return $this->json(['saved' => false, 'error' => 'Vous êtes déjà associé à ce compte.'], Response::HTTP_CONFLICT);
+		}
+
+		$wasAssociated = $compte->getUsers()->contains($sharedUser);
+		if (!$wasAssociated && $compte->getUsers()->count() >= Compte::MAX_ASSOCIATED_USERS){
+			return $this->json([
+				'saved' => false,
+				'error' => 'Ce compte est déjà associé au maximum de 3 personnes.',
+			], Response::HTTP_CONFLICT);
+		}
+
+		$access = (string) $request->request->get('access', 'observer');
+		if (!in_array($access, ['none', 'observer', 'editor'], true)){
+			return $this->json(['saved' => false, 'error' => 'Droit d’accès invalide.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+		}
+
+		$compte
+			->addUser($sharedUser)
+			->setUserSharing($sharedUser, $access, $request->request->getBoolean('participant'))
+		;
+		$this->cr->add($compte, true);
+
+		return $this->json([
+			'saved' => true,
+			'updated' => $wasAssociated,
+			'sharing' => $this->renderView('compte/modal/settings/_sharing.html.twig', [
+				'compte' => $compte,
+			]),
+		]);
+	}
+
+	#[Route("/{id}/sharing/{user}/remove", name: "_sharing_remove", methods: ["POST"])]
+	public function sharingRemove(Compte $compte, #[MapEntity(id: 'user')] User $user, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessAccountOwner($compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return $this->json(['saved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('account-sharing'.$compte->getId(), (string) $request->request->get('_token'))){
+			return $this->json(['saved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+		if (!$compte->getUsers()->contains($user)){
+			return $this->json(['saved' => false, 'error' => 'Cette personne n’est pas associée au compte.'], Response::HTTP_NOT_FOUND);
+		}
+		if ($compte->isUserOwner($user)){
+			return $this->json(['saved' => false, 'error' => 'Transférez le compte avant de retirer son propriétaire.'], Response::HTTP_CONFLICT);
+		}
+
+		foreach ($this->or->findAssignedToUserForCompte($compte, $user) as $operation){
+			$operation->setAssignee(null);
+			$this->or->add($operation);
+		}
+		$compte->removeUser($user);
+		$this->cr->add($compte, true);
+
+		return $this->json([
+			'saved' => true,
+			'sharing' => $this->renderView('compte/modal/settings/_sharing.html.twig', [
+				'compte' => $compte,
+			]),
+		]);
+	}
+
+	#[Route("/{id}/sharing/{user}/transfer", name: "_sharing_transfer", methods: ["POST"])]
+	public function sharingTransfer(Compte $compte, #[MapEntity(id: 'user')] User $user, Request $request): JsonResponse
+	{
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessAccountOwner($compte);
+
+		if (!$request->isXmlHttpRequest()){
+			return $this->json(['saved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
+		}
+		if (!$this->isCsrfTokenValid('account-sharing'.$compte->getId(), (string) $request->request->get('_token'))){
+			return $this->json(['saved' => false, 'error' => 'Jeton de securite invalide.'], Response::HTTP_FORBIDDEN);
+		}
+		if (!$compte->getUsers()->contains($user)){
+			return $this->json(['saved' => false, 'error' => 'Cette personne n’est pas associée au compte.'], Response::HTTP_NOT_FOUND);
+		}
+		if ($compte->isUserOwner($user)){
+			return $this->json(['saved' => false, 'error' => 'Cette personne est déjà propriétaire du compte.'], Response::HTTP_CONFLICT);
+		}
+
+		$previousOwner = $compte->getOwner();
+		if (null !== $previousOwner){
+			$compte->setUserSharing($previousOwner, 'editor', $compte->isUserParticipant($previousOwner));
+		}
+		$compte
+			->setUserSharing($user, 'editor', $compte->isUserParticipant($user))
+			->setOwner($user)
+		;
+		$this->cr->add($compte, true);
+
+		return $this->json([
+			'saved' => true,
+			'ownerTransferred' => true,
+			'sharing' => $this->renderView('compte/modal/settings/_sharing.html.twig', [
+				'compte' => $compte,
+			]),
+		]);
 	}
 
 	/**
@@ -1085,7 +1286,7 @@ class CompteController extends AbstractController
 	#[Route("/{id}", name: "_delete", methods: ["POST"])]
 	public function delete(Compte $compte, Request $request): Response
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if ($this->isCsrfTokenValid('delete'.$compte->getId(), $request->request->get('_token'))) {
 			$this->cr->remove($compte, true);
@@ -1106,7 +1307,8 @@ class CompteController extends AbstractController
 	#[Route("/operation/{sc}/{year}/{month}/{sign}", name: "_operation", methods: ["POST"])]
 	public function operation_datas(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $sc->getCategory()->getCompte());
+		$compte = $sc->getCategory()->getCompte();
+		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
 
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -1116,8 +1318,20 @@ class CompteController extends AbstractController
 		$datas['subcategory_libelle'] = $sc->getLibelle();
 		$datas['category_libelle'] = $sc->getCategory()->getLibelle();
 		$datas['operations'] = $this->or->gestion($sc, $year, $month, $sign, $daysInMonth);
-		$datas['addRender'] = $this->operation_add($month, $year, $daysInMonth, $sign);
-		$datas['tBodyRender'] = $this->operation_tbody($datas['operations'], $month, $year, $daysInMonth, $sign);
+		$canEdit = $this->isGranted(CompteVoter::EDIT, $compte);
+		$datas['canEdit'] = $canEdit;
+		$accountUsers = $compte->getUsers()->toArray();
+		$participantUsers = array_values(array_filter(
+			$accountUsers,
+			fn (User $user): bool => $compte->isUserParticipant($user)
+		));
+		$datas['members'] = array_map(
+			fn (User $user): array => ['id' => $user->getId(), 'name' => $user->getUserName()],
+			$participantUsers
+		);
+		$canAssign = $canEdit && count($accountUsers) > 1 && count($datas['members']) > 0;
+		$datas['addRender'] = $this->operation_add($month, $year, $daysInMonth, $sign, $canAssign, $canEdit);
+		$datas['tBodyRender'] = $this->operation_tbody($datas['operations'], $month, $year, $daysInMonth, $sign, $canAssign, $canEdit);
 
 		return new JsonResponse($datas);
 	}
@@ -1130,7 +1344,7 @@ class CompteController extends AbstractController
 	#[Route("/operation/save/{sc}/{year}/{month}/{sign}", name: "_operation_save", methods: ["POST"])]
 	public function operation_save(SubCategory $sc, $year, $month, $sign, Request $request): Response
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $sc->getCategory()->getCompte());
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $sc->getCategory()->getCompte());
 
 		// Control request
 		if (!$request->isXmlHttpRequest()){ throw new HttpException('500', 'Requête ajax uniquement'); }
@@ -1178,10 +1392,34 @@ class CompteController extends AbstractController
 				continue;
 			}
 
-			$date = new \Datetime($ope['year'].'/'.$ope['month'].'/'.$ope['day']);
+			$operationYear = (int) ($ope['year'] ?? 0);
+			$operationMonth = (int) ($ope['month'] ?? 0);
+			$operationDay = (int) ($ope['day'] ?? 0);
+			if (
+				$operationYear < 1900
+				|| $operationYear > 2100
+				|| !checkdate($operationMonth, $operationDay, $operationYear)
+			){
+				return new JsonResponse(
+					['save' => false, 'error' => 'Date d’opération invalide.'],
+					Response::HTTP_BAD_REQUEST
+				);
+			}
+			$date = new \Datetime(sprintf('%04d-%02d-%02d', $operationYear, $operationMonth, $operationDay));
 			$number = $hasNumber ? (float) $numberValue : (float) $anticipatedValue;
 			$anticipe = !$hasNumber;
 			$comment = $ope['comment'] ?? null;
+			$assignee = null;
+			if (!empty($ope['assignee'])){
+				$assignee = $this->ur->find((int) $ope['assignee']);
+				if (
+					null === $assignee
+					|| !$sc->getCategory()->getCompte()->getUsers()->contains($assignee)
+					|| !$sc->getCategory()->getCompte()->isUserParticipant($assignee)
+				){
+					return new JsonResponse(['save' => false, 'error' => 'Personne attribuée invalide.'], Response::HTTP_CONFLICT);
+				}
+			}
 
 			// Edit
 			if (!empty($ope['id'])){
@@ -1190,7 +1428,8 @@ class CompteController extends AbstractController
 					$number !== (float) $ope_ent->getNumber() ||
 					$anticipe !== $ope_ent->isAnticipe() ||
 					$date->format('Y-m-d') !== $ope_ent->getDate()->format('Y-m-d') ||
-					$comment !== $ope_ent->getComment()
+					$comment !== $ope_ent->getComment() ||
+					$assignee?->getId() !== $ope_ent->getAssignee()?->getId()
 				;
 				if (!$changed){
 					continue;
@@ -1201,15 +1440,19 @@ class CompteController extends AbstractController
 			} else {
 				$beforeSnapshot = null;
 				$actionType = 'create';
-				$ope_ent = (new Operation())->setSubcategory($sc);
+				$ope_ent = new Operation();
 			}
 
 			$ope_ent
+				->setSubcategory($sc)
+				->setAssignee($assignee)
 				->setNumber($number)
 				->setDate($date)
 				->setComment($comment)
 				->setAnticipe($anticipe)
 				->setActif(true)
+				->setAnomalyIgnored(false)
+				->setAnomalyIgnoredUntil(null)
 				->setLastAction($actionType)
 				->setDateLastAction(clone $current_date)
 			;
@@ -1224,7 +1467,7 @@ class CompteController extends AbstractController
 	#[Route('/{id}/categories/reorder', name: '_category_reorder', methods: ['POST'])]
 	public function reorderCategories(Compte $compte, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['moved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -1301,7 +1544,7 @@ class CompteController extends AbstractController
 	#[Route('/{id}/subcategories/reorder', name: '_subcategory_reorder', methods: ['POST'])]
 	public function reorderSubCategories(Compte $compte, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['moved' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -1374,7 +1617,7 @@ class CompteController extends AbstractController
 	#[Route('/{id}/operation/action/{action}/undo', name: '_operation_action_undo', methods: ['POST'])]
 	public function undoOperationAction(Compte $compte, int $action, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['undo' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -1400,7 +1643,7 @@ class CompteController extends AbstractController
 	#[Route('/{id}/operation/actions/today/undo', name: '_operation_actions_today_undo', methods: ['POST'])]
 	public function undoTodayOperationActions(Compte $compte, Request $request): JsonResponse
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		if (!$request->isXmlHttpRequest()){
 			return new JsonResponse(['undo' => false, 'error' => 'Requete ajax uniquement.'], Response::HTTP_BAD_REQUEST);
@@ -1631,11 +1874,15 @@ class CompteController extends AbstractController
 	private function createOperationSnapshot(Operation $operation): array
 	{
 		return [
+			'subcategoryId' => $operation->getSubcategory()->getId(),
+			'assigneeId' => $operation->getAssignee()?->getId(),
 			'number' => $operation->getNumber(),
 			'anticipe' => $operation->isAnticipe(),
 			'date' => $operation->getDate()->format(DATE_ATOM),
 			'comment' => $operation->getComment(),
 			'actif' => $operation->isActif(),
+			'anomalyIgnored' => $operation->isAnomalyIgnored(),
+			'anomalyIgnoredUntil' => $operation->getAnomalyIgnoredUntil()?->format(DATE_ATOM),
 			'lastAction' => $operation->getLastAction(),
 			'dateLastAction' => $operation->getDateLastAction()->format(DATE_ATOM),
 		];
@@ -1643,12 +1890,24 @@ class CompteController extends AbstractController
 
 	private function restoreOperationSnapshot(Operation $operation, array $snapshot): void
 	{
+		if (isset($snapshot['subcategoryId'])){
+			$subCategory = $this->scr->find((int) $snapshot['subcategoryId']);
+			if (null !== $subCategory){
+				$operation->setSubcategory($subCategory);
+			}
+		}
+		$operation->setAssignee(
+			isset($snapshot['assigneeId']) ? $this->ur->find((int) $snapshot['assigneeId']) : null
+		);
+
 		$operation
 			->setNumber((float) $snapshot['number'])
 			->setAnticipe((bool) $snapshot['anticipe'])
 			->setDate(new \DateTime($snapshot['date']))
 			->setComment($snapshot['comment'])
 			->setActif((bool) $snapshot['actif'])
+			->setAnomalyIgnored((bool) ($snapshot['anomalyIgnored'] ?? false))
+			->setAnomalyIgnoredUntil(isset($snapshot['anomalyIgnoredUntil']) ? new \DateTime($snapshot['anomalyIgnoredUntil']) : null)
 			->setLastAction($snapshot['lastAction'])
 			->setDateLastAction(new \DateTime($snapshot['dateLastAction']))
 		;
@@ -1670,10 +1929,42 @@ class CompteController extends AbstractController
 		return null !== $value && !in_array((string) $value, ['', '0', 'NaN', 'Nan'], true);
 	}
 
+	private function denyAccessUnlessAccountOwner(Compte $compte): void
+	{
+		if (!$this->getUser() instanceof User || !$compte->isUserOwner($this->getUser())){
+			throw $this->createAccessDeniedException('Seul le propriétaire du compte peut gérer les personnes associées.');
+		}
+	}
+
+	private function resolveSharedUserFromForm($form): ?User
+	{
+		if (!$form->isSubmitted()){
+			return null;
+		}
+
+		$codeField = $form->get('users_code');
+		$code = trim((string) $codeField->getData());
+		if ('' === $code){
+			return null;
+		}
+
+		$sharedUser = $this->ur->findOneBy(['code' => $code]);
+		if (null === $sharedUser){
+			$codeField->addError(new FormError('Aucune personne ne correspond à ce code utilisateur.'));
+			return null;
+		}
+		if ($sharedUser->getId() === $this->getUser()->getId()){
+			$codeField->addError(new FormError('Vous êtes déjà associé à ce compte.'));
+			return null;
+		}
+
+		return $sharedUser;
+	}
+
 	/**
 	 * Renvoie le render d'une nouvelle opération
 	 */
-	public function operation_add($month, $year, $daysInMonth, $sign)
+	public function operation_add($month, $year, $daysInMonth, $sign, bool $canAssign = false, bool $canEdit = true)
 	{
 		return $this->render('compte/modal/operations/operation/_add.html.twig', [
 			'sign' => $sign,
@@ -1681,13 +1972,15 @@ class CompteController extends AbstractController
 			'month' => (int) $month,
 			'daysInMonth' => $daysInMonth,
 			'day' => date('n') == $month ? date('d') : 1,
+			'canAssign' => $canAssign,
+			'canEdit' => $canEdit,
 		])->getContent();
 	}
 
 	/**
 	 * Renvoie le render du tbody
 	 */
-	public function operation_tbody($operations, $month, $year, $daysInMonth, $sign)
+	public function operation_tbody($operations, $month, $year, $daysInMonth, $sign, bool $canAssign = false, bool $canEdit = true)
 	{
 		return $this->render('compte/modal/operations/operation/_tbody.html.twig', [
 			'operations' => $operations,
@@ -1696,6 +1989,8 @@ class CompteController extends AbstractController
 			'month' => (int) $month,
 			'daysInMonth' => $daysInMonth,
 			'day' => date('n') == $month ? date('d') : 1,
+			'canAssign' => $canAssign,
+			'canEdit' => $canEdit,
 		])->getContent();
 	}
 
@@ -1778,7 +2073,7 @@ class CompteController extends AbstractController
 	#[Route("/{compte}/cat/save/{year}", name: "_category_save", methods: ["POST"])]
 	public function category_save(Compte $compte, $year, Request $request): Response
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 
 		// Control request
 		if (!$request->isXmlHttpRequest()){
@@ -1886,7 +2181,7 @@ class CompteController extends AbstractController
 		Request $request
 	): Response
 	{
-		$this->denyAccessUnlessGranted(CompteVoter::ACCESS, $compte);
+		$this->denyAccessUnlessGranted(CompteVoter::EDIT, $compte);
 		if ($cat->getCompte()->getId() !== $compte->getId()){
 			throw $this->createNotFoundException('Categorie introuvable pour ce compte.');
 		}

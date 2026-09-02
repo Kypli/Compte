@@ -1,4 +1,5 @@
 {% set preference_sections = sections|default(['table', 'money_format', 'money_currency', 'page_background', 'table_palette']) %}
+{% set show_editable_border_control = show_editable_border_control is defined ? show_editable_border_control : true %}
 {% set money_currency_value = form.moneyCurrency is defined ? form.moneyCurrency.vars.value|default('EUR') : 'EUR' %}
 {% set money_currency_symbols = {'EUR': '&euro;', 'USD': '$', 'GBP': '&pound;', 'CHF': 'CHF', 'JPY': '&yen;', 'CAD': 'CA$'} %}
 {% set money_currency_symbol = money_currency_symbols[money_currency_value]|default('&euro;') %}
@@ -19,10 +20,14 @@
 			{{ form_label(form.compteGenreShow) }}
 			{{ form_widget(form.compteGenreShow, {'attr': {'class': 'checkType preference-checkbox'}}) }}
 		</div>
-		<div class="preference-toggle-row">
-			{{ form_label(form.showEditableBorder) }}
-			{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
-		</div>
+		{% if show_editable_border_control %}
+			<div class="preference-toggle-row">
+				{{ form_label(form.showEditableBorder) }}
+				{{ form_widget(form.showEditableBorder, {'attr': {'class': 'checkType preference-checkbox'}}) }}
+			</div>
+		{% else %}
+			{{ form_widget(form.showEditableBorder, {'attr': {'hidden': 'hidden', 'aria-hidden': 'true'}}) }}
+		{% endif %}
 		<div class="preference-toggle-row">
 			{{ form_label(form.anchorTableTotals) }}
 			{{ form_widget(form.anchorTableTotals, {'attr': {'class': 'checkType preference-checkbox'}}) }}

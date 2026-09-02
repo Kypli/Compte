@@ -52,6 +52,16 @@
 								</div>
 								<div class="anomaly-solution">
 									<span class="anomaly-solution-label">Choisir une correction</span>
+									<button
+										type="button"
+										class="resolve-anomaly-button resolve-anomaly-realize"
+										data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+										data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+										data-resolution="realize"
+									>
+										<i class="fa-solid fa-check" aria-hidden="true"></i>
+										<span>Marquer comme réalisée</span>
+									</button>
 									<div class="anomaly-postpone">
 										<label>
 											<input
@@ -72,16 +82,28 @@
 											<span>Reporter</span>
 										</button>
 									</div>
-									<button
-										type="button"
-										class="resolve-anomaly-button resolve-anomaly-realize"
-										data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
-										data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
-										data-resolution="realize"
-									>
-										<i class="fa-solid fa-check" aria-hidden="true"></i>
-										<span>Marquer comme réalisée</span>
-									</button>
+									<div class="anomaly-ignore-actions">
+										<button
+											type="button"
+											class="resolve-anomaly-button resolve-anomaly-ignore"
+											data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+											data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+											data-resolution="ignore"
+										>
+											<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
+											<span>Ignorer</span>
+										</button>
+										<button
+											type="button"
+											class="resolve-anomaly-button resolve-anomaly-ignore"
+											data-url="{{ path('compte_anomaly_resolve', {'id': compte.id, 'operation': anomaly.id}) }}"
+											data-token="{{ csrf_token('resolve-operation-anomaly' ~ anomaly.id) }}"
+											data-resolution="ignore_15_days"
+										>
+											<i class="fa-solid fa-clock" aria-hidden="true"></i>
+											<span>Ignorer 15 jours</span>
+										</button>
+									</div>
 									<button
 										type="button"
 										class="resolve-anomaly-button resolve-anomaly-delete"

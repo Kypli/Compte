@@ -18,6 +18,7 @@
 			<div class="modal-body">
 				{{ include(form_template, {
 					'form': form,
+					'hide_cancel': true,
 					'form_options': {
 						'action': path('tableau_bord'),
 						'attr': {'id': form_id}

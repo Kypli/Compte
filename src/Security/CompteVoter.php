@@ -11,10 +11,11 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class CompteVoter extends Voter
 {
 	public const ACCESS = 'COMPTE_ACCESS';
+	public const EDIT = 'COMPTE_EDIT';
 
 	protected function supports(string $attribute, mixed $subject): bool
 	{
-		return self::ACCESS === $attribute && $subject instanceof Compte;
+		return in_array($attribute, [self::ACCESS, self::EDIT], true) && $subject instanceof Compte;
 	}
 
 	protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -24,8 +25,11 @@ class CompteVoter extends Voter
 			return false;
 		}
 
-		if (in_array('ROLE_ADMIN', $user->getRoles(), true) || $subject->getUsers()->contains($user)){
+		if (in_array('ROLE_ADMIN', $user->getRoles(), true) || $subject->isUserOwner($user)){
 			return true;
+		}
+		if ($subject->getUsers()->contains($user)){
+			return $this->roleAllows($attribute, $subject->getUserAccessRole($user));
 		}
 
 		if (null === $user->getId()){
@@ -34,10 +38,15 @@ class CompteVoter extends Voter
 
 		foreach ($subject->getUsers() as $owner){
 			if ($owner->getId() === $user->getId()){
-				return true;
+				return $this->roleAllows($attribute, $subject->getUserAccessRole($owner));
 			}
 		}
 
 		return false;
+	}
+
+	private function roleAllows(string $attribute, string $role): bool
+	{
+		return self::EDIT === $attribute ? 'editor' === $role : 'none' !== $role;
 	}
 }

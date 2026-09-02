@@ -1,4 +1,11 @@
-{{ form_start(account_settings_form, {'attr': {'id': 'accountSettingsForm', 'class': 'account-settings-form', 'novalidate': 'novalidate'}}) }}
+{{ form_start(account_settings_form, {'attr': {
+	'id': 'accountSettingsForm',
+	'class': 'account-settings-form',
+	'novalidate': 'novalidate',
+	'data-account-sharing-lookup-url': path('compte_sharing_lookup', {'id': compte.id}),
+	'data-account-sharing-save-url': path('compte_sharing_save', {'id': compte.id}),
+	'data-account-sharing-token': csrf_token('account-sharing' ~ compte.id)
+}}) }}
 	<div class="account-settings-form-errors">{{ form_errors(account_settings_form) }}</div>
 	<div class="account-settings-grid">
 		<div class="account-settings-field">
@@ -26,11 +33,66 @@
 			{{ form_widget(account_settings_form.decouvert) }}
 			{{ form_errors(account_settings_form.decouvert) }}
 		</div>
-		<div class="account-settings-field">
+		{% if compte.userOwner(app.user) %}
+		<div class="account-settings-field" data-account-sharing-manager>
 			{{ form_label(account_settings_form.users_code) }}
 			{{ form_widget(account_settings_form.users_code) }}
 			{{ form_errors(account_settings_form.users_code) }}
-			<small class="account-settings-help">Le code utilisateur se trouve dans la page Profil du g&eacute;rant.</small>
+			<small class="account-settings-help">Le code utilisateur se trouve dans la page Profil de la personne. Maximum 3 personnes, propri&eacute;taire compris.</small>
+		</div>
+		<div class="account-settings-sharing-invite" data-account-sharing-options data-account-sharing-manager hidden>
+			<div class="account-settings-sharing-invite-heading">
+				<i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+				<span>Choisir le r&ocirc;le de cette personne</span>
+			</div>
+			<div class="account-settings-sharing-preview" data-account-sharing-preview hidden>
+				<span class="account-settings-sharing-preview-avatar" data-account-sharing-avatar aria-hidden="true"></span>
+				<span class="account-settings-sharing-preview-detail">
+					<small>Login</small>
+					<strong data-account-sharing-login></strong>
+				</span>
+				<span class="account-settings-sharing-preview-detail">
+					<small>Nom</small>
+					<strong data-account-sharing-last-name></strong>
+				</span>
+				<span class="account-settings-sharing-preview-detail">
+					<small>Pr&eacute;nom</small>
+					<strong data-account-sharing-first-name></strong>
+				</span>
+			</div>
+			<p class="account-settings-sharing-feedback" data-account-sharing-feedback role="status" aria-live="polite"></p>
+			<div class="account-settings-sharing-choice">
+				<span class="account-settings-sharing-label">{{ form_label(account_settings_form.users_access) }}</span>
+				{{ form_widget(account_settings_form.users_access) }}
+				{{ form_errors(account_settings_form.users_access) }}
+			</div>
+			<label class="account-settings-participant-control" for="{{ account_settings_form.users_participant.vars.id }}">
+				{{ form_widget(account_settings_form.users_participant) }}
+				<span>
+					<strong>Participant</strong>
+					<small>Cette personne peut recevoir des op&eacute;rations attribu&eacute;es.</small>
+				</span>
+			</label>
+			{{ form_errors(account_settings_form.users_participant) }}
+			<div class="account-settings-sharing-actions">
+				<button type="button" class="btn btn-success" data-account-sharing-validate disabled>
+					<i class="fa-solid fa-user-check" data-account-sharing-validate-icon aria-hidden="true"></i>
+					<i class="fa-solid fa-spinner fa-spin" data-account-sharing-validate-spinner aria-hidden="true" hidden></i>
+					<span data-account-sharing-validate-label>Associer cette personne</span>
+				</button>
+			</div>
+		</div>
+		{% else %}
+		<div hidden aria-hidden="true">
+			{{ form_widget(account_settings_form.users_code) }}
+			{{ form_widget(account_settings_form.users_access) }}
+			{{ form_widget(account_settings_form.users_participant) }}
+		</div>
+		{% endif %}
+		<div class="account-settings-sharing-readonly" data-account-sharing-readonly {% if compte.userOwner(app.user) %}hidden{% endif %}>
+			<i class="fa-solid fa-lock" aria-hidden="true"></i>
+			<span>Seul le propri&eacute;taire peut ajouter, retirer ou modifier les personnes associ&eacute;es.</span>
 		</div>
 	</div>
+	{{ include('compte/modal/settings/_sharing.html.twig') }}
 {{ form_end(account_settings_form) }}

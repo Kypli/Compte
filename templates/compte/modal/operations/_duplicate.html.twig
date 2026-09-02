@@ -1,0 +1,43 @@
+<div
+	id="modalOperationDuplicate"
+	class="modal fade"
+	tabindex="-1"
+	role="dialog"
+	aria-labelledby="modalOperationDuplicateTitle"
+	aria-hidden="true"
+>
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content operation-duplicate-modal">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalOperationDuplicateTitle">Dupliquer l'opération</h5>
+				<button
+					type="button"
+					class="close operation-duplicate-close operationDuplicateDismiss"
+					title="Fermer"
+					aria-label="Fermer"
+				>
+					<i class="fas fa-times" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="operation-duplicate-summary" data-duplicate-summary></div>
+				<label class="operation-duplicate-select-all" data-duplicate-select-all>
+					<input type="checkbox" id="operationDuplicateAll">
+					<span>Tout sélectionner</span>
+				</label>
+				<div class="operation-duplicate-months" data-duplicate-months></div>
+				<p class="operation-duplicate-empty" data-duplicate-empty hidden>Aucun mois restant disponible sur cette année.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-secondary operation-duplicate-cancel operationDuplicateDismiss">
+					<i class="fas fa-times" aria-hidden="true"></i>
+					Annuler
+				</button>
+				<button type="button" class="btn btn-success" id="operationDuplicateApply">
+					<i class="fas fa-check" aria-hidden="true"></i>
+					Valider la duplication
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

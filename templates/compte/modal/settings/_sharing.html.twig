@@ -1,0 +1,106 @@
+{% set member_count = compte.users|length %}
+{% set max_member_count = constant('App\\Entity\\Compte::MAX_ASSOCIATED_USERS') %}
+{% set can_manage_sharing = compte.userOwner(app.user) %}
+<section class="account-settings-sharing{{ member_count >= max_member_count ? ' is-at-limit' : '' }}" aria-labelledby="accountSettingsSharingTitle" data-account-sharing-list>
+	<div class="account-settings-sharing-heading">
+		<span class="account-settings-sharing-icon" aria-hidden="true">
+			<i class="fa-solid fa-people-group"></i>
+		</span>
+		<span class="account-settings-sharing-title">
+			<strong id="accountSettingsSharingTitle">{{ member_count == 1 ? 'Personne associ&eacute;e' : 'Personnes associ&eacute;es' }}</strong>
+			<small>Partage du budget et r&ocirc;les de chacun</small>
+		</span>
+		<span class="account-settings-sharing-count" title="3 personnes maximum">{{ member_count }} / {{ max_member_count }}</span>
+	</div>
+	<ul class="account-settings-members">
+		{% for member in compte.users %}
+			{% set member_is_owner = compte.userOwner(member) %}
+			<li class="{{ member_is_owner ? 'is-owner' : '' }}">
+				<span class="account-settings-member-avatar" aria-hidden="true">{{ member.userIdentifier|slice(0, 1)|upper }}</span>
+				<span class="account-settings-member-identity">
+					<strong>{{ member.userIdentifier }}</strong>
+					<small>{{ member.id == app.user.id ? 'Votre profil' : 'Profil partag&eacute;' }}</small>
+				</span>
+				<span class="account-settings-member-controls">
+					<span class="account-settings-member-badges">
+						{% if member_is_owner %}
+							<span class="account-settings-member-role is-owner" title="Propriétaire du compte">
+								<i class="fa-solid fa-key" aria-hidden="true"></i>
+								Propri&eacute;taire
+							</span>
+						{% else %}
+							<span class="account-settings-member-role is-{{ compte.userAccessRole(member) }}" title="Accès de {{ member.userIdentifier }}">
+								<i class="fa-solid {{ compte.userAccessRole(member) == 'editor' ? 'fa-pen' : (compte.userAccessRole(member) == 'observer' ? 'fa-eye' : 'fa-ban') }}" aria-hidden="true"></i>
+								{{ compte.userAccessRoleLabel(member) }}
+							</span>
+						{% endif %}
+						{% if compte.userParticipant(member) %}
+							<span class="account-settings-member-role is-participant" title="{{ member.userIdentifier }} participe au budget">
+								<i class="fa-solid fa-user-check" aria-hidden="true"></i>
+								Participant
+							</span>
+						{% endif %}
+					</span>
+					{% if can_manage_sharing and not member_is_owner %}
+						<span class="account-settings-member-actions">
+							<button
+								type="button"
+								class="account-settings-member-action is-edit"
+								data-account-sharing-member-action="edit"
+								data-account-sharing-member-code="{{ member.code }}"
+								title="Modifier les droits de {{ member.userIdentifier }}"
+								aria-label="Modifier les droits de {{ member.userIdentifier }}"
+							>
+								<i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+							</button>
+							<button
+								type="button"
+								class="account-settings-member-action is-transfer"
+								data-account-sharing-member-action="transfer"
+								data-account-sharing-member-name="{{ member.userIdentifier }}"
+								data-account-sharing-action-url="{{ path('compte_sharing_transfer', {'id': compte.id, 'user': member.id}) }}"
+								title="Transférer le compte à {{ member.userIdentifier }}"
+								aria-label="Transférer le compte à {{ member.userIdentifier }}"
+							>
+								<i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
+							</button>
+							<button
+								type="button"
+								class="account-settings-member-action is-remove"
+								data-account-sharing-member-action="remove"
+								data-account-sharing-member-name="{{ member.userIdentifier }}"
+								data-account-sharing-action-url="{{ path('compte_sharing_remove', {'id': compte.id, 'user': member.id}) }}"
+								title="Retirer {{ member.userIdentifier }} du compte"
+								aria-label="Retirer {{ member.userIdentifier }} du compte"
+							>
+								<i class="fa-solid fa-user-minus" aria-hidden="true"></i>
+							</button>
+						</span>
+					{% endif %}
+				</span>
+			</li>
+		{% endfor %}
+	</ul>
+	{% if can_manage_sharing %}
+		<div class="account-sharing-confirm-overlay" data-account-sharing-confirm aria-hidden="true" hidden>
+			<div class="account-sharing-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="accountSharingConfirmTitle" aria-describedby="accountSharingConfirmDescription">
+				<span class="account-sharing-confirm-icon" data-account-sharing-confirm-icon aria-hidden="true">
+					<i class="fa-solid fa-user-gear"></i>
+				</span>
+				<div class="account-sharing-confirm-copy">
+					<small>Gestion du compte</small>
+					<h4 id="accountSharingConfirmTitle" data-account-sharing-confirm-title></h4>
+					<p id="accountSharingConfirmDescription" data-account-sharing-confirm-description></p>
+				</div>
+				<div class="account-sharing-confirm-actions">
+					<button type="button" class="btn btn-dark" data-account-sharing-confirm-cancel>Annuler</button>
+					<button type="button" class="btn" data-account-sharing-confirm-submit>
+						<i class="fa-solid fa-check" data-account-sharing-confirm-submit-icon aria-hidden="true"></i>
+						<i class="fa-solid fa-spinner fa-spin" data-account-sharing-confirm-submit-spinner aria-hidden="true" hidden></i>
+						<span data-account-sharing-confirm-submit-label>Confirmer</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</section>

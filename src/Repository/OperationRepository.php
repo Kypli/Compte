@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Compte;
 use App\Entity\Operation;
+use App\Entity\User;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -104,6 +106,8 @@ class OperationRepository extends ServiceEntityRepository
 			->andWhere('x.anticipe = true')
 			->andWhere('x.actif = true')
 			->andWhere('x.date < :today')
+			->andWhere('x.anomalyIgnored = false')
+			->andWhere('x.anomalyIgnoredUntil IS NULL OR x.anomalyIgnoredUntil < :today')
 			->setParameter('compte', $compteId)
 			->setParameter('today', new \DateTimeImmutable('today'))
 			->orderBy('x.date', 'ASC')
@@ -124,6 +128,7 @@ class OperationRepository extends ServiceEntityRepository
 		return $this->createQueryBuilder('x')
 			->leftjoin('x.subcategory', 'sc')
 			->leftjoin('sc.category', 'ca')
+			->leftJoin('x.assignee', 'assignee')
 
 			->select([
 				'x.id',
@@ -133,6 +138,8 @@ class OperationRepository extends ServiceEntityRepository
 				'YEAR(x.date) as year',
 				'x.anticipe',
 				'x.comment',
+				'IDENTITY(x.assignee) as assigneeId',
+				'assignee.userName as assigneeName',
 			])
 
 			->where('sc.id = :sc')
@@ -151,6 +158,23 @@ class OperationRepository extends ServiceEntityRepository
 
 			->getQuery()
 			->getArrayResult()
+		;
+	}
+
+	/**
+	 * @return Operation[]
+	 */
+	public function findAssignedToUserForCompte(Compte $compte, User $user): array
+	{
+		return $this->createQueryBuilder('operation')
+			->leftJoin('operation.subcategory', 'subcategory')
+			->leftJoin('subcategory.category', 'category')
+			->where('category.compte = :compte')
+			->andWhere('operation.assignee = :user')
+			->setParameter('compte', $compte)
+			->setParameter('user', $user)
+			->getQuery()
+			->getResult()
 		;
 	}
 

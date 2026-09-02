@@ -1,0 +1,29 @@
+<main
+	class="error-page error-page-{{ error_code }}"
+	data-error-page
+	data-error-redirect-url="{{ path('tableau_bord') }}"
+	data-error-redirect-delay="8"
+>
+	<div class="error-page-content">
+		<div class="error-page-status" aria-hidden="true">
+			<span class="error-page-code">{{ error_code }}</span>
+			<span class="error-page-icon">
+				<i class="fa-solid {{ error_icon }}"></i>
+			</span>
+		</div>
+
+		<p class="error-page-label">{{ error_label }}</p>
+		<h1 class="error-page-title">{{ error_title }}</h1>
+		<p class="error-page-message">{{ error_message }}</p>
+
+		<a class="error-page-action" href="{{ path('tableau_bord') }}">
+			<i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+			<span>Retour au tableau de bord</span>
+		</a>
+
+		<p class="error-page-redirect" role="status">
+			Redirection automatique dans
+			<strong data-error-countdown>8 secondes</strong>.
+		</p>
+	</div>
+</main>

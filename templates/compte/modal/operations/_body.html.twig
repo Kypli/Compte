@@ -1,6 +1,7 @@
 <div class="modal-body pt-1">
 	<table id="operation_tab" class="m-1 p-1 mt-2">
 	<thead>
+		{% if can_edit_compte %}
 		<tr class="mb-2">
 			<th colspan="6" class="th_actions">
 				<div class="row">
@@ -71,6 +72,16 @@
 				</div>
 			</th>
 		</tr>
+		{% else %}
+		<tr class="operation-readonly-toolbar">
+			<th colspan="6">
+				<span class="operation-readonly-notice">
+					<i class="fa-solid fa-eye" aria-hidden="true"></i>
+					Consultation uniquement
+				</span>
+			</th>
+		</tr>
+		{% endif %}
 		<tr>
 			<th class="p-1">Montant</th>
 			<th class="th_switch p-1"></th>

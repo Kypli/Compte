@@ -1,22 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mobilier{% endblock %}
+{% block title %}Bien mobilier{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('patrimoine') }}
+{% endblock %}
 
 {% block body %}
-	<h1>Mobilier</h1>
+	<div class="container patrimoine-page">
+		{% include('partiel/_h1.html.twig') with {'text': mobilier.libelle} %}
 
-	<table class="table">
-		<tbody>
-			<tr>
-				<th>Id</th>
-				<td>{{ mobilier.id }}</td>
-			</tr>
-		</tbody>
-	</table>
+		<table class="table patrimoine-table patrimoine-detail">
+			<tbody>
+				<tr>
+					<th>Valeur</th>
+					<td>{{ mobilier.valeur|money_display(app.user.preferences.moneyDisplayFormat|default('comma'), app.user.preferences.moneyCurrency|default('EUR'), app.user.preferences.moneyTrimZeros|default(false), (app.user.preferences.moneyShowZeroDecimals ?? true)) }}</td>
+				</tr>
+				<tr>
+					<th>Catégorie</th>
+					<td>{{ mobilier.categorie|default('') }}</td>
+				</tr>
+				<tr>
+					<th>Notes</th>
+					<td>{{ mobilier.description|nl2br }}</td>
+				</tr>
+			</tbody>
+		</table>
 
-	<a href="{{ path('mobilier') }}">Retour à la liste</a>
-
-	<a href="{{ path('mobilier_edit', {'id': mobilier.id}) }}">Modifier</a>
-
-	{{ include('mobilier/_delete_form.html.twig') }}
+		<div class="patrimoine-form-actions patrimoine-detail">
+			<a href="{{ path('immobilier') }}" class="btn btn-secondary">Retour</a>
+			<a href="{{ path('mobilier_edit', {'id': mobilier.id}) }}" class="btn btn-primary">Modifier</a>
+		</div>
+	</div>
 {% endblock %}

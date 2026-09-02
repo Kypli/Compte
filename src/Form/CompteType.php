@@ -10,6 +10,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
@@ -102,14 +103,50 @@ class CompteType extends AbstractType
 				'users_code',
 				TextType::class,
 				[
-					'label' => "Ajouter d'autres gérants* pour ce compte",
+					'label' => "Ajouter une personne au compte",
 					'required' => false,
 					'mapped' => false,
 					'attr' => [
 						'class' => 'form-control',
-						'placeholder' => 'Insérer le code utilisateur du gérant ici',
+						'placeholder' => 'Code utilisateur',
+						'maxlength' => 8,
+						'autocomplete' => 'off',
+						'spellcheck' => 'false',
 					],
 
+				]
+			)
+			->add(
+				'users_access',
+				ChoiceType::class,
+				[
+					'label' => "Accès au compte",
+					'required' => false,
+					'mapped' => false,
+					'placeholder' => false,
+					'data' => 'observer',
+					'expanded' => true,
+					'multiple' => false,
+					'choices' => [
+						'Observateur' => 'observer',
+						'Éditeur' => 'editor',
+						'Aucun' => 'none',
+					],
+					'attr' => [
+						'class' => 'account-sharing-access-options',
+					],
+				]
+			)
+			->add(
+				'users_participant',
+				CheckboxType::class,
+				[
+					'label' => 'Participant',
+					'required' => false,
+					'mapped' => false,
+					'attr' => [
+						'class' => 'form-check-input',
+					],
 				]
 			)
 		;

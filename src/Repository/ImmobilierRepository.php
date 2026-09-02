@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Immobilier;
+use App\Entity\User;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -40,28 +41,29 @@ class ImmobilierRepository extends ServiceEntityRepository
 		}
 	}
 
-//    /**
-//     * @return Immobilier[] Returns an array of Immobilier objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('i.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+	/**
+	 * @return Immobilier[]
+	 */
+	public function findByUser(User $user): array
+	{
+		return $this->createQueryBuilder('immobilier')
+			->andWhere('immobilier.user = :user')
+			->setParameter('user', $user)
+			->orderBy('immobilier.libelle', 'ASC')
+			->addOrderBy('immobilier.id', 'ASC')
+			->getQuery()
+			->getResult()
+		;
+	}
 
-//    public function findOneBySomeField($value): ?Immobilier
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+	public function sumValueByUser(User $user): float
+	{
+		return (float) $this->createQueryBuilder('immobilier')
+			->select('COALESCE(SUM(immobilier.valeur), 0)')
+			->andWhere('immobilier.user = :user')
+			->setParameter('user', $user)
+			->getQuery()
+			->getSingleScalarResult()
+		;
+	}
 }

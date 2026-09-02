@@ -1,16 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier un crédit{% endblock %}
+{% block title %}Modifier {{ credit.libelle }}{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('credit') }}
+{% endblock %}
 
 {% block body %}
-	<div class="container">
-
-		{% include('partiel/_h1.html.twig') with {'text': 'Modifier un crédit'} %}
-
-		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
-
-		{{ include('credit/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
-
-		{{ include('credit/_delete_form.html.twig') }}
+	<div class="container credit-page credit-editor-page">
+		<header class="credit-editor-header">
+			<a href="{{ path('credit') }}" class="credit-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Mes crédits</a>
+			{% include('partiel/_h1.html.twig') with {'text': 'Modifier le crédit'} %}
+			<p>{{ credit.libelle }}</p>
+		</header>
+		{{ include('credit/_form.html.twig', {'button_label': 'Enregistrer les modifications'}) }}
+		<div class="credit-danger-zone">
+			<div>
+				<strong>Supprimer ce crédit</strong>
+				<small>Cette action est définitive et retire tout son historique de suivi.</small>
+			</div>
+			{{ include('credit/_delete_form.html.twig') }}
+		</div>
 	</div>
 {% endblock %}

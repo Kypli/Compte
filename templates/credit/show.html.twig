@@ -1,22 +1,70 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Credit{% endblock %}
+{% block title %}{{ credit.libelle }}{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('credit') }}
+{% endblock %}
 
 {% block body %}
-	<h1>Credit</h1>
+	{% set money_format = app.user.preferences.moneyDisplayFormat|default('comma') %}
+	{% set money_currency = app.user.preferences.moneyCurrency|default('EUR') %}
+	{% set money_trim_zeros = app.user.preferences.moneyTrimZeros|default(false) %}
+	{% set money_show_zero_decimals = app.user.preferences.moneyShowZeroDecimals ?? true %}
+	<div class="container credit-page credit-detail-page">
+		<header class="credit-detail-header">
+			<div>
+				<a href="{{ path('credit') }}" class="credit-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Mes crédits</a>
+				<h1>{{ credit.libelle }}</h1>
+				<p>{{ credit.typeLabel }}{% if credit.organisme %} · {{ credit.organisme }}{% endif %}</p>
+			</div>
+			<a href="{{ path('credit_edit', {'id': credit.id}) }}" class="btn btn-primary">
+				<i class="fa-solid fa-pen" aria-hidden="true"></i>
+				Modifier
+			</a>
+		</header>
 
-	<table class="table">
-		<tbody>
-			<tr>
-				<th>Id</th>
-				<td>{{ credit.id }}</td>
-			</tr>
-		</tbody>
-	</table>
+		<div class="credit-detail-summary">
+			<div>
+				<span>Capital restant dû</span>
+				<strong>{{ credit.capitalRestant|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+			</div>
+			<div>
+				<span>Charge mensuelle</span>
+				<strong>{{ credit.coutMensuel|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+			</div>
+			<div>
+				<span>Capital remboursé</span>
+				<strong>{{ credit.montantRembourse|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</strong>
+			</div>
+		</div>
 
-	<a href="{{ path('credit_index') }}">back to list</a>
+		<section class="credit-detail-section" aria-labelledby="creditProgressTitle">
+			<div class="credit-detail-section-heading">
+				<h2 id="creditProgressTitle">Avancement</h2>
+				<strong>{{ credit.progressPercentage|number_format(1, ',', ' ') }} %</strong>
+			</div>
+			<div class="credit-progress is-large" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ credit.progressPercentage }}">
+				<span style="width: {{ credit.progressPercentage }}%"></span>
+			</div>
+		</section>
 
-	<a href="{{ path('credit_edit', {'id': credit.id}) }}">edit</a>
-
-	{{ include('credit/_delete_form.html.twig') }}
+		<section class="credit-detail-section" aria-labelledby="creditDetailsTitle">
+			<h2 id="creditDetailsTitle">Détails du crédit</h2>
+			<dl class="credit-detail-grid">
+				<div><dt>État</dt><dd><span class="credit-status {{ credit.actif ? 'is-active' : 'is-closed' }}">{{ credit.actif ? 'Actif' : 'Terminé' }}</span></dd></div>
+				<div><dt>Montant emprunté</dt><dd>{{ credit.montantInitial|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</dd></div>
+				<div><dt>Mensualité hors assurance</dt><dd>{{ credit.mensualite|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</dd></div>
+				<div><dt>Assurance mensuelle</dt><dd>{{ (credit.assuranceMensuelle ?? 0)|money_display(money_format, money_currency, money_trim_zeros, money_show_zero_decimals) }}</dd></div>
+				<div><dt>Taux annuel</dt><dd>{{ credit.tauxAnnuel is not null ? credit.tauxAnnuel|number_format(3, ',', ' ') ~ ' %' : 'Non renseigné' }}</dd></div>
+				<div><dt>Date de début</dt><dd>{{ credit.dateDebut ? credit.dateDebut|date('d/m/Y') : 'Non renseignée' }}</dd></div>
+				<div><dt>Date de fin prévue</dt><dd>{{ credit.dateFin ? credit.dateFin|date('d/m/Y') : 'Non renseignée' }}</dd></div>
+				<div><dt>Organisme prêteur</dt><dd>{{ credit.organisme|default('Non renseigné') }}</dd></div>
+			</dl>
+			{% if credit.notes %}
+				<div class="credit-notes"><strong>Notes</strong><p>{{ credit.notes|nl2br }}</p></div>
+			{% endif %}
+		</section>
+	</div>
 {% endblock %}

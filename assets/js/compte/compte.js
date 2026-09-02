@@ -1294,7 +1294,10 @@ $(document).ready(function(){
 			}
 		})
 		datas.classList.add(`table-palette-${preferences.tablePalette || 'classic'}`)
-		datas.classList.toggle('hide-editable-border', preferences.showEditableBorder === false)
+		datas.classList.toggle(
+			'hide-editable-border',
+			datas.dataset.accountCanEdit !== '1' || preferences.showEditableBorder === false
+		)
 		if (typeof preferences.anchorTableTotals === 'boolean') {
 			datas.classList.toggle('anchor-table-totals', preferences.anchorTableTotals)
 			datas.dataset.anchortabletotals = preferences.anchorTableTotals ? '1' : '0'
@@ -2472,7 +2475,337 @@ $(document).ready(function(){
 			saveIcon.hidden = isLoading
 			saveSpinner.hidden = !isLoading
 		}
+		let sharingLookupTimer = null
+		let sharingLookupController = null
+		let resolvedSharingCode = ''
+		const accountSharingElements = function(){
+			const form = formContainer.querySelector('#accountSettingsForm')
+
+			return {
+				form: form,
+				codeInput: form?.querySelector('[name$="[users_code]"]'),
+				options: form?.querySelector('[data-account-sharing-options]'),
+				preview: form?.querySelector('[data-account-sharing-preview]'),
+				feedback: form?.querySelector('[data-account-sharing-feedback]'),
+				validateButton: form?.querySelector('[data-account-sharing-validate]')
+			}
+		}
+		const setAccountSharingFeedback = function(message, state = ''){
+			const feedback = accountSharingElements().feedback
+			if (!feedback) {
+				return
+			}
+
+			feedback.textContent = message
+			feedback.classList.remove('is-loading', 'is-success', 'is-error')
+			if (state) {
+				feedback.classList.add(`is-${state}`)
+			}
+		}
+		const applyAccountSharingRole = function(access = 'observer', participant = false){
+			const form = accountSharingElements().form
+			if (!form) {
+				return
+			}
+
+			form.querySelectorAll('[name$="[users_access]"]').forEach(input => {
+				input.checked = input.value === access
+			})
+			const participantInput = form.querySelector('[name$="[users_participant]"]')
+			if (participantInput) {
+				participantInput.checked = Boolean(participant)
+			}
+		}
+		const resetAccountSharingLookup = function(){
+			window.clearTimeout(sharingLookupTimer)
+			sharingLookupController?.abort()
+			sharingLookupController = null
+			resolvedSharingCode = ''
+
+			const {preview, validateButton} = accountSharingElements()
+			if (preview) {
+				preview.hidden = true
+			}
+			if (validateButton) {
+				validateButton.disabled = true
+			}
+			applyAccountSharingRole()
+		}
+		const lookupAccountSharingCode = function(code){
+			const {form, codeInput, preview, validateButton} = accountSharingElements()
+			if (!form || !codeInput || !preview || !validateButton || codeInput.value.trim() !== code) {
+				return
+			}
+
+			sharingLookupController = new AbortController()
+			const formData = new FormData()
+			formData.append('code', code)
+			formData.append('_token', form.dataset.accountSharingToken || '')
+
+			setAccountSharingFeedback('Recherche de la personne...', 'loading')
+			fetch(form.dataset.accountSharingLookupUrl, {
+				method: 'POST',
+				body: formData,
+				headers: {'X-Requested-With': 'XMLHttpRequest'},
+				signal: sharingLookupController.signal
+			})
+				.then(async response => ({response, payload: await response.json()}))
+				.then(({response, payload}) => {
+					if (!response.ok || !payload.found) {
+						throw new Error(payload.error || 'Personne introuvable.')
+					}
+					if (accountSharingElements().codeInput?.value.trim() !== code) {
+						return
+					}
+
+					preview.querySelector('[data-account-sharing-avatar]').textContent = payload.person.login.slice(0, 1).toUpperCase()
+					preview.querySelector('[data-account-sharing-login]').textContent = payload.person.login
+					preview.querySelector('[data-account-sharing-last-name]').textContent = payload.person.lastName || 'Non renseigné'
+					preview.querySelector('[data-account-sharing-first-name]').textContent = payload.person.firstName || 'Non renseigné'
+					preview.hidden = false
+					applyAccountSharingRole(payload.access || 'observer', payload.participant)
+					resolvedSharingCode = code
+					validateButton.disabled = false
+					validateButton.querySelector('[data-account-sharing-validate-label]').textContent = payload.associated
+						? 'Mettre à jour cette personne'
+						: 'Associer cette personne'
+					setAccountSharingFeedback(
+						payload.associated ? 'Cette personne est déjà associée au compte.' : 'Personne identifiée.',
+						'success'
+					)
+				})
+				.catch(error => {
+					if ('AbortError' === error.name) {
+						return
+					}
+					resetAccountSharingLookup()
+					setAccountSharingFeedback(error.message, 'error')
+				})
+		}
+		const syncAccountSharingOptions = function(){
+			const {codeInput, options} = accountSharingElements()
+			if (!codeInput || !options) {
+				return
+			}
+
+			resetAccountSharingLookup()
+			const code = codeInput.value.trim()
+			options.hidden = code === ''
+			if (code === '') {
+				setAccountSharingFeedback('')
+				return
+			}
+			if (code.length !== 8) {
+				setAccountSharingFeedback('Le code utilisateur comporte 8 caractères.')
+				return
+			}
+
+			sharingLookupTimer = window.setTimeout(() => lookupAccountSharingCode(code), 250)
+		}
+		const saveAccountSharing = function(button){
+			const {form, codeInput} = accountSharingElements()
+			if (!form || !codeInput || resolvedSharingCode !== codeInput.value.trim()) {
+				return
+			}
+
+			const formData = new FormData()
+			formData.append('code', resolvedSharingCode)
+			formData.append('access', form.querySelector('[name$="[users_access]"]:checked')?.value || 'observer')
+			formData.append('participant', form.querySelector('[name$="[users_participant]"]')?.checked ? '1' : '0')
+			formData.append('_token', form.dataset.accountSharingToken || '')
+
+			button.disabled = true
+			button.querySelector('[data-account-sharing-validate-icon]').hidden = true
+			button.querySelector('[data-account-sharing-validate-spinner]').hidden = false
+			setAccountSharingFeedback('Mise à jour de l’association...', 'loading')
+
+			fetch(form.dataset.accountSharingSaveUrl, {
+				method: 'POST',
+				body: formData,
+				headers: {'X-Requested-With': 'XMLHttpRequest'}
+			})
+				.then(async response => ({response, payload: await response.json()}))
+				.then(({response, payload}) => {
+					if (!response.ok || !payload.saved) {
+						throw new Error(payload.error || 'Association impossible.')
+					}
+
+					const sharingList = formContainer.querySelector('[data-account-sharing-list]')
+					if (sharingList && payload.sharing) {
+						sharingList.outerHTML = payload.sharing
+					}
+					codeInput.value = ''
+					resolvedSharingCode = ''
+					syncAccountSharingOptions()
+					setStatus(payload.updated ? 'Association mise à jour' : 'Personne associée', 'success')
+					notifySiteUpdate({ type: 'compte-sharing-saved' })
+				})
+				.catch(error => {
+					setAccountSharingFeedback(error.message, 'error')
+				})
+				.finally(() => {
+					button.querySelector('[data-account-sharing-validate-icon]').hidden = false
+					button.querySelector('[data-account-sharing-validate-spinner]').hidden = true
+					button.disabled = resolvedSharingCode === ''
+				})
+		}
+		let accountSharingActionTrigger = null
+		const closeAccountSharingConfirmation = function(restoreFocus = true){
+			const confirmation = formContainer.querySelector('[data-account-sharing-confirm]')
+			if (!confirmation) {
+				return
+			}
+
+			confirmation.hidden = true
+			confirmation.setAttribute('aria-hidden', 'true')
+			if (restoreFocus) {
+				accountSharingActionTrigger?.focus()
+			}
+			accountSharingActionTrigger = null
+		}
+		const openAccountSharingConfirmation = function(trigger){
+			const confirmation = trigger.closest('[data-account-sharing-list]')?.querySelector('[data-account-sharing-confirm]')
+			if (!confirmation) {
+				return
+			}
+
+			const action = trigger.dataset.accountSharingMemberAction
+			const memberName = trigger.dataset.accountSharingMemberName || 'cette personne'
+			const isTransfer = action === 'transfer'
+			const submit = confirmation.querySelector('[data-account-sharing-confirm-submit]')
+			accountSharingActionTrigger = trigger
+			confirmation.dataset.action = action
+			confirmation.dataset.url = trigger.dataset.accountSharingActionUrl || ''
+			confirmation.querySelector('[data-account-sharing-confirm-title]').textContent = isTransfer
+				? 'Transférer le compte ?'
+				: `Retirer ${memberName} ?`
+			confirmation.querySelector('[data-account-sharing-confirm-description]').textContent = isTransfer
+				? `${memberName} deviendra propriétaire du compte. Vous resterez associé avec le rôle Éditeur, sans pouvoir gérer les personnes associées.`
+				: `${memberName} perdra l’accès à ce compte. Ses éventuelles opérations attribuées seront libérées.`
+			confirmation.querySelector('[data-account-sharing-confirm-submit-label]').textContent = isTransfer
+				? 'Transférer le compte'
+				: 'Retirer la personne'
+			submit.classList.remove('btn-warning', 'btn-danger')
+			submit.classList.add(isTransfer ? 'btn-warning' : 'btn-danger')
+			confirmation.hidden = false
+			confirmation.setAttribute('aria-hidden', 'false')
+			confirmation.querySelector('[data-account-sharing-confirm-cancel]')?.focus()
+		}
+		const editAccountSharingMember = function(trigger){
+			const codeInput = accountSharingElements().codeInput
+			const code = trigger.dataset.accountSharingMemberCode || ''
+			if (!codeInput || !code) {
+				return
+			}
+
+			codeInput.value = code
+			codeInput.dispatchEvent(new Event('input', {bubbles: true}))
+			codeInput.focus()
+			codeInput.scrollIntoView({block: 'center', behavior: 'smooth'})
+		}
+		const confirmAccountSharingAction = function(button){
+			const confirmation = button.closest('[data-account-sharing-confirm]')
+			const form = formContainer.querySelector('#accountSettingsForm')
+			if (!confirmation || !form || !confirmation.dataset.url) {
+				return
+			}
+
+			const action = confirmation.dataset.action
+			const formData = new FormData()
+			formData.append('_token', form.dataset.accountSharingToken || '')
+			button.disabled = true
+			button.querySelector('[data-account-sharing-confirm-submit-icon]').hidden = true
+			button.querySelector('[data-account-sharing-confirm-submit-spinner]').hidden = false
+
+			fetch(confirmation.dataset.url, {
+				method: 'POST',
+				body: formData,
+				headers: {'X-Requested-With': 'XMLHttpRequest'}
+			})
+				.then(async response => ({response, payload: await response.json()}))
+				.then(({response, payload}) => {
+					if (!response.ok || !payload.saved) {
+						throw new Error(payload.error || 'Cette action n’a pas pu être effectuée.')
+					}
+
+					const sharingList = formContainer.querySelector('[data-account-sharing-list]')
+					if (sharingList && payload.sharing) {
+						sharingList.outerHTML = payload.sharing
+					}
+					if (payload.ownerTransferred) {
+						formContainer.querySelectorAll('[data-account-sharing-manager]').forEach(element => {
+							element.hidden = true
+						})
+						const readonlyNotice = formContainer.querySelector('[data-account-sharing-readonly]')
+						if (readonlyNotice) {
+							readonlyNotice.hidden = false
+						}
+					}
+					accountSharingActionTrigger = null
+					setStatus(action === 'transfer' ? 'Compte transféré' : 'Personne retirée', 'success')
+					notifySiteUpdate({ type: action === 'transfer' ? 'compte-owner-transferred' : 'compte-sharing-removed' })
+				})
+				.catch(error => {
+					setStatus(error.message, 'error')
+				})
+				.finally(() => {
+					button.disabled = false
+					button.querySelector('[data-account-sharing-confirm-submit-icon]').hidden = false
+					button.querySelector('[data-account-sharing-confirm-submit-spinner]').hidden = true
+				})
+		}
+		formContainer.addEventListener('input', function(event){
+			if (event.target.matches('[name$="[users_code]"]')) {
+				syncAccountSharingOptions()
+			}
+		})
+		formContainer.addEventListener('keydown', function(event){
+			if ('Escape' === event.key && !formContainer.querySelector('[data-account-sharing-confirm]')?.hidden) {
+				closeAccountSharingConfirmation()
+				return
+			}
+			if ('Enter' !== event.key || !event.target.matches('[name$="[users_code]"]')) {
+				return
+			}
+
+			event.preventDefault()
+			const validateButton = accountSharingElements().validateButton
+			if (validateButton && !validateButton.disabled) {
+				validateButton.click()
+			}
+		})
+		formContainer.addEventListener('click', function(event){
+			const memberAction = event.target.closest('[data-account-sharing-member-action]')
+			if (memberAction && formContainer.contains(memberAction)) {
+				if ('edit' === memberAction.dataset.accountSharingMemberAction) {
+					editAccountSharingMember(memberAction)
+				} else {
+					openAccountSharingConfirmation(memberAction)
+				}
+				return
+			}
+			const confirmationCancel = event.target.closest('[data-account-sharing-confirm-cancel]')
+			if (confirmationCancel && formContainer.contains(confirmationCancel)) {
+				closeAccountSharingConfirmation()
+				return
+			}
+			const confirmationSubmit = event.target.closest('[data-account-sharing-confirm-submit]')
+			if (confirmationSubmit && formContainer.contains(confirmationSubmit)) {
+				confirmAccountSharingAction(confirmationSubmit)
+				return
+			}
+			if (event.target.matches('[data-account-sharing-confirm]')) {
+				closeAccountSharingConfirmation()
+				return
+			}
+			const validateButton = event.target.closest('[data-account-sharing-validate]')
+			if (validateButton && formContainer.contains(validateButton)) {
+				saveAccountSharing(validateButton)
+			}
+		})
+		syncAccountSharingOptions()
 		const openAccountSettings = function(){
+			syncAccountSharingOptions()
 			if (window.bootstrap?.Modal) {
 				window.bootstrap.Modal.getOrCreateInstance(accountSettingsModal).show()
 			} else {
@@ -2555,8 +2888,13 @@ $(document).ready(function(){
 					if (!response.ok || !payload.saved) {
 						if (payload.form) {
 							formContainer.innerHTML = payload.form
+							syncAccountSharingOptions()
 						}
 						throw new Error(payload.error || 'Validation impossible')
+					}
+					if (payload.form) {
+						formContainer.innerHTML = payload.form
+						syncAccountSharingOptions()
 					}
 
 					const datas = document.getElementById('datas')

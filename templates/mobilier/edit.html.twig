@@ -2,15 +2,17 @@
 
 {% block title %}Modifier un bien mobilier{% endblock %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('patrimoine') }}
+{% endblock %}
+
 {% block body %}
-	<div class="container">
-
+	<div class="container patrimoine-page">
 		{% include('partiel/_h1.html.twig') with {'text': 'Modifier un bien mobilier'} %}
-
-		<a href="{{ path('tableau_bord') }}">Retour au tableau de bord</a>
-
 		{{ include('mobilier/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
-
-		{{ include('mobilier/_delete_form.html.twig') }}
+		<div class="patrimoine-detail">
+			{{ include('mobilier/_delete_form.html.twig') }}
+		</div>
 	</div>
 {% endblock %}
